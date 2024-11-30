@@ -1,38 +1,48 @@
+import { useEffect, useState } from 'react'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from './firebase'
 import Card from './components/Card'
 import Navbar from './components/Navbar'
 
-const cards = [
-  {
-    title: 'Card 1',
-    description: 'This is the first card description',
-    image: 'https://picsum.photos/400/300?random=1'
-  },
-  {
-    title: 'Card 2',
-    description: 'This is the second card description',
-    image: 'https://picsum.photos/400/300?random=2'
-  },
-  {
-    title: 'Card 3',
-    description: 'This is the third card description',
-    image: 'https://picsum.photos/400/300?random=3'
-  },
-];
-
 function App() {
+  const [recipes, setRecipes] = useState([]);
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        console.log('Fetching recipes...');
+        const querySnapshot = await getDocs(collection(db, 'recipes'));
+        console.log('Raw snapshot:', querySnapshot);
+        
+        const recipesData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        console.log('Processed recipes data:', recipesData);
+        setRecipes(recipesData);
+      } catch (error) {
+        console.error('Error fetching recipes:', error);
+      }
+    };
+
+    fetchRecipes();
+  }, []);
+
+  console.log('Current recipes state:', recipes);
+
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-100 p-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-8">My Card Grid</h1>
+          <h1 className="text-3xl font-bold text-center mb-8">My Recipe Grid</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cards.map((card, index) => (
+            {recipes.map((recipe, index) => (
               <Card
                 key={index}
-                title={card.title}
-                description={card.description}
-                image={card.image}
+                title={recipe.title}
+                description={recipe.description}
+                image={recipe.image}
               />
             ))}
           </div>
