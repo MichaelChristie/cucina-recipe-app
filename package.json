@@ -12,6 +12,7 @@
   "dependencies": {
     "@firebase/app": "^0.10.16",
     "@firebase/firestore": "^4.7.5",
+    "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
     "@heroicons/react": "^2.2.0",
     "firebase": "^11.0.2",
     "react": "^18.3.1",
