@@ -1,6 +1,5 @@
 {
   "hosting": {
-    "site": "cucina-recipe-app",
     "public": "dist",
     "ignore": [
       "firebase.json",
