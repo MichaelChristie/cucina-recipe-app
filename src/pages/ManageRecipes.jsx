@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import Navbar from '../components/Navbar';
+import Layout from '../components/Layout';
 import { getAllRecipes, addRecipe, updateRecipe, deleteRecipe } from '../services/recipeService';
 import { useAuth } from '../contexts/AuthContext';
 import { logOut } from '../services/authService';
@@ -106,55 +106,50 @@ export default function ManageRecipes() {
   };
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-tasty-background p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Manage Recipes</h1>
-            <button
-              onClick={() => handleOpenModal()}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Add Recipe
-            </button>
-          </div>
-          
-          {/* Recipe List Table */}
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {recipes.map((recipe) => (
-                  <tr key={recipe.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">{recipe.title}</td>
-                    <td className="px-6 py-4">{recipe.description}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button 
-                        onClick={() => handleOpenModal(recipe)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(recipe.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <Layout>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Manage Recipes</h1>
+        <button
+          onClick={() => handleOpenModal()}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Add Recipe
+        </button>
+      </div>
+      
+      {/* Recipe List Table */}
+      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {recipes.map((recipe) => (
+              <tr key={recipe.id}>
+                <td className="px-6 py-4 whitespace-nowrap">{recipe.title}</td>
+                <td className="px-6 py-4">{recipe.description}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <button 
+                    onClick={() => handleOpenModal(recipe)}
+                    className="text-blue-600 hover:text-blue-900 mr-4"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(recipe.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Recipe Modal (Add/Edit) */}
@@ -214,6 +209,6 @@ export default function ManageRecipes() {
           </div>
         </div>
       )}
-    </>
+    </Layout>
   );
 } 

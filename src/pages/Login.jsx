@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Navbar from '../components/Navbar';
+import Layout from '../components/Layout';
 import toast from 'react-hot-toast';
 
 export default function Login() {
@@ -48,9 +48,8 @@ export default function Login() {
   }
 
   return (
-    <div>
-      <Navbar showActions={false} />
-      <div className="min-h-screen bg-tasty-green flex items-center justify-center">
+    <Layout showNavbarActions={false}>
+      <div className="flex items-center justify-center">
         <div className="bg-white p-8 rounded-lg shadow-md w-96">
           <h1 className="text-2xl font-bold mb-6">
             {isSignUp ? 'Create Account' : 'Login'}
@@ -118,6 +117,6 @@ export default function Login() {
           </button>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 } 
