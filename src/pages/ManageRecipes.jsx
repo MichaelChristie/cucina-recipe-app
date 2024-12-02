@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import ManageRecipesNavbar from '../components/ManageRecipesNavbar';
 import { getAllRecipes, addRecipe, updateRecipe, deleteRecipe } from '../services/recipeService';
+import { useAuth } from '../contexts/AuthContext';
+import { logOut } from '../services/authService';
 
 export default function ManageRecipes() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [recipes, setRecipes] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState(null);
@@ -88,9 +94,20 @@ export default function ManageRecipes() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logOut();
+      toast.success('Successfully signed out');
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Failed to sign out');
+    }
+  };
+
   return (
     <>
-      <ManageRecipesNavbar onAddClick={() => handleOpenModal()} />
+      <ManageRecipesNavbar onAddClick={() => handleOpenModal()} onLogoutClick={handleLogout} />
       <div className="min-h-screen bg-tasty-background p-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-6">Manage Recipes</h1>

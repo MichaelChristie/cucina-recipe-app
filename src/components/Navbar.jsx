@@ -1,9 +1,24 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom'
-
+import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { logOut } from '../services/authService';
+import UserMenu from './UserMenu';
+import toast from 'react-hot-toast';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logOut();
+      toast.success('Successfully signed out');
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Failed to sign out');
+    }
+  };
 
   return (
     <>
@@ -12,13 +27,13 @@ export default function Navbar() {
           <div className="flex justify-between h-16">
             {/* Logo and Brand */}
             <div className="flex-shrink-0 flex items-center">
-              <a href="#" className="flex items-center">
+              <Link to="/" className="flex items-center">
                 <svg className="h-8 w-8 text-gray-600 mx-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
                     d="M11 4a1 1 0 112 0v4a1 1 0 11-2 0V4zm0 7a1 1 0 112 0v9a1 1 0 11-2 0v-9zm-5-3a1 1 0 112 0v12a1 1 0 11-2 0V8zm10 0a1 1 0 112 0v12a1 1 0 11-2 0V8z"/>
                 </svg>
                 <span className="ml-2 text-xl font-bold text-gray-800">Cucina</span>
-              </a>
+              </Link>
             </div>
 
             {/* Search Bar */}
@@ -61,23 +76,11 @@ export default function Navbar() {
                   </svg>
                 </button>
 
-                {/* Dropdown menu */}
-                {isMenuOpen && (
-                  <div
-                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 
-                             bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                  >
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Username</a>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Account Settings</a>
-            <Link 
-              to="/manage-recipes" 
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            >
-              Manage Recipes
-            </Link>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Log Out</a>
-                  </div>
-                )}
+                <UserMenu 
+                  isOpen={isMenuOpen}
+                  onClose={() => setIsMenuOpen(false)}
+                  onLogout={handleLogout}
+                />
               </div>
             </div>
           </div>
@@ -87,5 +90,5 @@ export default function Navbar() {
       <div className="h-16"></div>
     </>
   );
-};
+}
 
