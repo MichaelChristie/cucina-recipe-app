@@ -26,13 +26,13 @@ export default function Navbar({ onAddClick }) {
   return (
     <>
       <nav className={`${isManageRoute ? '' : 'fixed top-0'} w-full bg-white shadow-sm z-50`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-2">
           <div className="flex justify-between h-16">
             {/* Logo and Brand */}
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center">
                 <AnimatedLogo className="h-8 w-8 text-gray-600 mx-2" />
-                <span className="ml-2 text-xl font-bold text-gray-800">Cucina</span>
+                <span className="hidden sm:block ml-2 text-xl font-bold text-gray-800">Cucina</span>
               </Link>
             </div>
 

@@ -108,7 +108,7 @@ export default function ManageRecipes() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-tasty-background p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Manage Recipes</h1>

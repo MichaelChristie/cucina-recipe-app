@@ -23,7 +23,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-tasty-background p-8">
         <div className="max-w-7xl mx-auto">
           <IntroHeroLaunch />
           

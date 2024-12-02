@@ -9,7 +9,7 @@ export default {
       colors: {
         'tasty': {
           'green': '#1B392F', // Deep forest green from the login screen
-          'background': '#F5EFEB', // Warm beige background
+          'background': '#f5f5f5', // Warm beige background
           'white': '#FFFFFF',
           'text': '#1A2421', // Dark text color
         }
