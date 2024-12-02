@@ -18,7 +18,7 @@ export default function Login() {
     try {
       await signInWithGoogle();
       toast.success('Successfully signed in');
-      navigate('/manage-recipes');
+      navigate('/admin/dashboard');
     } catch (error) {
       console.error('Error signing in:', error);
       toast.error(error.message || 'Failed to sign in');
@@ -35,7 +35,7 @@ export default function Login() {
         await signInWithEmail(formData.email, formData.password);
         toast.success('Successfully signed in');
       }
-      navigate('/manage-recipes');
+      navigate('/admin/dashboard');
     } catch (error) {
       console.error('Error with email auth:', error);
       toast.error(error.message || `Failed to ${isSignUp ? 'sign up' : 'sign in'}`);
@@ -43,7 +43,7 @@ export default function Login() {
   };
 
   if (user) {
-    navigate('/manage-recipes');
+    navigate('/admin/dashboard');
     return null;
   }
 

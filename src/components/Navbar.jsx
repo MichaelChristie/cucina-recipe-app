@@ -10,7 +10,7 @@ export default function Navbar({ onAddClick }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const isManageRoute = location.pathname === '/manage';
+  const isManageRoute = location.pathname.startsWith('/admin');
 
   const handleLogout = async () => {
     try {
@@ -22,6 +22,14 @@ export default function Navbar({ onAddClick }) {
       toast.error('Failed to sign out');
     }
   };
+
+  // Update the account menu items
+  const accountMenuItems = [
+    { label: 'Admin Dashboard', href: '/admin/dashboard' },
+    { label: 'Manage Recipes', href: '/admin/recipes' },
+    { label: 'Manage Users', href: '/admin/users' },
+    { label: 'Sign Out', onClick: handleLogout },
+  ];
 
   return (
     <>
@@ -82,6 +90,7 @@ export default function Navbar({ onAddClick }) {
                   isOpen={isMenuOpen}
                   onClose={() => setIsMenuOpen(false)}
                   onLogout={handleLogout}
+                  accountMenuItems={accountMenuItems}
                 />
               </div>
             </div>
