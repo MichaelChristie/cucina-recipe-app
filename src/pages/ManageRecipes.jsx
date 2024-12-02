@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import ManageRecipesNavbar from '../components/ManageRecipesNavbar';
+import Navbar from '../components/Navbar';
 import { getAllRecipes, addRecipe, updateRecipe, deleteRecipe } from '../services/recipeService';
 import { useAuth } from '../contexts/AuthContext';
 import { logOut } from '../services/authService';
@@ -107,10 +107,18 @@ export default function ManageRecipes() {
 
   return (
     <>
-      <ManageRecipesNavbar onAddClick={() => handleOpenModal()} onLogoutClick={handleLogout} />
-      <div className="min-h-screen bg-tasty-background p-8">
+      <Navbar />
+      <div className="min-h-screen bg-gray-50 p-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Manage Recipes</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">Manage Recipes</h1>
+            <button
+              onClick={() => handleOpenModal()}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Add Recipe
+            </button>
+          </div>
           
           {/* Recipe List Table */}
           <div className="bg-white shadow-sm rounded-lg overflow-hidden">
