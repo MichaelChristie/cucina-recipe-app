@@ -1,10 +1,9 @@
+import { Routes, Route } from 'react-router-dom';
+import ManageRecipes from './pages/ManageRecipes';
+import Home from './pages/Home';
 import { useEffect, useState } from 'react'
 import { collection, getDocs } from 'firebase/firestore'
 import { db } from './firebase'
-import Card from './components/Card'
-import Navbar from './components/Navbar'
-import IntroHeroLaunch from './components/IntroHeroLaunch'
-
 
 function App() {
   const [recipes, setRecipes] = useState([]);
@@ -31,32 +30,11 @@ function App() {
     fetchRecipes();
   }, []);
 
-  console.log('Current recipes state:', recipes);
-
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-tasty-background p-8">
-        <div className="max-w-7xl mx-auto">
-
-
-          <IntroHeroLaunch />
-
-
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recipes.map((recipe, index) => (
-              <Card
-                key={index}
-                title={recipe.title}
-                description={recipe.description}
-                image={recipe.image}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </>
+    <Routes>
+      <Route path="/" element={<Home recipes={recipes} />} />
+      <Route path="/manage-recipes" element={<ManageRecipes />} />
+    </Routes>
   )
 }
 
