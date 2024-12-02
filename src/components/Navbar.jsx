@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom'
+
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -67,6 +69,12 @@ export default function Navbar() {
                   >
                     <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Username</a>
                     <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Account Settings</a>
+            <Link 
+              to="/manage-recipes" 
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Manage Recipes
+            </Link>
                     <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Log Out</a>
                   </div>
                 )}

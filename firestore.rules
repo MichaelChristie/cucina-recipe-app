@@ -1,8 +1,26 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /recipes/{document=**} {
+    match /recipes/{recipeId} {
+      // Anyone can read recipes
       allow read: if true;
+      
+      // Only allow write operations if the data is properly formatted
+      allow create: if request.resource.data.keys().hasAll(['title', 'description', 'image']) &&
+                      request.resource.data.title is string &&
+                      request.resource.data.title.size() > 0 &&
+                      request.resource.data.description is string &&
+                      request.resource.data.image is string;
+                      
+      allow update: if request.resource.data.diff(resource.data).affectedKeys()
+                      .hasOnly(['title', 'description', 'image']) &&
+                      request.resource.data.title is string &&
+                      request.resource.data.title.size() > 0 &&
+                      request.resource.data.description is string &&
+                      request.resource.data.image is string;
+                      
+      allow delete: if true;
     }
   }
 }
