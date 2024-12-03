@@ -183,37 +183,39 @@ export default function RecipeEditor() {
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Title</label>
+          <label className="text-xl font-bold text-gray-900 mb-4">Title</label>
           <input
             type="text"
             value={recipe.title}
             onChange={(e) => setRecipe({ ...recipe, title: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
             required
           />
         </div>
 
         {/* Image URL */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Image URL</label>
+          <label className="text-xl font-bold text-gray-900 mb-4">Image URL</label>
           <input
             type="text"
             value={recipe.image}
             onChange={(e) => setRecipe({ ...recipe, image: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
           />
 
         </div>
 
         {/* Recipe Info Panel */}
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Atrributes</h2>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div>
+
             <label className="block text-sm font-medium text-gray-700">Prep Time</label>
             <input
               type="text"
               value={recipe.prepTime}
               onChange={(e) => setRecipe({ ...recipe, prepTime: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
             />
           </div>
           <div>
@@ -222,7 +224,7 @@ export default function RecipeEditor() {
               type="text"
               value={recipe.cookTime}
               onChange={(e) => setRecipe({ ...recipe, cookTime: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
             />
           </div>
           <div>
@@ -230,7 +232,7 @@ export default function RecipeEditor() {
             <select
               value={recipe.difficulty}
               onChange={(e) => setRecipe({ ...recipe, difficulty: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
             >
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
@@ -243,7 +245,7 @@ export default function RecipeEditor() {
               type="text"
               value={recipe.category}
               onChange={(e) => setRecipe({ ...recipe, category: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
             />
           </div>
           <div>
@@ -252,19 +254,19 @@ export default function RecipeEditor() {
               type="text"
               value={recipe.nutrition?.calories}
               onChange={(e) => setRecipe({ ...recipe, nutrition: { ...recipe.nutrition, calories: e.target.value } })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
             />
           </div>
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Description</label>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Description</h2>
           <textarea
             value={recipe.description}
             onChange={(e) => setRecipe({ ...recipe, description: e.target.value })}
             rows={4}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
           />
         </div>
 
@@ -272,7 +274,7 @@ export default function RecipeEditor() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-12">
           {/* Ingredients */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-4">Ingredients</label>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Ingredients</h2>
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="ingredients-list">
                 {(provided) => (
@@ -303,14 +305,14 @@ export default function RecipeEditor() {
                               type="number"
                               value={ingredient.amount || ''}
                               onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
-                              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
                               placeholder="Amount"
                               step="0.01"
                             />
                             <select
                               value={ingredient.unit || 'gram'}
                               onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
-                              className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                              className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
                             >
                               <optgroup label="Weight - Metric">
                                 {UNITS.weight.metric.map(unit => (
@@ -352,7 +354,7 @@ export default function RecipeEditor() {
                               type="text"
                               value={ingredient.name || ''}
                               onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
-                              className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                              className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
                               placeholder="Ingredient name"
                             />
                             <button
@@ -390,7 +392,7 @@ export default function RecipeEditor() {
 
           {/* Steps */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-4">Instructions</label>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Instructions</h2>
             {recipe.steps?.map((step, index) => (
               <div key={index} className="flex gap-2 mb-2 items-start">
                 <span className="mt-2 text-gray-500 font-medium">
@@ -399,7 +401,7 @@ export default function RecipeEditor() {
                 <textarea
                   value={step.text}
                   onChange={(e) => handleStepChange(index, 'text', e.target.value)}
-                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
                   placeholder={`Step ${index + 1}`}
                   rows={2}
                 />
