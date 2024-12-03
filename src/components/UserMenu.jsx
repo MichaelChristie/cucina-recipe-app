@@ -24,13 +24,7 @@ export default function UserMenu({ isOpen, onClose, onLogout }) {
           >
             Home
           </Link>
-          <Link 
-            to="/admin/dashboard" 
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={onClose}
-          >
-            Dashboard
-          </Link>
+          
           <button
             onClick={() => {
               onClose();
