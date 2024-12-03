@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+
+.dragging {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
