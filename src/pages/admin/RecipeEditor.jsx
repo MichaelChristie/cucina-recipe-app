@@ -238,7 +238,7 @@ export default function RecipeEditor() {
         </div>
 
         {/* Ingredients and Instructions Container */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-12">
           {/* Ingredients */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-4">Ingredients</label>

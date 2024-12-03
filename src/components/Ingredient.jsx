@@ -13,20 +13,38 @@ export default function Ingredient({ amount, unit, name }) {
       return { value: amount, unit };
     }
     
-    if (unitSystem === 'metric') {
-      return { value: numericAmount, unit };
-    }
+    // Normalize the unit before checking
+    const normalizedUnit = unit?.toLowerCase()?.trim();
+    // console.log('Processing ingredient:', { amount: numericAmount, unit: normalizedUnit, unitSystem });
     
     // Convert based on unit type
-    switch (unit?.toLowerCase()) {
+    switch (normalizedUnit) {
       case 'kilogram':
-        return { value: convertUnit(numericAmount, 'kilogram', 'pound'), unit: 'pound' };
+      case 'kg':
+        return { 
+          value: convertUnit(numericAmount, 'kilogram', unitSystem), 
+          unit: unitSystem === 'metric' ? 'kilogram' : 'pound' 
+        };
       case 'gram':
-        return { value: convertUnit(numericAmount, 'gram', 'ounce'), unit: 'ounce' };
+      case 'g':
+        return { 
+          value: convertUnit(numericAmount, 'gram', unitSystem), 
+          unit: unitSystem === 'metric' ? 'gram' : 'ounce' 
+        };
       case 'liter':
-        return { value: convertUnit(numericAmount, 'liter', 'cup'), unit: 'cup' };
+      case 'l':
+        return { 
+          value: convertUnit(numericAmount, 'liter', unitSystem), 
+          unit: unitSystem === 'metric' ? 'liter' : 'cup' 
+        };
       case 'ml':
-        return { value: convertUnit(numericAmount, 'ml', 'fluid_ounce'), unit: 'fluid ounce' };
+      case 'milliliter':
+      case 'millilitre':
+      case 'mL':
+        return { 
+          value: convertUnit(numericAmount, 'ml', unitSystem), 
+          unit: unitSystem === 'metric' ? 'ml' : 'fluid ounce' 
+        };
       // Don't convert these units
       case 'teaspoon':
       case 'tablespoon':
@@ -34,6 +52,7 @@ export default function Ingredient({ amount, unit, name }) {
       case 'piece':
       case 'whole':
       default:
+        // console.log('No conversion needed for unit:', normalizedUnit);
         return { value: numericAmount, unit };
     }
   };
@@ -42,8 +61,10 @@ export default function Ingredient({ amount, unit, name }) {
   
   // Format the value only if it's a number
   const formattedValue = typeof value === 'number' 
-    ? Number(value.toFixed(1)).toString()  // Convert to number and back to string to remove trailing zeros
+    ? Number(value.toFixed(1)).toString()
     : value;
+  
+  console.log('Final conversion result:', { value: formattedValue, unit: convertedUnit });
   
   const UNIT_DISPLAY = {
     'ml': 'ml',
