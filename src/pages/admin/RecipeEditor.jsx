@@ -5,6 +5,18 @@ import AdminLayout from '../../components/AdminLayout';
 import { ChevronLeftIcon, ClockIcon, ChartBarIcon, TagIcon, BeakerIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 
+const UNITS = {
+  weight: {
+    metric: ['gram', 'kilogram'],
+    imperial: ['ounce', 'pound'],
+  },
+  volume: {
+    metric: ['milliliter', 'liter'],
+    imperial: ['fluid_ounce', 'cup', 'pint', 'quart', 'gallon'],
+  },
+  other: ['teaspoon', 'tablespoon', 'pinch', 'piece', 'whole']
+};
+
 export default function RecipeEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -74,7 +86,7 @@ export default function RecipeEditor() {
     const newIngredients = [...recipe.ingredients];
     newIngredients[index] = {
       ...newIngredients[index],
-      [field]: value
+      [field]: field === 'amount' ? parseFloat(value) || '' : value
     };
     setRecipe({ ...recipe, ingredients: newIngredients });
   };
@@ -82,7 +94,11 @@ export default function RecipeEditor() {
   const addIngredient = () => {
     setRecipe({
       ...recipe,
-      ingredients: [...(recipe.ingredients || []), { name: '', amount: '' }]
+      ingredients: [...(recipe.ingredients || []), { 
+        name: '', 
+        amount: '', 
+        unit: 'gram' // default unit
+      }]
     });
   };
 
@@ -229,12 +245,54 @@ export default function RecipeEditor() {
             {recipe.ingredients?.map((ingredient, index) => (
               <div key={index} className="flex gap-2 mb-2">
                 <input
-                  type="text"
+                  type="number"
                   value={ingredient.amount || ''}
                   onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
-                  className="w-1/4 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   placeholder="Amount"
+                  step="0.01"
                 />
+                <select
+                  value={ingredient.unit || 'gram'}
+                  onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
+                  className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                >
+                  <optgroup label="Weight - Metric">
+                    {UNITS.weight.metric.map(unit => (
+                      <option key={unit} value={unit}>
+                        {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Weight - Imperial">
+                    {UNITS.weight.imperial.map(unit => (
+                      <option key={unit} value={unit}>
+                        {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Volume - Metric">
+                    {UNITS.volume.metric.map(unit => (
+                      <option key={unit} value={unit}>
+                        {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Volume - Imperial">
+                    {UNITS.volume.imperial.map(unit => (
+                      <option key={unit} value={unit}>
+                        {unit.charAt(0).toUpperCase() + unit.slice(1).replace('_', ' ')}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Other">
+                    {UNITS.other.map(unit => (
+                      <option key={unit} value={unit}>
+                        {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
                 <input
                   type="text"
                   value={ingredient.name || ''}

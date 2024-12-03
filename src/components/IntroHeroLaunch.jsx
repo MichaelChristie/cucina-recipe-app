@@ -7,7 +7,7 @@ function IntroHeroLaunch() {
       {/* Login screen example */}
       <div className="bg-white p-8 rounded-2xl">
         <h1 className="font-display text-display-large text-tasty-green mb-8">
-          Find Your Next Favorite Dish with Tasty
+          Find Your Next Favorite Dish
         </h1>
         
 

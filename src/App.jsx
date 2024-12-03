@@ -9,24 +9,27 @@ import Recipes from './pages/admin/Recipes';
 import Users from './pages/admin/Users';
 import RecipeDetails from './pages/RecipeDetails';
 import RecipeEditor from './pages/admin/RecipeEditor';
+import { UnitPreferenceProvider } from './context/UnitPreferenceContext';
 
 export default function App() {
   return (
     <AuthProvider>
-      <Toaster position="top-right" />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        
-        {/* Admin Routes */}
-        <Route path="/admin" element={<ProtectedRoute><Navigate to="/admin/dashboard" /></ProtectedRoute>} />
-        <Route path="/admin/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/admin/recipes" element={<ProtectedRoute><Recipes /></ProtectedRoute>} />
-        <Route path="/admin/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-        <Route path="/recipe/:id" element={<RecipeDetails />} />
-        <Route path="/admin/recipes/new" element={<ProtectedRoute><RecipeEditor /></ProtectedRoute>} />
-        <Route path="/admin/recipes/edit/:id" element={<ProtectedRoute><RecipeEditor /></ProtectedRoute>} />
-      </Routes>
+      <UnitPreferenceProvider>
+        <Toaster position="top-right" />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={<ProtectedRoute><Navigate to="/admin/dashboard" /></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/admin/recipes" element={<ProtectedRoute><Recipes /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+          <Route path="/recipe/:id" element={<RecipeDetails />} />
+          <Route path="/admin/recipes/new" element={<ProtectedRoute><RecipeEditor /></ProtectedRoute>} />
+          <Route path="/admin/recipes/edit/:id" element={<ProtectedRoute><RecipeEditor /></ProtectedRoute>} />
+        </Routes>
+      </UnitPreferenceProvider>
     </AuthProvider>
   );
 }

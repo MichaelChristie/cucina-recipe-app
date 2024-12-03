@@ -13,7 +13,7 @@ export default function Card({ recipe }) {
         )}
         <div className="p-4">
           <h3 className="font-display text-display-medium text-tasty-green mb-2">{recipe.title}</h3>
-          <p className="text-gray-600">{recipe.description}</p>
+          <p className="text-gray-600 line-clamp-3">{recipe.description}</p>
         </div>
       </div>
     </Link>

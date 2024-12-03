@@ -10,6 +10,9 @@ import {
   BeakerIcon,
   FireIcon,
 } from "@heroicons/react/24/outline";
+import UnitToggle from "../components/UnitToggle";
+import { useUnitPreference } from "../context/UnitPreferenceContext";
+import Ingredient from "../components/Ingredient";
 
 export default function RecipeDetails() {
   const { id } = useParams();
@@ -135,10 +138,18 @@ export default function RecipeDetails() {
         {/* Ingredients */}
         <div className="prose max-w-none mb-8 sm:mb-0 sm:col-span-1">
           <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
+          <div className="mb-4">
+            <UnitToggle />
+          </div>
+
           <ul className="list-disc pl-5 space-y-2">
             {recipe.ingredients?.map((ingredient, index) => (
               <li key={index} className="text-gray-700">
-                {ingredient.amount} {ingredient.name}
+                <Ingredient
+                  amount={ingredient.amount}
+                  unit={ingredient.unit}
+                  name={ingredient.name}
+                />
               </li>
             ))}
           </ul>

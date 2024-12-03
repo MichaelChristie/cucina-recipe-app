@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/AdminLayout';
 import { getAllRecipes, addRecipe, updateRecipe, deleteRecipe } from '../../services/recipeService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -73,22 +74,31 @@ export default function Recipes() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {recipes.map((recipe) => (
-              <tr key={recipe.id}>
-                <td className="px-6 py-4 whitespace-nowrap">{recipe.title}</td>
-                <td className="px-6 py-4">{recipe.description}</td>
+              <tr 
+                key={recipe.id}
+                className="hover:bg-gray-50 transition-colors duration-150"
+              >
+                <td className="px-6 py-4 whitespace-nowrap text-gray-900">{recipe.title}</td>
+                <td className="px-6 py-4 text-gray-600 max-w-md">
+                  <p className="truncate">{recipe.description}</p>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <button 
-                    onClick={() => navigate(`/admin/recipes/edit/${recipe.id}`)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(recipe.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => navigate(`/admin/recipes/edit/${recipe.id}`)}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      <PencilSquareIcon className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={(e) => {
+                        handleDelete(recipe.id);
+                      }}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <TrashIcon className="h-5 w-5" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
