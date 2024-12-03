@@ -8,15 +8,15 @@ export default {
     extend: {
       colors: {
         'tasty': {
-          'green': '#1B392F', // Deep forest green from the login screen
-          'background': '#f5f5f5', // Warm beige background
+          'green': '#1B392F',
+          'background': '#f5f5f5',
           'white': '#FFFFFF',
-          'text': '#1A2421', // Dark text color
+          'text': '#1A2421',
         }
       },
       fontFamily: {
-        'display': ['Freight Display Pro', 'Playfair Display', 'serif'], // For headings
-        'sans': ['Inter', 'sans-serif'], // For body text
+        'display': ['Freight Display Pro', 'Playfair Display', 'serif'],
+        'sans': ['Inter', 'sans-serif'],
       },
       fontSize: {
         'display-large': ['2.75rem', {
