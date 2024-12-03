@@ -13,9 +13,11 @@ export default function RecipeEditor() {
     description: '',
     image: '',
     prepTime: '',
+    cookTime: '',
     difficulty: 'easy',
     category: '',
     nutrition: { calories: '' },
+    ingredients: [],
     steps: []
   });
   const [loading, setLoading] = useState(id ? true : false);
@@ -66,6 +68,27 @@ export default function RecipeEditor() {
   const removeStep = (index) => {
     const newSteps = recipe.steps.filter((_, i) => i !== index);
     setRecipe({ ...recipe, steps: newSteps });
+  };
+
+  const handleIngredientChange = (index, field, value) => {
+    const newIngredients = [...recipe.ingredients];
+    newIngredients[index] = {
+      ...newIngredients[index],
+      [field]: value
+    };
+    setRecipe({ ...recipe, ingredients: newIngredients });
+  };
+
+  const addIngredient = () => {
+    setRecipe({
+      ...recipe,
+      ingredients: [...(recipe.ingredients || []), { name: '', amount: '' }]
+    });
+  };
+
+  const removeIngredient = (index) => {
+    const newIngredients = recipe.ingredients.filter((_, i) => i !== index);
+    setRecipe({ ...recipe, ingredients: newIngredients });
   };
 
   if (loading) {
@@ -136,13 +159,22 @@ export default function RecipeEditor() {
         </div>
 
         {/* Recipe Info Panel */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700">Prep Time</label>
             <input
               type="text"
               value={recipe.prepTime}
               onChange={(e) => setRecipe({ ...recipe, prepTime: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Cook Time</label>
+            <input
+              type="text"
+              value={recipe.cookTime}
+              onChange={(e) => setRecipe({ ...recipe, cookTime: e.target.value })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
@@ -189,34 +221,74 @@ export default function RecipeEditor() {
           />
         </div>
 
-        {/* Steps */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-4">Instructions</label>
-          {recipe.steps?.map((step, index) => (
-            <div key={index} className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={step}
-                onChange={(e) => handleStepChange(index, e.target.value)}
-                className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder={`Step ${index + 1}`}
-              />
-              <button
-                type="button"
-                onClick={() => removeStep(index)}
-                className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={addStep}
-            className="mt-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-          >
-            Add Step
-          </button>
+        {/* Ingredients and Instructions Container */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Ingredients */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-4">Ingredients</label>
+            {recipe.ingredients?.map((ingredient, index) => (
+              <div key={index} className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={ingredient.amount || ''}
+                  onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
+                  className="w-1/4 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Amount"
+                />
+                <input
+                  type="text"
+                  value={ingredient.name || ''}
+                  onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Ingredient name"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeIngredient(index)}
+                  className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addIngredient}
+              className="mt-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            >
+              Add Ingredient
+            </button>
+          </div>
+
+          {/* Steps */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-4">Instructions</label>
+            {recipe.steps?.map((step, index) => (
+              <div key={index} className="flex gap-2 mb-2">
+                <input
+                  type="text"
+                  value={step}
+                  onChange={(e) => handleStepChange(index, e.target.value)}
+                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  placeholder={`Step ${index + 1}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeStep(index)}
+                  className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addStep}
+              className="mt-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            >
+              Add Step
+            </button>
+          </div>
         </div>
 
         {/* Submit Button */}

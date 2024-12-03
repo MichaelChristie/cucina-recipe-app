@@ -54,10 +54,8 @@ function IntroHeroLaunch() {
       </div>
 
       {/* Main content example */}
-      <div className="p-6">
-        <h2 className="font-display text-display-medium text-tasty-green">
-          Embark on Your Cooking Journey
-        </h2>
+      <div className="p-4">
+
       </div>
     </div>
   )

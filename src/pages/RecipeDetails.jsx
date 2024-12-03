@@ -1,8 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { getRecipeById } from '../services/recipeService';
-import Layout from '../components/Layout';
-import { ChevronLeftIcon, ClockIcon, ChartBarIcon, TagIcon, BeakerIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getRecipeById } from "../services/recipeService";
+import Layout from "../components/Layout";
+import {
+  ChevronLeftIcon,
+  ClockIcon,
+  ChartBarIcon,
+  TagIcon,
+  BeakerIcon,
+  FireIcon,
+} from "@heroicons/react/24/outline";
 
 export default function RecipeDetails() {
   const { id } = useParams();
@@ -16,7 +23,7 @@ export default function RecipeDetails() {
         const data = await getRecipeById(id);
         setRecipe(data);
       } catch (error) {
-        console.error('Error fetching recipe:', error);
+        console.error("Error fetching recipe:", error);
       } finally {
         setLoading(false);
       }
@@ -62,25 +69,42 @@ export default function RecipeDetails() {
         <span className="text-gray-900">{recipe.title}</span>
       </nav>
 
-      {/* Hero Image */}
-      <div className="relative h-96 rounded-xl overflow-hidden mb-8">
-        <img
-          src={recipe.image}
-          alt={recipe.title}
-          className="w-full h-full object-cover"
-        />
+      {/* Hero Image and Details Container */}
+      <div className="relative">
+        <div className="relative h-96 rounded-xl overflow-hidden mb-8">
+          <img
+            src={recipe.image}
+            alt={recipe.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="bg-tasty-background/80 backdrop-blur-md rounded-xl p-6 xl:absolute xl:-ml-24 xl:max-w-xl xl:-mt-60 xl:z-10 xl:min-h-[240px]">
+          {/* Title */}
+          <h1 className="font-display text-display-large text-tasty-green mb-4">
+            {recipe.title}
+          </h1>
+          {/* Description */}
+          <div className="prose max-w-none mb-0">
+            <p className="text-gray-700">{recipe.description}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Title */}
-      <h1 className="text-4xl font-bold text-gray-900 mb-6">{recipe.title}</h1>
-
       {/* Recipe Info Panel */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="flex items-center space-x-3">
           <ClockIcon className="h-6 w-6 text-gray-400" />
           <div>
             <p className="text-sm text-gray-500">Prep Time</p>
             <p className="font-medium">{recipe.prepTime}</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <FireIcon className="h-6 w-6 text-gray-400" />
+          <div>
+            <p className="text-sm text-gray-500">Cook Time</p>
+            <p className="font-medium">{recipe.cookTime}</p>
           </div>
         </div>
         <div className="flex items-center space-x-3">
@@ -106,22 +130,37 @@ export default function RecipeDetails() {
         </div>
       </div>
 
-      {/* Description */}
-      <div className="prose max-w-none mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Description</h2>
-        <p className="text-gray-700">{recipe.description}</p>
-      </div>
+      {/* Ingredients and Instructions Container */}
+      <div className="sm:grid sm:grid-cols-3 sm:gap-8 bg-white rounded-xl shadow-sm p-6 ">
+        {/* Ingredients */}
+        <div className="prose max-w-none mb-8 sm:mb-0 sm:col-span-1">
+          <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
+          <ul className="list-disc pl-5 space-y-2">
+            {recipe.ingredients?.map((ingredient, index) => (
+              <li key={index} className="text-gray-700">
+                {ingredient.amount} {ingredient.name}
+              </li>
+            ))}
+          </ul>
+        </div>
 
-      {/* Steps */}
-      <div className="prose max-w-none">
-        <h2 className="text-2xl font-semibold mb-4">Instructions</h2>
-        <ol className="space-y-4">
-          {recipe.steps?.map((step, index) => (
-            <li key={index} className="text-gray-700">
-              {step}
-            </li>
-          ))}
-        </ol>
+        {/* Steps */}
+        <div className="prose max-w-none sm:col-span-2">
+          <h2 className="text-2xl font-semibold mb-4">Instructions</h2>
+          <ol className="space-y-8">
+            {recipe.steps?.map((step, index) => (
+              <li key={index} className="flex items-start gap-6 text-gray-700">
+                <span
+                  className="flex items-center justify-center font-display text-3xl text-tasty-green 
+                  bg-white rounded-full w-12 h-12 shadow-sm border border-tasty-green/10 flex-shrink-0"
+                >
+                  {index + 1}
+                </span>
+                <p className="mt-2">{step}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </Layout>
   );

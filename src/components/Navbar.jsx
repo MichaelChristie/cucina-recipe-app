@@ -6,6 +6,12 @@ import UserMenu from './UserMenu';
 import toast from 'react-hot-toast';
 import AnimatedLogo from './AnimatedLogo';
 
+const adminTabs = [
+  { name: 'Dashboard', path: '/admin/dashboard' },
+  { name: 'Recipes', path: '/admin/recipes' },
+  { name: 'Users', path: '/admin/users' },
+];
+
 export default function Navbar({ onAddClick }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -14,13 +20,22 @@ export default function Navbar({ onAddClick }) {
 
   const handleLogout = async () => {
     try {
+      setIsMenuOpen(false);
       await logOut();
       toast.success('Successfully signed out');
-      navigate('/');
+      navigate('/', { replace: true });
     } catch (error) {
       console.error('Error logging out:', error);
       toast.error('Failed to sign out');
     }
+  };
+
+  const handleMenuToggle = () => {
+    setIsMenuOpen(prev => !prev);
+  };
+
+  const handleMenuClose = () => {
+    setIsMenuOpen(false);
   };
 
   // Update the account menu items
@@ -33,9 +48,9 @@ export default function Navbar({ onAddClick }) {
 
   return (
     <>
-      <nav className={`${isManageRoute ? '' : 'fixed top-0'} w-full bg-white shadow-sm z-50`}>
+      <nav className="fixed top-0 w-full bg-white shadow-sm z-50">
         <div className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-4">
-          <div className="flex justify-between h-16">
+          <div className="relative flex justify-between h-16">
             {/* Logo and Brand */}
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center">
@@ -70,14 +85,33 @@ export default function Navbar({ onAddClick }) {
               </div>
             )}
 
-            {/* Account Dropdown */}
-            <div className="flex items-center">
-              <div className="ml-3 relative">
+            {/* Admin tabs - centered */}
+            {isManageRoute && (
+              <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center h-full space-x-8">
+                {adminTabs.map((tab) => (
+                  <Link
+                    key={tab.name}
+                    to={tab.path}
+                    className={`${
+                      location.pathname === tab.path
+                        ? 'border-blue-500 text-blue-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                  >
+                    {tab.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Account Dropdown - always on right */}
+            <div className="flex items-center ml-auto">
+              <div className="relative">
                 <button
                   type="button"
                   className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 
                            focus:ring-blue-500"
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  onClick={handleMenuToggle}
                 >
                   <span className="sr-only">Open user menu</span>
                   <svg className="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -88,7 +122,7 @@ export default function Navbar({ onAddClick }) {
 
                 <UserMenu 
                   isOpen={isMenuOpen}
-                  onClose={() => setIsMenuOpen(false)}
+                  onClose={handleMenuClose}
                   onLogout={handleLogout}
                   accountMenuItems={accountMenuItems}
                 />
@@ -97,8 +131,8 @@ export default function Navbar({ onAddClick }) {
           </div>
         </div>
       </nav>
-      {/* Spacer to prevent content from hiding under fixed navbar - only on home page */}
-      {!isManageRoute && <div className="h-16"></div>}
+      {/* Spacer for all pages since navbar is now always fixed */}
+      <div className="h-16"></div>
     </>
   );
 }
