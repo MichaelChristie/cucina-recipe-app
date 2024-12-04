@@ -13,6 +13,8 @@ import {
 import UnitToggle from "../components/UnitToggle";
 import { useUnitPreference } from "../context/UnitPreferenceContext";
 import Ingredient from "../components/Ingredient";
+import { MDXEditor } from '@mdxeditor/editor';
+import { marked } from 'marked';
 
 export default function RecipeDetails() {
   const { id } = useParams();
@@ -89,9 +91,7 @@ export default function RecipeDetails() {
           </h1>
           {/* Description */}
           <div className="prose max-w-none mb-0">
-            <p className="text-gray-700">
-              {typeof recipe.description === 'object' ? recipe.description.text : recipe.description}
-            </p>
+            <p className="text-gray-700">{recipe.description}</p>
           </div>
         </div>
       </div>
@@ -169,9 +169,11 @@ export default function RecipeDetails() {
                 >
                   {index + 1}
                 </span>
-                <p className="mt-2">
-                  {typeof step === 'object' ? step.text : step}
-                </p>
+                <div className="mt-2 prose prose-sm max-w-none"
+                     dangerouslySetInnerHTML={{
+                       __html: marked(typeof step === 'object' ? step.text : step)
+                     }}
+                />
               </li>
             ))}
           </ol>

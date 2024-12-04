@@ -64,7 +64,7 @@ export default function Ingredient({ amount, unit, name }) {
     ? Number(value.toFixed(1)).toString()
     : value;
   
-  console.log('Final conversion result:', { value: formattedValue, unit: convertedUnit });
+//   console.log('Final conversion result:', { value: formattedValue, unit: convertedUnit });
   
   const UNIT_DISPLAY = {
     'ml': 'ml',

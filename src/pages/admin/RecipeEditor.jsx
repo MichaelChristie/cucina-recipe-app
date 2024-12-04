@@ -5,6 +5,23 @@ import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeSer
 import AdminLayout from '../../components/AdminLayout';
 import { ChevronLeftIcon, ClockIcon, ChartBarIcon, TagIcon, BeakerIcon, Bars3Icon, PlusIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
+import { 
+  MDXEditor, 
+  toolbarPlugin, 
+  BoldItalicUnderlineToggles,
+  ListsToggle,
+  BlockTypeSelect,
+  CreateLink,
+  InsertImage,
+  UndoRedo,
+  markdownShortcutPlugin,
+  listsPlugin,
+  quotePlugin,
+  headingsPlugin,
+  linkPlugin,
+  imagePlugin
+} from '@mdxeditor/editor'
+import '@mdxeditor/editor/style.css'
 
 const UNITS = {
   weight: {
@@ -19,6 +36,36 @@ const UNITS = {
 };
 
 const generateId = () => `_${Math.random().toString(36).substr(2, 9)}`;
+
+const editorStyles = {
+  '.mdxeditor': {
+    position: 'relative',
+    zIndex: 20,
+  },
+  '.toolbar-container': {
+    opacity: 0,
+    maxHeight: 0,
+    padding: 0,
+    margin: 0,
+    border: 'none',
+    transition: 'all 0.2s ease-in-out',
+    visibility: 'hidden',
+    position: 'absolute',
+    background: 'white',
+    width: '100%',
+    zIndex: 100,
+  },
+  '.toolbar-container.active': {
+    opacity: 1,
+    maxHeight: '200px',
+    padding: '0.5rem',
+    visibility: 'visible',
+    position: 'static',
+    zIndex: 1000,
+    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+    borderRadius: '0.375rem',
+  }
+};
 
 export default function RecipeEditor() {
   const { id } = useParams();
@@ -270,18 +317,17 @@ export default function RecipeEditor() {
           />
         </div>
 
-        {/* Ingredients and Instructions Container */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-12">
-          {/* Ingredients */}
-          <div>
+        {/* Ingredients */}
+        <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">Ingredients</h2>
+          <div className="bg-white rounded-xl shadow-sm p-6">
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="ingredients-list">
                 {(provided) => (
                   <div 
                     {...provided.droppableProps} 
                     ref={provided.innerRef}
-                    className="space-y-2"
+                    className="space-y-4"
                   >
                     {recipe.ingredients?.map((ingredient, index) => (
                       <Draggable 
@@ -383,48 +429,84 @@ export default function RecipeEditor() {
             <button
               type="button"
               onClick={addIngredient}
-              className="mt-2 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border border-gray-300 flex items-center gap-2"
+              className="mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border border-gray-300 flex items-center gap-2"
             >
               <PlusIcon className="h-5 w-5" />
               Add Ingredient
             </button>
           </div>
+        </div>
 
-          {/* Steps */}
-          <div>
+        {/* Steps */}
+        <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">Instructions</h2>
+          <div className="bg-white rounded-xl shadow-sm p-6">
             {recipe.steps?.map((step, index) => (
-              <div key={index} className="flex gap-2 mb-2 items-start">
-                <span className="mt-2 text-gray-500 font-medium">
-                  {index + 1}.
+              <div key={index} className="flex gap-6 mb-6 items-start">
+                <span className="flex items-center justify-center font-display text-3xl text-tasty-green 
+                  bg-white rounded-full w-12 h-12 shadow-sm border border-tasty-green/10 flex-shrink-0">
+                  {index + 1}
                 </span>
-                <textarea
-                  value={step.text}
-                  onChange={(e) => handleStepChange(index, 'text', e.target.value)}
-                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
-                  placeholder={`Step ${index + 1}`}
-                  rows={2}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleStepChange(index, 'confirmed', !step.confirmed)}
-                  className={`p-2 mt-1 rounded-full ${step.confirmed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'} hover:bg-opacity-80`}
-                >
-                  <CheckIcon className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeStep(index)}
-                  className="p-2 mt-1 text-red-600 hover:bg-red-100 rounded-full"
-                >
-                  <TrashIcon className="h-5 w-5" />
-                </button>
+                <div className="flex-1 group">
+                  <MDXEditor
+                    markdown={step.text || ''}
+                    onChange={(value) => handleStepChange(index, 'text', value)}
+                    className="prose max-w-none"
+                    placeholder={`Step ${index + 1}`}
+                    contentEditableClassName="min-h-[4rem] p-2 rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    style={editorStyles}
+                    plugins={[
+                      toolbarPlugin({
+                        toolbarContents: () => (
+                          <div 
+                            className="flex flex-wrap gap-0.5"
+                            onFocus={(e) => {
+                              e.currentTarget.closest('.toolbar-container')?.classList.add('active');
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.closest('.toolbar-container')?.classList.remove('active');
+                            }}
+                          >
+                            <UndoRedo />
+                            <BoldItalicUnderlineToggles />
+                            <ListsToggle />
+                            <BlockTypeSelect />
+                            <CreateLink />
+                            <InsertImage />
+                          </div>
+                        )
+                      }),
+                      listsPlugin(),
+                      markdownShortcutPlugin(),
+                      quotePlugin(),
+                      headingsPlugin(),
+                      linkPlugin(),
+                      imagePlugin()
+                    ]}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleStepChange(index, 'confirmed', !step.confirmed)}
+                    className={`p-2 rounded-full ${step.confirmed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'} hover:bg-opacity-80`}
+                  >
+                    <CheckIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeStep(index)}
+                    className="p-2 text-red-600 hover:bg-red-100 rounded-full"
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             ))}
             <button
               type="button"
               onClick={addStep}
-              className="mt-2 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border border-gray-300 flex items-center gap-2"
+              className="mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border border-gray-300 flex items-center gap-2"
             >
               <PlusIcon className="h-5 w-5" />
               Add Step
