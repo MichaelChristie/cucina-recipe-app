@@ -89,7 +89,9 @@ export default function RecipeDetails() {
           </h1>
           {/* Description */}
           <div className="prose max-w-none mb-0">
-            <p className="text-gray-700">{recipe.description}</p>
+            <p className="text-gray-700">
+              {typeof recipe.description === 'object' ? recipe.description.text : recipe.description}
+            </p>
           </div>
         </div>
       </div>
@@ -167,7 +169,9 @@ export default function RecipeDetails() {
                 >
                   {index + 1}
                 </span>
-                <p className="mt-2">{step}</p>
+                <p className="mt-2">
+                  {typeof step === 'object' ? step.text : step}
+                </p>
               </li>
             ))}
           </ol>
