@@ -55,7 +55,7 @@ export const getRecipeById = async (recipeId) => {
 };
 
 // Read all recipes
-export const getAllRecipes = async () => {
+export const getRecipes = async () => {
   try {
     const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
     return querySnapshot.docs.map(doc => ({

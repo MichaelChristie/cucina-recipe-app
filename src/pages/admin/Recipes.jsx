@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/AdminLayout';
-import { getAllRecipes, addRecipe, updateRecipe, deleteRecipe } from '../../services/recipeService';
+import { getRecipes, addRecipe, updateRecipe, deleteRecipe } from '../../services/recipeService';
 import { useAuth } from '../../contexts/AuthContext';
 import { logOut } from '../../services/authService';
 
@@ -18,7 +18,7 @@ export default function Recipes() {
 
   const loadRecipes = async () => {
     try {
-      const recipesData = await getAllRecipes();
+      const recipesData = await getRecipes();
       setRecipes(recipesData);
     } catch (error) {
       console.error('Error fetching recipes:', error);

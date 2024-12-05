@@ -1,18 +1,30 @@
 import React, { useEffect, useState } from 'react'
 import { MdOutlineFavoriteBorder, MdOutlineEggAlt, MdOutlineLunchDining, MdOutlineDinnerDining, MdOutlineRestaurant } from 'react-icons/md'
 import { getTags } from '../services/tagService'
+import { getRecipes } from '../services/recipeService'
+import Card from './Card'
 
 function IntroHeroLaunch() {
   const [tags, setTags] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
+  const [recipes, setRecipes] = useState([]);
 
   useEffect(() => {
-    const loadTags = async () => {
-      const fetchedTags = await getTags();
+    const loadData = async () => {
+      const [fetchedTags, fetchedRecipes] = await Promise.all([
+        getTags(),
+        getRecipes()
+      ]);
       setTags(fetchedTags);
+      setRecipes(fetchedRecipes);
     };
-    loadTags();
+    loadData();
   }, []);
+
+  const filteredRecipes = recipes.filter(recipe => {
+    if (selectedTags.length === 0) return true;
+    return recipe.tags?.some(tagId => selectedTags.includes(tagId));
+  });
 
   return (
     <div className="w-full">
@@ -65,9 +77,17 @@ function IntroHeroLaunch() {
         </div>
       </div>
 
-      {/* Main content example */}
+      {/* Recipe cards grid */}
       <div className="p-4">
-
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredRecipes.map(recipe => (
+            <Card 
+              key={recipe.id} 
+              recipe={recipe} 
+              tags={tags}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )
