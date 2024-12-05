@@ -1,7 +1,19 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { MdOutlineFavoriteBorder, MdOutlineEggAlt, MdOutlineLunchDining, MdOutlineDinnerDining, MdOutlineRestaurant } from 'react-icons/md'
+import { getTags } from '../services/tagService'
 
 function IntroHeroLaunch() {
+  const [tags, setTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  useEffect(() => {
+    const loadTags = async () => {
+      const fetchedTags = await getTags();
+      setTags(fetchedTags);
+    };
+    loadTags();
+  }, []);
+
   return (
     <div className="w-full">
       {/* Login screen example */}
@@ -15,26 +27,26 @@ function IntroHeroLaunch() {
         {/* Category buttons and search bar - now with flex-wrap and responsive layout */}
         <div className="flex flex-col gap-4 mt-4">
           <div className="flex flex-wrap gap-2">
-            <button className="flex items-center gap-1 px-3 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10">
-              <MdOutlineFavoriteBorder className="text-lg" />
-              <span>Healthy</span>
-            </button>
-            <button className="flex items-center gap-1 px-3 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10">
-              <MdOutlineEggAlt className="text-lg" />
-              <span>Breakfast</span>
-            </button>
-            <button className="flex items-center gap-1 px-3 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10">
-              <MdOutlineLunchDining className="text-lg" />
-              <span>Lunch</span>
-            </button>
-            <button className="flex items-center gap-1 px-3 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10">
-              <MdOutlineDinnerDining className="text-lg" />
-              <span>Dinner</span>
-            </button>
-            <button className="flex items-center gap-1 px-3 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10">
-              <MdOutlineRestaurant className="text-lg" />
-              <span>Restaurant</span>
-            </button>
+            {tags.map((tag) => (
+              <button
+                key={tag.id}
+                onClick={() => {
+                  setSelectedTags(prev => 
+                    prev.includes(tag.id)
+                      ? prev.filter(id => id !== tag.id)
+                      : [...prev, tag.id]
+                  );
+                }}
+                className={`flex items-center gap-1 px-3 py-2 border rounded-lg transition-colors
+                  ${selectedTags.includes(tag.id)
+                    ? 'bg-tasty-green text-white border-tasty-green'
+                    : 'border-tasty-green text-tasty-green hover:bg-tasty-green/10'
+                  }`}
+              >
+                <span>{tag.emoji}</span>
+                <span>{tag.name}</span>
+              </button>
+            ))}
           </div>
           
           <div className="flex w-full">

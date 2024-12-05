@@ -10,6 +10,7 @@ const adminTabs = [
   { name: 'Dashboard', path: '/admin/dashboard' },
   { name: 'Recipes', path: '/admin/recipes' },
   { name: 'Users', path: '/admin/users' },
+  { name: 'Tags', path: '/admin/tags' },
 ];
 
 export default function Navbar({ onAddClick }) {
@@ -43,6 +44,7 @@ export default function Navbar({ onAddClick }) {
     { label: 'Admin Dashboard', href: '/admin/dashboard' },
     { label: 'Manage Recipes', href: '/admin/recipes' },
     { label: 'Manage Users', href: '/admin/users' },
+    { label: 'Manage Tags', href: '/admin/tags' },
     { label: 'Sign Out', onClick: handleLogout },
   ];
 

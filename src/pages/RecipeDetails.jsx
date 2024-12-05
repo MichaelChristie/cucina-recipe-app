@@ -15,12 +15,14 @@ import { useUnitPreference } from "../context/UnitPreferenceContext";
 import Ingredient from "../components/Ingredient";
 import { MDXEditor } from '@mdxeditor/editor';
 import { marked } from 'marked';
+import { getTags } from "../services/tagService";
 
 export default function RecipeDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [allTags, setAllTags] = useState([]);
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -36,6 +38,14 @@ export default function RecipeDetails() {
 
     fetchRecipe();
   }, [id]);
+
+  useEffect(() => {
+    const loadTags = async () => {
+      const fetchedTags = await getTags();
+      setAllTags(fetchedTags);
+    };
+    loadTags();
+  }, []);
 
   if (loading) {
     return (
@@ -90,9 +100,25 @@ export default function RecipeDetails() {
             {recipe.title}
           </h1>
           {/* Description */}
-          <div className="prose max-w-none mb-0">
+          <div className="prose max-w-none mb-4">
             <p className="text-gray-700">{recipe.description}</p>
           </div>
+          {/* Tags */}
+          {recipe.tags?.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {allTags
+                .filter(tag => recipe.tags.includes(tag.id))
+                .map(tag => (
+                  <span
+                    key={tag.id}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm bg-white/50 backdrop-blur-sm shadow-sm"
+                  >
+                    <span>{tag.emoji}</span>
+                    <span className="text-gray-700">{tag.name}</span>
+                  </span>
+                ))}
+            </div>
+          )}
         </div>
       </div>
 

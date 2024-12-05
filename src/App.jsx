@@ -10,6 +10,7 @@ import Users from './pages/admin/Users';
 import RecipeDetails from './pages/RecipeDetails';
 import RecipeEditor from './pages/admin/RecipeEditor';
 import { UnitPreferenceProvider } from './context/UnitPreferenceContext';
+import TagManager from './pages/admin/TagManager';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/recipe/:id" element={<RecipeDetails />} />
           <Route path="/admin/recipes/new" element={<ProtectedRoute><RecipeEditor /></ProtectedRoute>} />
           <Route path="/admin/recipes/edit/:id" element={<ProtectedRoute><RecipeEditor /></ProtectedRoute>} />
+          <Route path="/admin/tags" element={<TagManager />} />
         </Routes>
       </UnitPreferenceProvider>
     </AuthProvider>

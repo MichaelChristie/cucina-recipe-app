@@ -21,6 +21,7 @@ export const addRecipe = async (recipeData) => {
         fat: ''
       },
       steps: recipeData.steps || [],
+      tags: recipeData.tags || [],
       // ...existing fields
     };
     
@@ -44,7 +45,8 @@ export const getRecipeById = async (recipeId) => {
     
     return {
       id: recipeSnap.id,
-      ...recipeSnap.data()
+      ...recipeSnap.data(),
+      tags: recipeSnap.data().tags || []
     };
   } catch (error) {
     console.error('Error getting recipe:', error);
@@ -58,7 +60,8 @@ export const getAllRecipes = async () => {
     const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
     return querySnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
+      tags: doc.data().tags || []
     }));
   } catch (error) {
     console.error('Error getting recipes:', error);
@@ -70,7 +73,17 @@ export const getAllRecipes = async () => {
 export const updateRecipe = async (recipeId, updatedData) => {
   try {
     const recipeRef = doc(db, COLLECTION_NAME, recipeId);
-    await updateDoc(recipeRef, updatedData);
+    // Clean the data before saving
+    const cleanData = {
+      ...updatedData,
+      tags: updatedData.tags || [],
+      nutrition: updatedData.nutrition || { calories: '' },
+      ingredients: updatedData.ingredients || [],
+      steps: updatedData.steps || []
+    };
+    
+    await updateDoc(recipeRef, cleanData);
+    return { id: recipeId, ...cleanData };
   } catch (error) {
     console.error('Error updating recipe:', error);
     throw error;

@@ -22,6 +22,7 @@ import {
   imagePlugin
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
+import { getTags } from '../../services/tagService';
 
 const UNITS = {
   weight: {
@@ -78,27 +79,41 @@ export default function RecipeEditor() {
     cookTime: '',
     difficulty: 'easy',
     category: '',
-    nutrition: { calories: '' },
+    nutrition: { 
+      calories: '',
+      protein: '',
+      carbs: '',
+      fat: ''
+    },
     ingredients: [],
-    steps: []
+    steps: [],
+    tags: [],
   });
   const [loading, setLoading] = useState(id ? true : false);
+  const [tags, setTags] = useState([]);
 
   useEffect(() => {
     if (id) {
       const fetchRecipe = async () => {
         try {
           const data = await getRecipeById(id);
-          const ingredientsWithIds = data.ingredients.map(ing => ({
+          if (!data) {
+            throw new Error('No data received');
+          }
+          
+          const ingredientsWithIds = data.ingredients?.map(ing => ({
             ...ing,
             id: ing.id || generateId()
-          }));
+          })) || [];
+
           setRecipe({
             ...data,
-            ingredients: ingredientsWithIds
+            ingredients: ingredientsWithIds,
+            tags: data.tags || []
           });
         } catch (error) {
           console.error('Error fetching recipe:', error);
+          toast.error('Failed to load recipe');
         } finally {
           setLoading(false);
         }
@@ -107,20 +122,41 @@ export default function RecipeEditor() {
     }
   }, [id]);
 
+  useEffect(() => {
+    const loadTags = async () => {
+      const fetchedTags = await getTags();
+      setTags(fetchedTags);
+    };
+    loadTags();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      if (!recipe.title.trim()) {
+        toast.error('Title is required');
+        return;
+      }
+
+      const cleanRecipe = {
+        ...recipe,
+        tags: recipe.tags || [],
+        nutrition: recipe.nutrition || { calories: '' },
+        ingredients: recipe.ingredients || [],
+        steps: recipe.steps || []
+      };
+
       if (id) {
-        await updateRecipe(id, recipe);
+        await updateRecipe(id, cleanRecipe);
         toast.success('Recipe updated successfully');
       } else {
-        await addRecipe(recipe);
+        await addRecipe(cleanRecipe);
         toast.success('Recipe created successfully');
       }
       navigate('/admin/recipes');
     } catch (error) {
       console.error('Error saving recipe:', error);
-      toast.error('Failed to save recipe');
+      toast.error('Failed to save recipe. Please try again.');
     }
   };
 
@@ -240,6 +276,80 @@ export default function RecipeEditor() {
           />
         </div>
 
+        {/* Tags Selection */}
+        <div className="mt-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Tags</h2>
+          
+          {/* Tag Categories Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            {Object.entries(
+              tags.reduce((acc, tag) => {
+                if (!acc[tag.category]) acc[tag.category] = [];
+                acc[tag.category].push(tag);
+                return acc;
+              }, {})
+            ).map(([category, categoryTags]) => (
+              <div key={category} className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-sm font-medium text-gray-700 mb-2 capitalize">{category}</h3>
+                <div className="space-y-2">
+                  {categoryTags.map((tag) => (
+                    <label
+                      key={tag.id}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={recipe.tags?.includes(tag.id)}
+                        onChange={(e) => {
+                          const newTags = e.target.checked
+                            ? [...(recipe.tags || []), tag.id]
+                            : (recipe.tags || []).filter(id => id !== tag.id);
+                          setRecipe({ ...recipe, tags: newTags });
+                        }}
+                        className="rounded border-gray-300 text-tasty-green focus:ring-tasty-green"
+                      />
+                      <span className="w-6 text-center">{tag.emoji}</span>
+                      <span className="text-sm text-gray-700">{tag.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Selected Tags Display */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Tags</h3>
+            <div className="flex flex-wrap gap-2">
+              {recipe.tags?.length > 0 ? (
+                tags
+                  .filter(tag => recipe.tags.includes(tag.id))
+                  .map(tag => (
+                    <div
+                      key={tag.id}
+                      className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm"
+                    >
+                      <span>{tag.emoji}</span>
+                      <span className="text-sm text-gray-700">{tag.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newTags = recipe.tags.filter(id => id !== tag.id);
+                          setRecipe({ ...recipe, tags: newTags });
+                        }}
+                        className="ml-1 text-gray-400 hover:text-gray-600"
+                      >
+                        ��
+                      </button>
+                    </div>
+                  ))
+              ) : (
+                <p className="text-sm text-gray-500 italic">No tags selected</p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Image URL */}
         <div>
           <label className="text-xl font-bold text-gray-900 mb-4">Image URL</label>
@@ -299,8 +409,14 @@ export default function RecipeEditor() {
             <label className="block text-sm font-medium text-gray-700">Calories</label>
             <input
               type="text"
-              value={recipe.nutrition?.calories}
-              onChange={(e) => setRecipe({ ...recipe, nutrition: { ...recipe.nutrition, calories: e.target.value } })}
+              value={recipe.nutrition?.calories || ''}
+              onChange={(e) => setRecipe({ 
+                ...recipe, 
+                nutrition: { 
+                  ...recipe.nutrition, 
+                  calories: e.target.value 
+                } 
+              })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
             />
           </div>
@@ -322,7 +438,7 @@ export default function RecipeEditor() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">Ingredients</h2>
           <div className="bg-white rounded-xl shadow-sm p-6">
             <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="ingredients-list">
+              <Droppable droppableId="ingredients-list" type="ingredient">
                 {(provided) => (
                   <div 
                     {...provided.droppableProps} 
