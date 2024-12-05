@@ -1,0 +1,80 @@
+[{
+    "id": "ul2AsVySFwNLFNmWiIWY",
+    "title": "Ravioli",
+    "image": "https://images.unsplash.com/photo-1636475735446-bfc801fa6f2c?q=80&w=3570&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "ingredients": [
+      {
+        "id": "_xzspu7uqj",
+        "amount": 1,
+        "unit": "kilogram",
+        "name": "Lorem Ipsum",
+        "confirmed": false
+      },
+      {
+        "confirmed": false,
+        "name": "Dolor sit amet",
+        "amount": 10,
+        "unit": "piece",
+        "id": "_pjzk3ydz8"
+      },
+      {
+        "id": "_lp2ooxm5d",
+        "unit": "whole",
+        "name": "Consecateur",
+        "confirmed": false,
+        "amount": 1
+      },
+      {
+        "confirmed": true,
+        "id": "_a8bm9nvnl",
+        "name": "Amed",
+        "amount": 3,
+        "unit": "whole"
+      }
+    ],
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "steps": [
+      {
+        "confirmed": false,
+        "text": "**Lorem Ipsum Dolor Sit**\n\n• A versatile placeholder text.\n\n• Commonly used in design and typography.\n\n• Helps visualize layout and content flow."
+      },
+      {
+        "confirmed": false,
+        "text": "**Consectetur Adipiscing Elit**\n\n• Ideal for web design mockups.\n\n• Offers a natural text rhythm.\n\n• Enhances focus on aesthetics."
+      },
+      {
+        "text": "**Amet Eget Arcu Nec**\n\n• Placeholder for modern UI/UX projects.\n\n• Mimics natural text patterns.\n\n• Keeps attention on layout details.",
+        "confirmed": false
+      },
+      {
+        "confirmed": false,
+        "text": "**Proin Sodales Mi Vel**\n\n• Perfect for mobile-first layouts.\n\n• Aligns well with responsive grids.\n\n• Ensures clean and readable designs."
+      },
+      {
+        "text": "**Donec Ultrices Ligula Et**\n\n• A favorite for printed materials.\n\n• Balances density and readability.\n\n• Works seamlessly in all fonts.",
+        "confirmed": false
+      },
+      {
+        "text": "**Vestibulum Viverra Vulputate Justo**\n\n• Fits well in minimalist designs.\n\n• Guides visual hierarchy effectively.\n\n• Maintains aesthetic harmony.",
+        "confirmed": false
+      },
+      {
+        "text": "**Mauris Pellentesque Sagittis Arcu**\n\n• Great for editorial layouts.\n\n• Provides a polished visual flow.\n\n• Complements elegant typography.",
+        "confirmed": false
+      }
+    ],
+    "difficulty": "easy",
+    "cookTime": "10",
+    "nutrition": {
+      "calories": "510",
+      "protein": "",
+      "carbs": "",
+      "fat": ""
+    },
+    "tags": [
+      7,
+      20
+    ],
+    "prepTime": "10",
+    "category": "Italiano"
+}]

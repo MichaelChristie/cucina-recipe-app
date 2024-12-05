@@ -32,4 +32,16 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
-*.sw? 
+*.sw?
+
+# Firebase
+*firebase-adminsdk*.json
+cucina-recipe-app-firebase-adminsdk-70386-7ca86b4daf.json
+
+# Config
+config/*.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local

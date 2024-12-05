@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, TrashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/AdminLayout';
 import { getRecipes, addRecipe, updateRecipe, deleteRecipe } from '../../services/recipeService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -48,6 +48,17 @@ export default function Recipes() {
     }
   };
 
+  const handleExport = async (recipe) => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(recipe, null, 2));
+      toast.success('Recipe JSON copied to clipboard');
+      console.log('Recipe exported:', recipe);
+    } catch (error) {
+      console.error('Error exporting recipe:', error);
+      toast.error('Failed to export recipe');
+    }
+  };
+
   return (
     <AdminLayout>
 <div className="bg-white shadow-sm rounded-lg p-6">
@@ -87,14 +98,21 @@ export default function Recipes() {
                     <button 
                       onClick={() => navigate(`/admin/recipes/edit/${recipe.id}`)}
                       className="text-blue-600 hover:text-blue-900"
+                      title="Edit recipe"
                     >
                       <PencilSquareIcon className="h-5 w-5" />
                     </button>
                     <button 
-                      onClick={(e) => {
-                        handleDelete(recipe.id);
-                      }}
+                      onClick={() => handleExport(recipe)}
+                      className="text-gray-600 hover:text-gray-900"
+                      title="Export recipe JSON"
+                    >
+                      <DocumentDuplicateIcon className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(recipe.id)}
                       className="text-red-600 hover:text-red-900"
+                      title="Delete recipe"
                     >
                       <TrashIcon className="h-5 w-5" />
                     </button>

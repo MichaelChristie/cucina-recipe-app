@@ -12,8 +12,8 @@ function Card({ recipe, tags }) {
   };
 
   return (
-    <Link to={`/recipe/${recipe.id}`} className="group">
-      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+    <Link to={`/recipe/${recipe.id}`} className="group h-full block">
+      <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden h-full flex flex-col">
         {/* Image */}
         <div className="aspect-video relative overflow-hidden">
           <img
@@ -28,13 +28,18 @@ function Card({ recipe, tags }) {
         </div>
         
         {/* Content */}
-        <div className="p-4">
+        <div className="p-4 flex-1 flex flex-col">
           <h3 className="font-display text-lg font-medium text-gray-900 mb-2">
             {recipe.title}
           </h3>
           
+          {/* Description - truncated to 2 lines */}
+          <p className="text-gray-600 mb-3 line-clamp-2 text-sm">
+            {recipe.description}
+          </p>
+          
           {/* Meta information */}
-          <div className="flex items-center gap-4 text-sm text-gray-600">
+          <div className="flex items-center gap-4 text-sm text-gray-600 mb-auto">
             <div className="flex items-center gap-1">
               <MdAccessTime className="text-tasty-green" />
               <span>{recipe.cookingTime} min</span>
