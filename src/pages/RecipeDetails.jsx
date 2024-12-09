@@ -9,6 +9,7 @@ import {
   TagIcon,
   BeakerIcon,
   FireIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import UnitToggle from "../components/UnitToggle";
 import { useUnitPreference } from "../context/UnitPreferenceContext";
@@ -103,6 +104,22 @@ export default function RecipeDetails() {
           <div className="prose max-w-none mb-4">
             <p className="text-gray-700">{recipe.description}</p>
           </div>
+          {/* Tags moved here */}
+          {recipe.tags?.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {allTags
+                .filter(tag => recipe.tags.includes(tag.id))
+                .map(tag => (
+                  <span
+                    key={tag.id}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm bg-white/50 backdrop-blur-sm shadow-sm"
+                  >
+                    <span>{tag.emoji}</span>
+                    <span className="text-gray-700">{tag.name}</span>
+                  </span>
+                ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -130,25 +147,10 @@ export default function RecipeDetails() {
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <TagIcon className="h-6 w-6 text-gray-400" />
+          <UserGroupIcon className="h-6 w-6 text-gray-400" />
           <div>
-            <p className="text-sm text-gray-500">Category</p>
-            <p className="font-medium">{recipe.category}</p>
-            {recipe.tags?.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {allTags
-                  .filter(tag => recipe.tags.includes(tag.id))
-                  .map(tag => (
-                    <span
-                      key={tag.id}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm bg-white/50 backdrop-blur-sm shadow-sm"
-                    >
-                      <span>{tag.emoji}</span>
-                      <span className="text-gray-700">{tag.name}</span>
-                    </span>
-                  ))}
-              </div>
-            )}
+            <p className="text-sm text-gray-500">Servings</p>
+            <p className="font-medium">{recipe.servings || '4'}</p>
           </div>
         </div>
         <div className="flex items-center space-x-3">

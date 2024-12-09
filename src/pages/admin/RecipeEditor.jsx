@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeService';
 import AdminLayout from '../../components/AdminLayout';
-import { ChevronLeftIcon, ClockIcon, ChartBarIcon, TagIcon, BeakerIcon, Bars3Icon, PlusIcon, TrashIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ClockIcon, ChartBarIcon, TagIcon, BeakerIcon, Bars3Icon, PlusIcon, TrashIcon, CheckIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { 
   MDXEditor, 
@@ -366,7 +366,6 @@ export default function RecipeEditor() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">Atrributes</h2>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div>
-
             <label className="block text-sm font-medium text-gray-700">Prep Time</label>
             <input
               type="text"
@@ -397,12 +396,14 @@ export default function RecipeEditor() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Category</label>
+            <label className="block text-sm font-medium text-gray-700">Servings</label>
             <input
-              type="text"
-              value={recipe.category}
-              onChange={(e) => setRecipe({ ...recipe, category: e.target.value })}
+              type="number"
+              min="1"
+              value={recipe.servings || ''}
+              onChange={(e) => setRecipe({ ...recipe, servings: parseInt(e.target.value) || '' })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+              placeholder="4"
             />
           </div>
           <div>
