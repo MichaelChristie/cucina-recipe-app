@@ -94,7 +94,7 @@ export default function RecipeDetails() {
           />
         </div>
 
-        <div className="bg-tasty-background/80 backdrop-blur-md rounded-xl p-6 xl:absolute xl:-ml-24 xl:max-w-xl xl:-mt-60 xl:z-10 xl:min-h-[240px]">
+        <div className="bg-tasty-background/80 backdrop-blur-md rounded-xl p-6 xl:absolute xl:bottom-[-24px] xl:-ml-24 xl:max-w-xl xl:z-10 xl:min-h-[240px]">
           {/* Title */}
           <h1 className="font-display text-display-large text-tasty-green mb-4">
             {recipe.title}
@@ -103,22 +103,6 @@ export default function RecipeDetails() {
           <div className="prose max-w-none mb-4">
             <p className="text-gray-700">{recipe.description}</p>
           </div>
-          {/* Tags */}
-          {recipe.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {allTags
-                .filter(tag => recipe.tags.includes(tag.id))
-                .map(tag => (
-                  <span
-                    key={tag.id}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm bg-white/50 backdrop-blur-sm shadow-sm"
-                  >
-                    <span>{tag.emoji}</span>
-                    <span className="text-gray-700">{tag.name}</span>
-                  </span>
-                ))}
-            </div>
-          )}
         </div>
       </div>
 
@@ -150,6 +134,21 @@ export default function RecipeDetails() {
           <div>
             <p className="text-sm text-gray-500">Category</p>
             <p className="font-medium">{recipe.category}</p>
+            {recipe.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {allTags
+                  .filter(tag => recipe.tags.includes(tag.id))
+                  .map(tag => (
+                    <span
+                      key={tag.id}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm bg-white/50 backdrop-blur-sm shadow-sm"
+                    >
+                      <span>{tag.emoji}</span>
+                      <span className="text-gray-700">{tag.name}</span>
+                    </span>
+                  ))}
+              </div>
+            )}
           </div>
         </div>
         <div className="flex items-center space-x-3">

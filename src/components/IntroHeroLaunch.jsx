@@ -69,7 +69,9 @@ function IntroHeroLaunch() {
                 </button>
                 
                 {openCategory === id && (
-                  <div className="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
+                  <div 
+                    className="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg transition-opacity duration-300"
+                  >
                     <div className="p-2 space-y-1">
                       {getTagsByCategory(id).map((tag) => (
                         <label
@@ -85,6 +87,8 @@ function IntroHeroLaunch() {
                                   ? prev.filter(tagId => tagId !== tag.id)
                                   : [...prev, tag.id]
                               );
+                              // Close the dropdown after selection
+                              setOpenCategory(null);
                             }}
                             className="rounded border-gray-300 text-tasty-green focus:ring-tasty-green"
                           />

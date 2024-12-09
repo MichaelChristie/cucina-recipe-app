@@ -59,6 +59,24 @@ export default function Recipes() {
     }
   };
 
+  const handleDuplicate = async (recipe) => {
+    try {
+      const duplicatedRecipe = {
+        ...recipe,
+        title: `${recipe.title} (Copy)`,
+      };
+      // Remove the id to create a new document
+      delete duplicatedRecipe.id;
+      
+      await addRecipe(duplicatedRecipe);
+      toast.success('Recipe duplicated successfully');
+      await loadRecipes();
+    } catch (error) {
+      console.error('Error duplicating recipe:', error);
+      toast.error('Failed to duplicate recipe');
+    }
+  };
+
   return (
     <AdminLayout>
 <div className="bg-white shadow-sm rounded-lg p-6">
@@ -106,6 +124,13 @@ export default function Recipes() {
                       onClick={() => handleExport(recipe)}
                       className="text-gray-600 hover:text-gray-900"
                       title="Export recipe JSON"
+                    >
+                      <DocumentDuplicateIcon className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDuplicate(recipe)}
+                      className="text-green-600 hover:text-green-900"
+                      title="Duplicate recipe"
                     >
                       <DocumentDuplicateIcon className="h-5 w-5" />
                     </button>
