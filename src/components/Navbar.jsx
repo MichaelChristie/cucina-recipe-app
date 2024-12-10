@@ -12,6 +12,8 @@ import {
   UserGroupIcon, 
   TagIcon 
 } from '@heroicons/react/24/outline';
+import SearchBar from './SearchBar';
+import Logo from './Logo';
 
 const adminNavigation = [
   { name: 'Dashboard', path: '/admin', icon: HomeIcon },
@@ -65,7 +67,8 @@ export default function Navbar({ onAddClick }) {
             {/* Logo and Brand */}
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center">
-                <AnimatedLogo className="h-8 w-8 text-gray-600 mx-2" />
+                <Logo />
+                {/* <AnimatedLogo className="h-8 w-8 text-gray-600 mx-2" /> */}
                 <span className="hidden sm:block ml-2 text-xl font-bold text-gray-800">Cucina</span>
               </Link>
             </div>
@@ -74,24 +77,9 @@ export default function Navbar({ onAddClick }) {
             {!isManageRoute && (
               <div className="flex-1 flex items-center justify-center px-2 lg:ml-6 lg:justify-center">
                 <div className="max-w-lg w-full lg:max-w-xs">
-                  <label htmlFor="search" className="sr-only">Search</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                      </svg>
-                    </div>
-                    <input
-                      id="search"
-                      name="search"
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white 
-                               placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 
-                               focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      placeholder="Search recipes..."
-                      type="search"
-                    />
-                  </div>
+                  <SearchBar onSearch={() => {
+                    // Add your search logic here
+                  }} />
                 </div>
               </div>
             )}

@@ -3,7 +3,6 @@ import {
   HeartIcon, 
   ChevronDownIcon,
   XMarkIcon,
-  MagnifyingGlassIcon,
   BeakerIcon
 } from '@heroicons/react/24/outline'
 // import { BeakerIcon } from '@heroicons/react/24/solid'
@@ -42,10 +41,21 @@ function IntroHeroLaunch() {
   }, []);
 
   // Get unique categories from tags
-  const categories = [...new Set(tags.map(tag => tag.category))].map(category => ({
-    id: category,
-    name: category.charAt(0).toUpperCase() + category.slice(1) // Capitalize first letter
-  }));
+  const categories = [...new Set(tags.map(tag => tag.category))].map(category => {
+    const emojis = {
+      diet: '🌿',
+      meal: '🍽️',
+      cuisine: '🌍',
+      style: '🥘',
+      special: '🎉'
+    };
+    
+    return {
+      id: category,
+      name: category.charAt(0).toUpperCase() + category.slice(1), // Capitalize first letter
+      emoji: emojis[category] || '📌' // Default emoji if category not found
+    };
+  });
 
   const getTagsByCategory = (category) => {
     return tags.filter(tag => tag.category === category);
@@ -138,9 +148,9 @@ function IntroHeroLaunch() {
 
   // Update the renderIngredientSearch function
   const renderIngredientSearch = () => (
-    <div className="relative" ref={searchRef}>
-      <div className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10">
-        <BeakerIcon className="h-5 w-5" />
+    <div className="relative w-full" ref={searchRef}>
+      <div className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10 w-full">
+        <BeakerIcon className="h-5 w-5 flex-shrink-0" />
         <input
           ref={inputRef}
           type="text"
@@ -149,7 +159,7 @@ function IntroHeroLaunch() {
           onFocus={() => setIsSearchFocused(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search ingredients..."
-          className="bg-transparent outline-none placeholder-tasty-green/60"
+          className="bg-transparent outline-none placeholder-tasty-green/60 w-full"
         />
       </div>
 
@@ -199,14 +209,15 @@ function IntroHeroLaunch() {
         {/* Category dropdowns and search bar container */}
         <div className="flex flex-wrap items-start gap-4">
           {/* Category dropdowns wrapper */}
-          <div className="flex flex-wrap gap-2">
-            {categories.map(({ id, name }) => (
+          <div className="flex flex-wrap gap-2 w-full">
+            {categories.map(({ id, name, emoji }) => (
               <div key={id} className="relative">
                 <button
                   onClick={() => handleCategoryClick(id)}
                   className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10"
                 >
-                  {name}
+                  <span>{emoji}</span>
+                  <span>{name}</span>
                   <ChevronDownIcon className={`h-5 w-5 transition-transform ${
                     openCategory === id ? 'rotate-180' : ''
                   }`} />
@@ -248,22 +259,9 @@ function IntroHeroLaunch() {
               </div>
             ))}
 
-            {renderIngredientSearch()}
-          </div>
-
-          {/* Search bar that fills remaining space */}
-          <div className="flex flex-1 min-w-[300px]">
-            <div className="relative flex-1">
-              <input 
-                type="text"
-                className="w-full border border-tasty-green rounded-l-lg px-4 py-2 pl-10 text-tasty-green placeholder-tasty-green/60"
-                placeholder="Search your favourite dish"
-              />
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-tasty-green/60 h-5 w-5" />
+            <div className="flex-1">
+              {renderIngredientSearch()}
             </div>
-            <button className="px-4 py-2 bg-tasty-green border border-tasty-green rounded-r-lg text-white font-medium hover:bg-tasty-green/90">
-              Search
-            </button>
           </div>
         </div>
 
@@ -356,7 +354,7 @@ function IntroHeroLaunch() {
       </div>
 
       {/* Recipe cards grid */}
-      <div className="p-4">
+      <div className="p-0 pt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 [grid-auto-rows:1fr]">
           {filteredRecipes.map(recipe => (
             <div key={recipe.id} className="h-full flex flex-col">

@@ -177,7 +177,7 @@ export default function RecipeDetails() {
       </div>
 
       {/* Ingredients and Instructions Container */}
-      <div className="sm:grid sm:grid-cols-3 sm:gap-8 bg-white rounded-xl shadow-sm p-6 ">
+      <div className="sm:grid sm:grid-cols-3 sm:gap-8 ">
         {/* Ingredients */}
         <div className="prose max-w-none mb-8 sm:mb-0 sm:col-span-1">
           <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
