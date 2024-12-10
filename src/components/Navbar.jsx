@@ -5,12 +5,20 @@ import { logOut } from '../services/authService';
 import UserMenu from './UserMenu';
 import toast from 'react-hot-toast';
 import AnimatedLogo from './AnimatedLogo';
+import { 
+  HomeIcon, 
+  BookOpenIcon, 
+  CubeIcon,
+  UserGroupIcon, 
+  TagIcon 
+} from '@heroicons/react/24/outline';
 
-const adminTabs = [
-  { name: 'Dashboard', path: '/admin/dashboard' },
-  { name: 'Recipes', path: '/admin/recipes' },
-  { name: 'Users', path: '/admin/users' },
-  { name: 'Tags', path: '/admin/tags' },
+const adminNavigation = [
+  { name: 'Dashboard', path: '/admin', icon: HomeIcon },
+  { name: 'Recipes', path: '/admin/recipes', icon: BookOpenIcon },
+  { name: 'Ingredients', path: '/admin/ingredients', icon: CubeIcon },
+  { name: 'Users', path: '/admin/users', icon: UserGroupIcon },
+  { name: 'Tags', path: '/admin/tags', icon: TagIcon },
 ];
 
 export default function Navbar({ onAddClick }) {
@@ -41,8 +49,9 @@ export default function Navbar({ onAddClick }) {
 
   // Update the account menu items
   const accountMenuItems = [
-    { label: 'Admin Dashboard', href: '/admin/dashboard' },
+    { label: 'Admin Dashboard', href: '/admin' },
     { label: 'Manage Recipes', href: '/admin/recipes' },
+    { label: 'Manage Ingredients', href: '/admin/ingredients' },
     { label: 'Manage Users', href: '/admin/users' },
     { label: 'Manage Tags', href: '/admin/tags' },
     { label: 'Sign Out', onClick: handleLogout },
@@ -90,19 +99,23 @@ export default function Navbar({ onAddClick }) {
             {/* Admin tabs - centered */}
             {isManageRoute && (
               <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center h-full space-x-8">
-                {adminTabs.map((tab) => (
-                  <Link
-                    key={tab.name}
-                    to={tab.path}
-                    className={`${
-                      location.pathname === tab.path
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                  >
-                    {tab.name}
-                  </Link>
-                ))}
+                {adminNavigation.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.path}
+                      className={`${
+                        location.pathname === item.path
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                    >
+                      <Icon className="h-5 w-5 mr-2" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
               </div>
             )}
 

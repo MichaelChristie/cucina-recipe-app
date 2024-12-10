@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { 
   HeartIcon, 
   ChevronDownIcon,
@@ -20,6 +20,12 @@ function IntroHeroLaunch() {
   const [ingredients, setIngredients] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [isIngredientSearchOpen, setIsIngredientSearchOpen] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const inputRef = useRef(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredIngredients, setFilteredIngredients] = useState([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -63,6 +69,124 @@ function IntroHeroLaunch() {
 
   const getTagById = (tagId) => {
     return tags.find(tag => tag.id === tagId);
+  };
+
+  // Add keyboard event handler
+  const handleKeyDown = (e) => {
+    if (!isSearchFocused || filteredIngredients.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex(prev => 
+          prev < filteredIngredients.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0) {
+          const selectedIngredient = filteredIngredients[highlightedIndex];
+          setSelectedIngredients(prev => [...prev, selectedIngredient.id]);
+          setSearchTerm('');
+          setIsSearchFocused(true);
+          setHighlightedIndex(-1);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setIsSearchFocused(false);
+        setHighlightedIndex(-1);
+        inputRef.current?.blur();
+        break;
+    }
+  };
+
+  // Reset highlighted index when filtered ingredients change
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [filteredIngredients]);
+
+  // Add this useEffect to handle clicks outside the search dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchFocused(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Add this useEffect to filter ingredients based on search term
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = ingredients.filter(
+        ing => 
+          ing.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          !selectedIngredients.includes(ing.id)
+      );
+      setFilteredIngredients(filtered);
+    } else {
+      setFilteredIngredients([]);
+    }
+  }, [searchTerm, ingredients, selectedIngredients]);
+
+  // Update the renderIngredientSearch function
+  const renderIngredientSearch = () => (
+    <div className="relative" ref={searchRef}>
+      <div className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10">
+        <BeakerIcon className="h-5 w-5" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setIsSearchFocused(true)}
+          onKeyDown={handleKeyDown}
+          placeholder="Search ingredients..."
+          className="bg-transparent outline-none placeholder-tasty-green/60"
+        />
+      </div>
+
+      {/* Dropdown for search results */}
+      {isSearchFocused && filteredIngredients.length > 0 && (
+        <div className="absolute z-20 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {filteredIngredients.map((ingredient, index) => (
+            <button
+              key={ingredient.id}
+              onClick={() => {
+                setSelectedIngredients(prev => [...prev, ingredient.id]);
+                setSearchTerm('');
+                inputRef.current?.focus();
+                setIsSearchFocused(true);
+                setHighlightedIndex(-1);
+              }}
+              onMouseEnter={() => setHighlightedIndex(index)}
+              className={`w-full text-left px-4 py-2 flex items-center justify-between ${
+                highlightedIndex === index 
+                  ? 'bg-tasty-green/10 text-tasty-green'
+                  : 'hover:bg-gray-50'
+              }`}
+            >
+              <span>{ingredient.name}</span>
+              <span className="text-sm text-gray-500">
+                ({ingredient.category})
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // Add this helper function near your other helper functions
+  const getIngredientById = (ingredientId) => {
+    return ingredients.find(ingredient => ingredient.id === ingredientId);
   };
 
   return (
@@ -124,57 +248,7 @@ function IntroHeroLaunch() {
               </div>
             ))}
 
-            {/* Add Ingredient Search Button */}
-            <button
-              onClick={() => setIsIngredientSearchOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10"
-            >
-              {/* <BeakerIcon className="h-5 w-5" /> */}
-              Search by Ingredient
-            </button>
-
-            {/* Ingredient Search Modal */}
-            {isIngredientSearchOpen && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">Search by Ingredients</h2>
-                    <button
-                      onClick={() => setIsIngredientSearchOpen(false)}
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      <XMarkIcon className="h-6 w-6" />
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    {ingredients.map((ingredient) => (
-                      <label
-                        key={ingredient.id}
-                        className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedIngredients.includes(ingredient.id)}
-                          onChange={() => {
-                            setSelectedIngredients(prev =>
-                              prev.includes(ingredient.id)
-                                ? prev.filter(id => id !== ingredient.id)
-                                : [...prev, ingredient.id]
-                            );
-                          }}
-                          className="rounded border-gray-300 text-tasty-green focus:ring-tasty-green"
-                        />
-                        <span>{ingredient.name}</span>
-                        <span className="text-sm text-gray-500">
-                          ({ingredient.category})
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            {renderIngredientSearch()}
           </div>
 
           {/* Search bar that fills remaining space */}
@@ -228,6 +302,48 @@ function IntroHeroLaunch() {
               {selectedTags.length > 1 && (
                 <button
                   onClick={() => setSelectedTags([])}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 border border-red-200 rounded-full"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  <span>Clear all</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Selected ingredients display */}
+        {selectedIngredients.length > 0 && (
+          <div className="mt-4">
+            <div className="flex flex-wrap gap-2">
+              {selectedIngredients.map(ingredientId => {
+                const ingredient = getIngredientById(ingredientId);
+                if (!ingredient) return null;
+                
+                return (
+                  <div
+                    key={ingredient.id}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-tasty-green/10 text-tasty-green border border-tasty-green/20 rounded-full text-sm"
+                  >
+                    <span>{ingredient.name}</span>
+                    <button
+                      onClick={() => {
+                        setSelectedIngredients(prev => 
+                          prev.filter(id => id !== ingredient.id)
+                        );
+                      }}
+                      className="p-0.5 hover:bg-tasty-green/10 rounded-full"
+                    >
+                      <XMarkIcon className="h-4 w-4 text-tasty-green" />
+                    </button>
+                  </div>
+                );
+              })}
+              
+              {/* Clear all ingredients button */}
+              {selectedIngredients.length > 1 && (
+                <button
+                  onClick={() => setSelectedIngredients([])}
                   className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 border border-red-200 rounded-full"
                 >
                   <XMarkIcon className="h-4 w-4" />
