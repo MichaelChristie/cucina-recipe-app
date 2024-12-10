@@ -201,7 +201,7 @@ function IntroHeroLaunch() {
 
   return (
     <div className="w-full">
-      <div className="bg-white p-8 rounded-2xl">
+      <div className="pb-8">
         <h1 className="font-display text-display-large text-tasty-green mb-8">
           Find Your Next Favorite Dish
         </h1>
@@ -354,8 +354,8 @@ function IntroHeroLaunch() {
       </div>
 
       {/* Recipe cards grid */}
-      <div className="p-0 pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 [grid-auto-rows:1fr]">
+      <div className="pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 [grid-auto-rows:1fr] max-w-[2000px] w-full mx-auto">
           {filteredRecipes.map(recipe => (
             <div key={recipe.id} className="h-full flex flex-col">
               <Card 

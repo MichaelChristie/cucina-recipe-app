@@ -12,7 +12,10 @@ export const addRecipe = async (recipeData) => {
       description: recipeData.description || '',
       image: recipeData.image || '',
       prepTime: recipeData.prepTime || '',
+      cookTime: recipeData.cookTime || '',
       difficulty: recipeData.difficulty || 'medium',
+      servings: recipeData.servings || '',
+      calories: recipeData.calories || '',
       category: recipeData.category || '',
       nutrition: recipeData.nutrition || {
         calories: '',
@@ -22,7 +25,6 @@ export const addRecipe = async (recipeData) => {
       },
       steps: recipeData.steps || [],
       tags: recipeData.tags || [],
-      // ...existing fields
     };
     
     const docRef = await addDoc(collection(db, COLLECTION_NAME), validatedData);
@@ -76,6 +78,8 @@ export const updateRecipe = async (recipeId, updatedData) => {
     // Clean the data before saving
     const cleanData = {
       ...updatedData,
+      servings: updatedData.servings || '',
+      calories: updatedData.calories || '',
       tags: updatedData.tags || [],
       nutrition: updatedData.nutrition || { calories: '' },
       ingredients: updatedData.ingredients || [],

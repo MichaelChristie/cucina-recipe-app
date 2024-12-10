@@ -61,7 +61,7 @@ export default function Navbar({ onAddClick }) {
 
   return (
     <>
-      <nav className="fixed top-0 w-full bg-white shadow-sm z-50">
+      <nav className="sticky top-0 z-50 backdrop-blur-md bg-tasty-background/80">
         <div className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-4">
           <div className="relative flex justify-between h-16">
             {/* Logo and Brand */}
@@ -134,8 +134,6 @@ export default function Navbar({ onAddClick }) {
           </div>
         </div>
       </nav>
-      {/* Spacer for all pages since navbar is now always fixed */}
-      <div className="h-16"></div>
     </>
   );
 }

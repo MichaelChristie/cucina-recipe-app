@@ -19,6 +19,22 @@ import { marked } from 'marked';
 import { getTags } from "../services/tagService";
 import { getIngredients } from '../services/ingredientService';
 
+const getCategoryFromTags = (recipeTags, allTags) => {
+  const tagCategories = {
+    'special': 1,
+    'style': 2,
+    'cuisine': 3,
+    'meal': 4,
+    'diet': 5
+  };
+  
+  const matchingTags = allTags
+    .filter(tag => recipeTags.includes(tag.id))
+    .sort((a, b) => (tagCategories[a.category] || 999) - (tagCategories[b.category] || 999));
+
+  return matchingTags[0]?.name || 'Food & Drink';
+};
+
 export default function RecipeDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -99,131 +115,173 @@ export default function RecipeDetails() {
         <span className="text-gray-900">{recipe.title}</span>
       </nav>
 
-      {/* Hero Image and Details Container */}
-      <div className="relative">
-        <div className="relative h-96 rounded-xl overflow-hidden mb-8">
-          <img
-            src={recipe.image}
-            alt={recipe.title}
-            className="w-full h-full object-cover"
-          />
-        </div>
+      {/* Hero Section */}
+      <div className="relative w-full">
+        <div className="grid grid-cols-12 gap-8">
+          {/* Left Content Area */}
+          <div className="col-span-12 lg:col-span-4">
+            <div className="max-w-7xl mx-auto">
+              <div className="px-4 sm:px-6 lg:px-16 py-12 lg:py-20">
+                {/* Category Link */}
+                <div className="flex items-center justify-start">
+                  <div className="text-base">
+                    <span className="font-display font-bold uppercase tracking-wider">
+                      {getCategoryFromTags(recipe.tags || [], allTags)}
+                    </span>
+                  </div>
+                </div>
 
-        <div className="bg-tasty-background/80 backdrop-blur-md rounded-xl p-6 xl:absolute xl:bottom-[-24px] xl:-ml-24 xl:max-w-xl xl:z-10 xl:min-h-[240px]">
-          {/* Title */}
-          <h1 className="font-display text-display-large text-tasty-green mb-4">
-            {recipe.title}
-          </h1>
-          {/* Description */}
-          <div className="prose max-w-none mb-4">
-            <p className="text-gray-700">{recipe.description}</p>
-          </div>
-          {/* Tags moved here */}
-          {recipe.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {allTags
-                .filter(tag => recipe.tags.includes(tag.id))
-                .map(tag => (
-                  <span
-                    key={tag.id}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm bg-white/50 backdrop-blur-sm shadow-sm"
-                  >
-                    <span>{tag.emoji}</span>
-                    <span className="text-gray-700">{tag.name}</span>
-                  </span>
-                ))}
+                {/* Title */}
+                <h1 className="mt-6 mb-4 font-display text-3xl md:text-4xl xl:text-5xl 
+                             font-semibold leading-tight text-tasty-green">
+                  {recipe.title}
+                </h1>
+
+                {/* Description */}
+                <div className="prose max-w-none mt-6">
+                  <p className="text-gray-700">{recipe.description}</p>
+                </div>
+
+                {/* Tags */}
+                {recipe.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-6">
+                    {allTags
+                      .filter(tag => recipe.tags.includes(tag.id))
+                      .map(tag => (
+                        <span
+                          key={tag.id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm 
+                                   bg-white/80 shadow-sm"
+                        >
+                          <span>{tag.emoji}</span>
+                          <span className="text-gray-700">{tag.name}</span>
+                        </span>
+                      ))}
+                  </div>
+                )}
+
+
+                {/* Quick Info Panel */}
+                <div className="mt-8 p-4">
+                  <div className="flex flex-col gap-4">
+                    {recipe.prepTime && (
+                      <div className="flex items-center gap-2">
+                        <ClockIcon className="h-5 w-5 text-gray-700" />
+                        <div>
+                          <p className="text-sm text-gray-500">Prep Time</p>
+                          <p className="font-medium">{recipe.prepTime}</p>
+                        </div>
+                      </div>
+                    )}
+                    {recipe.cookTime && (
+                      <div className="flex items-center gap-2">
+                        <FireIcon className="h-5 w-5 text-gray-700" />
+                        <div>
+                          <p className="text-sm text-gray-500">Cook Time</p>
+                          <p className="font-medium">{recipe.cookTime}</p>
+                        </div>
+                      </div>
+                    )}
+                    {recipe.difficulty && (
+                      <div className="flex items-center gap-2">
+                        <ChartBarIcon className="h-5 w-5 text-gray-700" />
+                        <div>
+                          <p className="text-sm text-gray-500">Difficulty</p>
+                          <p className="font-medium capitalize">{recipe.difficulty}</p>
+                        </div>
+                      </div>
+                    )}
+                    {recipe.servings && (
+                      <div className="flex items-center gap-2">
+                        <UserGroupIcon className="h-5 w-5 text-gray-700" />
+                        <div>
+                          <p className="text-sm text-gray-500">Servings</p>
+                          <p className="font-medium">{recipe.servings}</p>
+                        </div>
+                      </div>
+                    )}
+                    {recipe.calories && (
+                      <div className="flex items-center gap-2">
+                        <BeakerIcon className="h-5 w-5 text-gray-700" />
+                        <div>
+                          <p className="text-sm text-gray-500">Calories</p>
+                          <p className="font-medium">{recipe.calories}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Recipe Info Panel */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="flex items-center space-x-3">
-          <ClockIcon className="h-6 w-6 text-gray-400" />
-          <div>
-            <p className="text-sm text-gray-500">Prep Time</p>
-            <p className="font-medium">{recipe.prepTime}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <FireIcon className="h-6 w-6 text-gray-400" />
-          <div>
-            <p className="text-sm text-gray-500">Cook Time</p>
-            <p className="font-medium">{recipe.cookTime}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <ChartBarIcon className="h-6 w-6 text-gray-400" />
-          <div>
-            <p className="text-sm text-gray-500">Difficulty</p>
-            <p className="font-medium capitalize">{recipe.difficulty}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <UserGroupIcon className="h-6 w-6 text-gray-400" />
-          <div>
-            <p className="text-sm text-gray-500">Servings</p>
-            <p className="font-medium">{recipe.servings || '4'}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <BeakerIcon className="h-6 w-6 text-gray-400" />
-          <div>
-            <p className="text-sm text-gray-500">Calories</p>
-            <p className="font-medium">{recipe.nutrition?.calories}</p>
+          {/* Right Image Area */}
+          <div className="col-span-12 lg:col-span-8">
+            <figure className="h-full">
+              <img
+                src={recipe.image}
+                alt={recipe.title}
+                className="w-full h-full object-cover"
+              />
+              {recipe.imageCaption && (
+                <figcaption className="mt-3 px-4 sm:px-6 lg:px-16 text-sm text-gray-600">
+                  {recipe.imageCaption}
+                </figcaption>
+              )}
+            </figure>
           </div>
         </div>
       </div>
 
-      {/* Ingredients and Instructions Container */}
-      <div className="sm:grid sm:grid-cols-3 sm:gap-8 ">
-        {/* Ingredients */}
-        <div className="prose max-w-none mb-8 sm:mb-0 sm:col-span-1">
-          <h2 className="text-2xl font-semibold mb-4">Ingredients</h2>
-          <div className="mb-4">
-            <UnitToggle />
+      {/* Recipe Content Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-16">
+        {/* Ingredients and Instructions Container */}
+        <div className="mt-16 sm:grid sm:grid-cols-3 sm:gap-12">
+          {/* Ingredients */}
+          <div className="prose max-w-none mb-12 sm:mb-0 sm:col-span-1">
+            <h2 className="font-display text-2xl font-semibold mb-6">Ingredients</h2>
+            <div className="mb-6">
+              <UnitToggle />
+            </div>
+
+            <ul className="list-disc pl-5 space-y-4">
+              {recipe.ingredients?.map((ingredient, index) => {
+                const ingredientDetails = getIngredientById(ingredient.ingredientId);
+                if (!ingredientDetails) return null;
+
+                return (
+                  <li key={index} className="text-gray-700">
+                    <Ingredient
+                      amount={ingredient.amount}
+                      unit={ingredient.unit}
+                      name={ingredientDetails.name}
+                      defaultUnit={ingredientDetails.defaultUnit}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
           </div>
 
-          <ul className="list-disc pl-5 space-y-2">
-            {recipe.ingredients?.map((ingredient, index) => {
-              const ingredientDetails = getIngredientById(ingredient.ingredientId);
-              if (!ingredientDetails) return null;
-
-              return (
-                <li key={index} className="text-gray-700">
-                  <Ingredient
-                    amount={ingredient.amount}
-                    unit={ingredient.unit}
-                    name={ingredientDetails.name}
-                    defaultUnit={ingredientDetails.defaultUnit}
+          {/* Method (formerly Instructions) */}
+          <div className="prose max-w-none sm:col-span-2">
+            <h2 className="font-display text-2xl font-semibold mb-6">Method</h2>
+            <ol className="space-y-10">
+              {recipe.steps?.map((step, index) => (
+                <li key={index} className="flex items-start gap-6 text-gray-700">
+                  <span className="flex items-center justify-center font-display text-2xl text-gray-900 
+                                 bg-white rounded-full w-10 h-10 shadow-sm border border-gray-100 flex-shrink-0">
+                    {index + 1}
+                  </span>
+                  <div className="mt-1 prose prose-sm max-w-none"
+                       dangerouslySetInnerHTML={{
+                         __html: marked(typeof step === 'object' ? step.text : step)
+                       }}
                   />
                 </li>
-              );
-            })}
-          </ul>
-        </div>
-
-        {/* Steps */}
-        <div className="prose max-w-none sm:col-span-2">
-          <h2 className="text-2xl font-semibold mb-4">Instructions</h2>
-          <ol className="space-y-8">
-            {recipe.steps?.map((step, index) => (
-              <li key={index} className="flex items-start gap-6 text-gray-700">
-                <span
-                  className="flex items-center justify-center font-display text-3xl text-tasty-green 
-                  bg-white rounded-full w-12 h-12 shadow-sm border border-tasty-green/10 flex-shrink-0"
-                >
-                  {index + 1}
-                </span>
-                <div className="mt-2 prose prose-sm max-w-none"
-                     dangerouslySetInnerHTML={{
-                       __html: marked(typeof step === 'object' ? step.text : step)
-                     }}
-                />
-              </li>
-            ))}
-          </ol>
+              ))}
+            </ol>
+          </div>
         </div>
       </div>
     </Layout>
