@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { MdOutlineFavoriteBorder, MdOutlineEggAlt, MdOutlineLunchDining, MdOutlineDinnerDining, MdOutlineRestaurant, MdKeyboardArrowDown, MdClose } from 'react-icons/md'
+import { 
+  HeartIcon, 
+  ChevronDownIcon,
+  XMarkIcon,
+  MagnifyingGlassIcon,
+  BeakerIcon
+} from '@heroicons/react/24/outline'
+// import { BeakerIcon } from '@heroicons/react/24/solid'
 import { getTags } from '../services/tagService'
 import { getRecipes } from '../services/recipeService'
+import { getIngredients } from '../services/ingredientService'
 import Card from './Card'
 
 function IntroHeroLaunch() {
@@ -9,15 +17,20 @@ function IntroHeroLaunch() {
   const [selectedTags, setSelectedTags] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [openCategory, setOpenCategory] = useState(null);
+  const [ingredients, setIngredients] = useState([]);
+  const [selectedIngredients, setSelectedIngredients] = useState([]);
+  const [isIngredientSearchOpen, setIsIngredientSearchOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
-      const [fetchedTags, fetchedRecipes] = await Promise.all([
+      const [fetchedTags, fetchedRecipes, fetchedIngredients] = await Promise.all([
         getTags(),
-        getRecipes()
+        getRecipes(),
+        getIngredients()
       ]);
       setTags(fetchedTags);
       setRecipes(fetchedRecipes);
+      setIngredients(fetchedIngredients);
     };
     loadData();
   }, []);
@@ -33,8 +46,15 @@ function IntroHeroLaunch() {
   };
 
   const filteredRecipes = recipes.filter(recipe => {
-    if (selectedTags.length === 0) return true;
-    return recipe.tags?.some(tagId => selectedTags.includes(tagId));
+    const matchesTags = selectedTags.length === 0 || 
+      recipe.tags?.some(tagId => selectedTags.includes(tagId));
+    
+    const matchesIngredients = selectedIngredients.length === 0 ||
+      selectedIngredients.every(ingredientId =>
+        recipe.ingredients?.some(ing => ing.ingredientId === ingredientId)
+      );
+
+    return matchesTags && matchesIngredients;
   });
 
   const handleCategoryClick = (category) => {
@@ -63,7 +83,7 @@ function IntroHeroLaunch() {
                   className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10"
                 >
                   {name}
-                  <MdKeyboardArrowDown className={`transition-transform ${
+                  <ChevronDownIcon className={`h-5 w-5 transition-transform ${
                     openCategory === id ? 'rotate-180' : ''
                   }`} />
                 </button>
@@ -103,6 +123,58 @@ function IntroHeroLaunch() {
                 )}
               </div>
             ))}
+
+            {/* Add Ingredient Search Button */}
+            <button
+              onClick={() => setIsIngredientSearchOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10"
+            >
+              {/* <BeakerIcon className="h-5 w-5" /> */}
+              Search by Ingredient
+            </button>
+
+            {/* Ingredient Search Modal */}
+            {isIngredientSearchOpen && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">Search by Ingredients</h2>
+                    <button
+                      onClick={() => setIsIngredientSearchOpen(false)}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {ingredients.map((ingredient) => (
+                      <label
+                        key={ingredient.id}
+                        className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedIngredients.includes(ingredient.id)}
+                          onChange={() => {
+                            setSelectedIngredients(prev =>
+                              prev.includes(ingredient.id)
+                                ? prev.filter(id => id !== ingredient.id)
+                                : [...prev, ingredient.id]
+                            );
+                          }}
+                          className="rounded border-gray-300 text-tasty-green focus:ring-tasty-green"
+                        />
+                        <span>{ingredient.name}</span>
+                        <span className="text-sm text-gray-500">
+                          ({ingredient.category})
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Search bar that fills remaining space */}
@@ -113,7 +185,7 @@ function IntroHeroLaunch() {
                 className="w-full border border-tasty-green rounded-l-lg px-4 py-2 pl-10 text-tasty-green placeholder-tasty-green/60"
                 placeholder="Search your favourite dish"
               />
-              {/* <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-tasty-green/60 text-lg" /> */}
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-tasty-green/60 h-5 w-5" />
             </div>
             <button className="px-4 py-2 bg-tasty-green border border-tasty-green rounded-r-lg text-white font-medium hover:bg-tasty-green/90">
               Search
@@ -146,7 +218,7 @@ function IntroHeroLaunch() {
                       }}
                       className="p-0.5 hover:bg-tasty-green/10 rounded-full"
                     >
-                      <MdClose className="text-tasty-green" />
+                      <XMarkIcon className="h-4 w-4 text-tasty-green" />
                     </button>
                   </div>
                 );
@@ -158,7 +230,7 @@ function IntroHeroLaunch() {
                   onClick={() => setSelectedTags([])}
                   className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 border border-red-200 rounded-full"
                 >
-                  <MdClose />
+                  <XMarkIcon className="h-4 w-4" />
                   <span>Clear all</span>
                 </button>
               )}

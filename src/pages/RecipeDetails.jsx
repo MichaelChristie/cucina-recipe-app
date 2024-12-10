@@ -17,6 +17,7 @@ import Ingredient from "../components/Ingredient";
 import { MDXEditor } from '@mdxeditor/editor';
 import { marked } from 'marked';
 import { getTags } from "../services/tagService";
+import { getIngredients } from '../services/ingredientService';
 
 export default function RecipeDetails() {
   const { id } = useParams();
@@ -24,6 +25,7 @@ export default function RecipeDetails() {
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allTags, setAllTags] = useState([]);
+  const [allIngredients, setAllIngredients] = useState([]);
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -47,6 +49,18 @@ export default function RecipeDetails() {
     };
     loadTags();
   }, []);
+
+  useEffect(() => {
+    const loadIngredients = async () => {
+      const fetchedIngredients = await getIngredients();
+      setAllIngredients(fetchedIngredients);
+    };
+    loadIngredients();
+  }, []);
+
+  const getIngredientById = (ingredientId) => {
+    return allIngredients.find(ing => ing.id === ingredientId);
+  };
 
   if (loading) {
     return (
@@ -172,15 +186,21 @@ export default function RecipeDetails() {
           </div>
 
           <ul className="list-disc pl-5 space-y-2">
-            {recipe.ingredients?.map((ingredient, index) => (
-              <li key={index} className="text-gray-700">
-                <Ingredient
-                  amount={ingredient.amount}
-                  unit={ingredient.unit}
-                  name={ingredient.name}
-                />
-              </li>
-            ))}
+            {recipe.ingredients?.map((ingredient, index) => {
+              const ingredientDetails = getIngredientById(ingredient.ingredientId);
+              if (!ingredientDetails) return null;
+
+              return (
+                <li key={index} className="text-gray-700">
+                  <Ingredient
+                    amount={ingredient.amount}
+                    unit={ingredient.unit}
+                    name={ingredientDetails.name}
+                    defaultUnit={ingredientDetails.defaultUnit}
+                  />
+                </li>
+              );
+            })}
           </ul>
         </div>
 

@@ -1,137 +1,137 @@
-const CONVERSION_RATES = {
+// Add consistent unit normalization
+const UNIT_MAPPINGS = {
   // Weight
-  kilogram: {
-    pound: 2.20462,
-    ounce: 35.274,
-    gram: 1000
-  },
-  gram: {
-    pound: 0.00220462,
-    ounce: 0.035274,
-    kilogram: 0.001
-  },
+  'gram': 'g',
+  'grams': 'g',
+  'g': 'g',
+  'kilogram': 'kg',
+  'kilograms': 'kg',
+  'kg': 'kg',
+  'ounce': 'oz',
+  'ounces': 'oz',
+  'oz': 'oz',
+  'pound': 'lb',
+  'pounds': 'lb',
+  'lb': 'lb',
   // Volume
-  ml: {
-    fluid_ounce: 0.033814,
-    cup: 0.00422675,
-    pint: 0.00211338,
-    quart: 0.00105669,
-    gallon: 0.000264172,
-    liter: 0.001
-  },
-  liter: {
-    fluid_ounce: 33.814,
-    cup: 4.22675,
-    pint: 2.11338,
-    quart: 1.05669,
-    gallon: 0.264172,
-    ml: 1000
-  },
-  fluid_ounce: {
-    ml: 29.5735,
-    liter: 0.0295735
-  }
-};
-
-const VOLUME_CONVERSIONS = {
-  'ml': 1,  // base unit
-  'cups': 236.588,
-  'tablespoons': 14.7868,
-  'teaspoons': 4.92892,
-  'fluid ounces': 29.5735,
-  'pints': 473.176,
-  'quarts': 946.353,
-  'gallons': 3785.41,
-  'liters': 1000,
-}
-
-const UNIT_SYSTEMS = {
-  metric: {
-    weight: ['gram', 'kilogram', 'kg', 'g'],
-    volume: ['ml', 'milliliter', 'millilitre', 'liter', 'l', 'mL', 'ML', 'milliliters'],
-  },
-  imperial: {
-    weight: ['pound', 'ounce', 'lb', 'oz'],
-    volume: ['gallon', 'quart', 'pint', 'cup', 'fluid_ounce', 'fl_oz', 'fluid ounce', 'fluid_oz'],
-  },
-  neutral: {
-    other: ['tablespoon', 'teaspoon', 'tbsp', 'tsp', 'pinch', 'dash'],
-  }
-};
-
-const UNIT_ALIASES = {
-  'kg': 'kilogram',
-  'g': 'gram',
-  'lb': 'pound',
-  'oz': 'ounce',
-  'tbsp': 'tablespoon',
-  'tsp': 'teaspoon',
-  'fl_oz': 'fluid_ounce',
-  'l': 'liter',
-  'ml': 'ml',
-  'mL': 'ml',
-  'ML': 'ml',
   'milliliter': 'ml',
-  'millilitre': 'ml',
   'milliliters': 'ml',
-  'fluid ounce': 'fluid_ounce',
-  'fluid oz': 'fluid_ounce',
-  'fl oz': 'fluid_ounce',
-  'fl_oz': 'fluid_ounce',
+  'ml': 'ml',
+  'liter': 'l',
+  'liters': 'l',
+  'l': 'l',
+  'fluid_ounce': 'fl_oz',
+  'fluid ounce': 'fl_oz',
+  'fluid_ounces': 'fl_oz',
+  'fluid ounces': 'fl_oz',
+  // Keep original for non-convertible
+  'teaspoon': 'teaspoon',
+  'tablespoon': 'tablespoon',
+  'pinch': 'pinch',
+  'piece': 'piece',
+  'whole': 'whole',
+  'clove': 'clove'
 };
 
-export function convertUnit(value, fromUnit, toSystem) {
-  if (!fromUnit) return value;  // Early return if no unit provided
-  
-  // console.log('Starting conversion:', { value, fromUnit, toSystem, fromUnitType: typeof fromUnit });
-  
-  const normalizedFromUnit = UNIT_ALIASES[fromUnit.toLowerCase()] || fromUnit.toLowerCase();
-  // console.log('Normalized unit:', normalizedFromUnit);
-  
-  // Find which system and type the unit belongs to
-  let fromSystem, unitType;
-  for (const [system, categories] of Object.entries(UNIT_SYSTEMS)) {
-    for (const [type, units] of Object.entries(categories)) {
-      if (units.includes(normalizedFromUnit)) {
-        fromSystem = system;
-        unitType = type;
-        break;
-      }
+// Update the conversion rates to be more precise
+const CONVERSION_RATES = {
+  g_to_oz: 0.035274,
+  oz_to_g: 28.3495,
+  g_to_lb: 0.00220462,
+  lb_to_g: 453.592
+};
+
+export function convertUnit(amount, fromUnit, toUnit) {
+  // Normalize units
+  fromUnit = normalizeUnit(fromUnit);
+  toUnit = normalizeUnit(toUnit);
+
+  // If units are the same, return original amount
+  if (fromUnit === toUnit) return amount;
+
+  // Define conversion rates
+  const conversions = {
+    // Weight
+    g: {
+      kg: (v) => v / 1000,
+      oz: (v) => v * 0.035274,
+      lb: (v) => v * 0.00220462
+    },
+    kg: {
+      g: (v) => v * 1000,
+      oz: (v) => v * 35.274,
+      lb: (v) => v * 2.20462
+    },
+    oz: {
+      g: (v) => v * 28.3495,
+      kg: (v) => v * 0.0283495,
+      lb: (v) => v / 16
+    },
+    lb: {
+      g: (v) => v * 453.592,
+      kg: (v) => v * 0.453592,
+      oz: (v) => v * 16
+    },
+    // Volume
+    ml: {
+      l: (v) => v / 1000,
+      'fl_oz': (v) => v * 0.033814,
+      cup: (v) => v * 0.00422675
+    },
+    l: {
+      ml: (v) => v * 1000,
+      'fl_oz': (v) => v * 33.814,
+      cup: (v) => v * 4.22675
+    },
+    'fl_oz': {
+      ml: (v) => v * 29.5735,
+      l: (v) => v * 0.0295735,
+      cup: (v) => v / 8
+    },
+    cup: {
+      ml: (v) => v * 236.588,
+      l: (v) => v * 0.236588,
+      'fl_oz': (v) => v * 8
     }
-    if (fromSystem) break;
-  }
-  
-  // console.log('Detected:', { fromSystem, unitType });
+  };
 
-  // If unit is neutral or systems match, return original value
-  if (fromSystem === 'neutral' || fromSystem === toSystem) {
-    // console.log('No conversion needed:', { fromSystem, toSystem });
-    return value;
+  // Helper to normalize unit names
+  function normalizeUnit(unit) {
+    if (!unit) return '';
+    unit = unit.toLowerCase().trim();
+    const unitMap = {
+      'gram': 'g',
+      'grams': 'g',
+      'g': 'g',
+      'kilogram': 'kg',
+      'kilograms': 'kg',
+      'kg': 'kg',
+      'ounce': 'oz',
+      'ounces': 'oz',
+      'oz': 'oz',
+      'pound': 'lb',
+      'pounds': 'lb',
+      'lb': 'lb',
+      'milliliter': 'ml',
+      'milliliters': 'ml',
+      'ml': 'ml',
+      'liter': 'l',
+      'liters': 'l',
+      'l': 'l',
+      'fluid_ounce': 'fl_oz',
+      'fluid_ounces': 'fl_oz',
+      'fluid ounce': 'fl_oz',
+      'fluid ounces': 'fl_oz'
+    };
+    return unitMap[unit] || unit;
   }
 
-  // Determine target unit based on unit type
-  let toUnit;
-  if (unitType === 'weight') {
-    toUnit = toSystem === 'metric' ? 'kilogram' : 'pound';
-  } else if (unitType === 'volume') {
-    toUnit = toSystem === 'metric' ? 'ml' : 'fluid_ounce';
+  // If no conversion needed or possible, return original amount
+  if (!conversions[fromUnit] || !conversions[fromUnit][toUnit]) {
+    return amount;
   }
 
-  // console.log('Converting to:', { toUnit });
-
-  if (!toUnit) {
-    // console.log('No target unit found');
-    return value;
-  }
-
-  const rate = CONVERSION_RATES[normalizedFromUnit]?.[toUnit];
-  if (!rate) {
-    // console.log('No conversion rate found for:', { normalizedFromUnit, toUnit });
-    throw new Error(`Conversion from ${fromUnit} to ${toUnit} not supported`);
-  }
-  
-  const result = value * rate;
-  // console.log('Conversion result:', { value, rate, result });
-  
-  return result;
+  // Perform conversion and round to 2 decimal places
+  const converted = conversions[fromUnit][toUnit](parseFloat(amount));
+  return Math.round(converted * 100) / 100;
 } 

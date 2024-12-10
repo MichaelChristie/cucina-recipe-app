@@ -4,5 +4,12 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if true;  // WARNING: Only for development!
     }
+
+    match /ingredients/{ingredient} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
   }
 }

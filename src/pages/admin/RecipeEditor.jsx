@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeService';
 import AdminLayout from '../../components/AdminLayout';
-import { ChevronLeftIcon, ClockIcon, ChartBarIcon, TagIcon, BeakerIcon, Bars3Icon, PlusIcon, TrashIcon, CheckIcon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, ClockIcon, ChartBarIcon, TagIcon, BeakerIcon, Bars3Icon, PlusIcon, TrashIcon, CheckIcon, UserGroupIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { 
   MDXEditor, 
@@ -23,6 +23,7 @@ import {
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
 import { getTags } from '../../services/tagService';
+import { getIngredients } from '../../services/ingredientService';
 
 const UNITS = {
   weight: {
@@ -31,9 +32,9 @@ const UNITS = {
   },
   volume: {
     metric: ['milliliter', 'liter'],
-    imperial: ['fluid_ounce', 'cup', 'pint', 'quart', 'gallon'],
+    imperial: ['fluid_ounce', 'cup'],
   },
-  other: ['teaspoon', 'tablespoon', 'pinch', 'piece', 'whole']
+  other: ['teaspoon', 'tablespoon', 'pinch', 'piece', 'whole', 'clove']
 };
 
 const generateId = () => `_${Math.random().toString(36).substr(2, 9)}`;
@@ -88,9 +89,12 @@ export default function RecipeEditor() {
     ingredients: [],
     steps: [],
     tags: [],
+    showTagsPanel: false
   });
   const [loading, setLoading] = useState(id ? true : false);
   const [tags, setTags] = useState([]);
+  const [availableIngredients, setAvailableIngredients] = useState([]);
+  const [activeIngredient, setActiveIngredient] = useState({ index: null, field: null });
 
   useEffect(() => {
     if (id) {
@@ -130,6 +134,27 @@ export default function RecipeEditor() {
     loadTags();
   }, []);
 
+  useEffect(() => {
+    const loadIngredients = async () => {
+      const ingredients = await getIngredients();
+      setAvailableIngredients(ingredients);
+    };
+    loadIngredients();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.ingredient-field')) {
+        setActiveIngredient({ index: null, field: null });
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -138,11 +163,26 @@ export default function RecipeEditor() {
         return;
       }
 
+      // Validate ingredients have IDs
+      const hasInvalidIngredients = recipe.ingredients?.some(
+        ing => !ing.ingredientId
+      );
+      
+      if (hasInvalidIngredients) {
+        toast.error('All ingredients must be selected from the suggestion list');
+        return;
+      }
+
       const cleanRecipe = {
         ...recipe,
         tags: recipe.tags || [],
         nutrition: recipe.nutrition || { calories: '' },
-        ingredients: recipe.ingredients || [],
+        ingredients: recipe.ingredients?.map(ing => ({
+          ingredientId: ing.ingredientId,
+          name: ing.name,
+          amount: ing.amount,
+          unit: ing.unit
+        })) || [],
         steps: recipe.steps || []
       };
 
@@ -186,9 +226,29 @@ export default function RecipeEditor() {
 
   const handleIngredientChange = (index, field, value) => {
     const newIngredients = [...recipe.ingredients];
+    if (field === 'name') {
+      newIngredients[index] = {
+        ...newIngredients[index],
+        name: value,
+        ingredientId: ''
+      };
+    } else {
+      newIngredients[index] = {
+        ...newIngredients[index],
+        [field]: field === 'amount' ? parseFloat(value) || '' : value
+      };
+    }
+    setRecipe({ ...recipe, ingredients: newIngredients });
+  };
+
+  const handleIngredientSelect = (index, selectedIngredient) => {
+    const newIngredients = [...recipe.ingredients];
     newIngredients[index] = {
       ...newIngredients[index],
-      [field]: field === 'amount' ? parseFloat(value) || '' : value
+      name: selectedIngredient.name,
+      ingredientId: selectedIngredient.id,
+      unit: selectedIngredient.defaultUnit || 'gram',
+      amount: newIngredients[index].amount || ''
     };
     setRecipe({ ...recipe, ingredients: newIngredients });
   };
@@ -200,7 +260,8 @@ export default function RecipeEditor() {
         id: generateId(),
         name: '', 
         amount: '', 
-        unit: 'gram',
+        unit: '',
+        ingredientId: '',
         confirmed: false
       }]
     });
@@ -278,75 +339,81 @@ export default function RecipeEditor() {
 
         {/* Tags Selection */}
         <div className="mt-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Tags</h2>
-          
-          {/* Tag Categories Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            {Object.entries(
-              tags.reduce((acc, tag) => {
-                if (!acc[tag.category]) acc[tag.category] = [];
-                acc[tag.category].push(tag);
-                return acc;
-              }, {})
-            ).map(([category, categoryTags]) => (
-              <div key={category} className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-sm font-medium text-gray-700 mb-2 capitalize">{category}</h3>
-                <div className="space-y-2">
-                  {categoryTags.map((tag) => (
-                    <label
-                      key={tag.id}
-                      className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-gray-50 cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={recipe.tags?.includes(tag.id)}
-                        onChange={(e) => {
-                          const newTags = e.target.checked
-                            ? [...(recipe.tags || []), tag.id]
-                            : (recipe.tags || []).filter(id => id !== tag.id);
-                          setRecipe({ ...recipe, tags: newTags });
-                        }}
-                        className="rounded border-gray-300 text-tasty-green focus:ring-tasty-green"
-                      />
-                      <span className="w-6 text-center">{tag.emoji}</span>
-                      <span className="text-sm text-gray-700">{tag.name}</span>
-                    </label>
+          <div className="bg-white rounded-lg shadow-sm">
+            <button
+              type="button"
+              onClick={() => setRecipe(prev => ({ ...prev, showTagsPanel: !prev.showTagsPanel }))}
+              className="w-full px-4 py-3 flex items-center justify-between text-left"
+            >
+              <div className="flex items-center gap-3">
+                <TagIcon className="h-5 w-5 text-gray-500" />
+                <span className="font-medium">Tags</span>
+                <div className="flex flex-wrap gap-1">
+                  {recipe.tags?.length > 0 ? (
+                    tags
+                      .filter(tag => recipe.tags.includes(tag.id))
+                      .map(tag => (
+                        <span
+                          key={tag.id}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-sm rounded-full"
+                        >
+                          <span>{tag.emoji}</span>
+                          <span>{tag.name}</span>
+                        </span>
+                      ))
+                  ) : (
+                    <span className="text-sm text-gray-500 italic">No tags selected</span>
+                  )}
+                </div>
+              </div>
+              <ChevronRightIcon 
+                className={`h-5 w-5 text-gray-400 transform transition-transform ${
+                  recipe.showTagsPanel ? 'rotate-90' : ''
+                }`}
+              />
+            </button>
+
+            {/* Tags Panel */}
+            {recipe.showTagsPanel && (
+              <div className="px-4 pb-4">
+                {/* Tag Categories Grid */}
+                <div className="grid grid-cols-5 gap-4 mb-4">
+                  {Object.entries(
+                    tags.reduce((acc, tag) => {
+                      if (!acc[tag.category]) acc[tag.category] = [];
+                      acc[tag.category].push(tag);
+                      return acc;
+                    }, {})
+                  ).map(([category, categoryTags]) => (
+                    <div key={category} className="bg-gray-50 p-3 rounded-lg">
+                      <h3 className="text-sm font-medium text-gray-700 mb-2 capitalize">{category}</h3>
+                      <div className="space-y-1">
+                        {categoryTags.map((tag) => (
+                          <label
+                            key={tag.id}
+                            className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={recipe.tags?.includes(tag.id)}
+                              onChange={(e) => {
+                                const newTags = e.target.checked
+                                  ? [...(recipe.tags || []), tag.id]
+                                  : (recipe.tags || []).filter(id => id !== tag.id);
+                                setRecipe({ ...recipe, tags: newTags });
+                              }}
+                              className="rounded border-gray-300 text-tasty-green focus:ring-tasty-green"
+                            />
+                            <span className="w-6 text-center">{tag.emoji}</span>
+                            <span className="text-sm text-gray-700">{tag.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Selected Tags Display */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Selected Tags</h3>
-            <div className="flex flex-wrap gap-2">
-              {recipe.tags?.length > 0 ? (
-                tags
-                  .filter(tag => recipe.tags.includes(tag.id))
-                  .map(tag => (
-                    <div
-                      key={tag.id}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm"
-                    >
-                      <span>{tag.emoji}</span>
-                      <span className="text-sm text-gray-700">{tag.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newTags = recipe.tags.filter(id => id !== tag.id);
-                          setRecipe({ ...recipe, tags: newTags });
-                        }}
-                        className="ml-1 text-gray-400 hover:text-gray-600"
-                      >
-                        ��
-                      </button>
-                    </div>
-                  ))
-              ) : (
-                <p className="text-sm text-gray-500 italic">No tags selected</p>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
@@ -472,54 +539,88 @@ export default function RecipeEditor() {
                               placeholder="Amount"
                               step="0.01"
                             />
-                            <select
-                              value={ingredient.unit || 'gram'}
-                              onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
-                              className="w-32 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
-                            >
-                              <optgroup label="Weight - Metric">
-                                {UNITS.weight.metric.map(unit => (
-                                  <option key={unit} value={unit}>
-                                    {unit.charAt(0).toUpperCase() + unit.slice(1)}
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <optgroup label="Weight - Imperial">
-                                {UNITS.weight.imperial.map(unit => (
-                                  <option key={unit} value={unit}>
-                                    {unit.charAt(0).toUpperCase() + unit.slice(1)}
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <optgroup label="Volume - Metric">
-                                {UNITS.volume.metric.map(unit => (
-                                  <option key={unit} value={unit}>
-                                    {unit.charAt(0).toUpperCase() + unit.slice(1)}
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <optgroup label="Volume - Imperial">
-                                {UNITS.volume.imperial.map(unit => (
-                                  <option key={unit} value={unit}>
-                                    {unit.charAt(0).toUpperCase() + unit.slice(1).replace('_', ' ')}
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <optgroup label="Other">
-                                {UNITS.other.map(unit => (
-                                  <option key={unit} value={unit}>
-                                    {unit.charAt(0).toUpperCase() + unit.slice(1)}
-                                  </option>
-                                ))}
-                              </optgroup>
-                            </select>
-                            <input
-                              type="text"
-                              value={ingredient.name || ''}
-                              onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
-                              className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
-                              placeholder="Ingredient name"
-                            />
+                            <div className="relative ingredient-field w-32">
+                              <select
+                                value={ingredient.unit || 'gram'}
+                                onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
+                                onFocus={() => setActiveIngredient({ index, field: 'unit' })}
+                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                              >
+                                <optgroup label="Weight - Metric">
+                                  {UNITS.weight.metric.map(unit => (
+                                    <option key={unit} value={unit}>
+                                      {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Weight - Imperial">
+                                  {UNITS.weight.imperial.map(unit => (
+                                    <option key={unit} value={unit}>
+                                      {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Volume - Metric">
+                                  {UNITS.volume.metric.map(unit => (
+                                    <option key={unit} value={unit}>
+                                      {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Volume - Imperial">
+                                  {UNITS.volume.imperial.map(unit => (
+                                    <option key={unit} value={unit}>
+                                      {unit.charAt(0).toUpperCase() + unit.slice(1).replace('_', ' ')}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                                <optgroup label="Other">
+                                  {UNITS.other.map(unit => (
+                                    <option key={unit} value={unit}>
+                                      {unit.charAt(0).toUpperCase() + unit.slice(1)}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              </select>
+                            </div>
+                            <div className="flex-1 relative ingredient-field">
+                              <input
+                                type="text"
+                                value={ingredient.name || ''}
+                                onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                                onFocus={() => setActiveIngredient({ index, field: 'name' })}
+                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+                                placeholder="Start typing ingredient name..."
+                              />
+                              {activeIngredient.index === index && 
+                               activeIngredient.field === 'name' && 
+                               ingredient.name && (
+                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                                  {availableIngredients
+                                    .filter(ing => 
+                                      ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
+                                    )
+                                    .map(ing => (
+                                      <button
+                                        key={ing.id}
+                                        type="button"
+                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 focus:bg-gray-100"
+                                        onClick={() => handleIngredientSelect(index, ing)}
+                                      >
+                                        <span className="font-medium">{ing.name}</span>
+                                        <span className="text-sm text-gray-500 ml-2">({ing.category})</span>
+                                      </button>
+                                    ))}
+                                  {availableIngredients.filter(ing => 
+                                    ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
+                                  ).length === 0 && (
+                                    <div className="px-4 py-2 text-gray-500 italic">
+                                      No ingredients found
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                             <button
                               type="button"
                               onClick={() => handleIngredientChange(index, 'confirmed', !ingredient.confirmed)}
