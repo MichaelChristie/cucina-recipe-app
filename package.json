@@ -10,7 +10,8 @@
     "format": "prettier --write \"src/**/*.{js,jsx}\"",
     "preview": "vite preview",
     "import-recipes": "node scripts/importRecipes.js",
-    "import-ingredients": "node scripts/importIngredients.js"
+    "import-ingredients": "node scripts/importIngredients.js",
+    "install": "echo 'This runs with npm run install'"
   },
   "dependencies": {
     "@firebase/app": "^0.10.16",
