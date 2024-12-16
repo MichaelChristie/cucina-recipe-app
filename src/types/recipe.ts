@@ -2,16 +2,12 @@ export interface Recipe {
   id: string;
   title: string;
   description: string;
-  image: string;
-  imageCaption?: string;
-  prepTime?: string;
-  cookTime?: string;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  image?: string | { url: string } | null;
+  imageUrl?: string;
+  cookingTime?: number;
   servings?: number;
-  calories?: number;
-  tags: string[];
-  ingredients: RecipeIngredient[];
-  steps: (string | { text: string })[];
+  tags?: string[];
+  // ... other fields
 }
 
 export interface RecipeIngredient {
