@@ -22,7 +22,7 @@ const TagManager: FC = () => {
   const loadTags = async (): Promise<void> => {
     try {
       const fetchedTags = await getTags();
-      setTags(fetchedTags);
+      setTags(fetchedTags as Tag[]);
     } catch (error) {
       toast.error('Failed to load tags');
     }

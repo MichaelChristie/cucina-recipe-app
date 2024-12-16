@@ -304,7 +304,7 @@ const IngredientManager: FC = () => {
       if (sortConfig.key === 'createdAt') {
         const dateA = new Date(a.createdAt);
         const dateB = new Date(b.createdAt);
-        return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+        return sortConfig.direction === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
       }
       
       if (a[sortConfig.key] < b[sortConfig.key]) {

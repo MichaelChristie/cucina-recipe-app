@@ -1,7 +1,5 @@
 import { FC } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import { TagIcon } from '@heroicons/react/24/outline';
+import { useLocation, Link } from 'react-router-dom';
 import Navbar from './Navbar';
 
 interface LayoutProps {

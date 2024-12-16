@@ -12,7 +12,7 @@ interface UnitPreferenceProviderProps {
   children: ReactNode;
 }
 
-const UnitPreferenceContext = createContext<UnitPreferenceContextType | undefined>(undefined);
+export const UnitPreferenceContext = createContext<UnitPreferenceContextType | undefined>(undefined);
 
 export const UnitPreferenceProvider: FC<UnitPreferenceProviderProps> = ({ children }) => {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
@@ -34,4 +34,6 @@ export const useUnitPreference = () => {
     throw new Error('useUnitPreference must be used within a UnitPreferenceProvider');
   }
   return context;
-}; 
+};
+
+export type { UnitSystem, UnitPreferenceContextType }; 

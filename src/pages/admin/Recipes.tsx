@@ -4,8 +4,7 @@ import toast from 'react-hot-toast';
 import { PencilSquareIcon, TrashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/AdminLayout';
 import { Recipe } from '../../types';
-import { getRecipes, addRecipe, updateRecipe, deleteRecipe } from '../../services/recipeService';
-import { useAuth } from '../../contexts/AuthContext';
+import { getRecipes, addRecipe, deleteRecipe } from '../../services/recipeService';
 import { logOut } from '../../services/authService';
 
 interface RecipeWithId extends Recipe {
@@ -13,7 +12,6 @@ interface RecipeWithId extends Recipe {
 }
 
 const Recipes: FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [recipes, setRecipes] = useState<RecipeWithId[]>([]);
 

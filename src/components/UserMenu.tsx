@@ -1,8 +1,20 @@
-import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function UserMenu({ isOpen, onClose, onLogout }) {
+interface MenuItem {
+  label: string;
+  href?: string;
+  onClick?: () => void;
+}
+
+interface UserMenuProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onLogout: () => void;
+  accountMenuItems: MenuItem[];
+}
+
+export default function UserMenu({ isOpen, onClose, onLogout }: UserMenuProps) {
   const { user } = useAuth();
 
   if (!isOpen) return null;
@@ -56,10 +68,4 @@ export default function UserMenu({ isOpen, onClose, onLogout }) {
       )}
     </div>
   );
-}
-
-UserMenu.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onLogout: PropTypes.func.isRequired
-}; 
+} 

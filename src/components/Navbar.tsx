@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { logOut } from '../services/authService';
 import UserMenu from './UserMenu';
 import toast from 'react-hot-toast';
@@ -15,7 +14,25 @@ import {
 import SearchBar from './SearchBar';
 import Logo from './Logo';
 
-const adminNavigation = [
+interface NavItem {
+  name: string;
+  path: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
+
+interface MenuItem {
+  label: string;
+  href?: string;
+  onClick?: () => void;
+}
+
+interface NavbarProps {
+  onAddClick?: () => void;
+  children?: React.ReactNode;
+  showActions?: boolean;
+}
+
+const adminNavigation: NavItem[] = [
   { name: 'Dashboard', path: '/admin', icon: HomeIcon },
   { name: 'Recipes', path: '/admin/recipes', icon: BookOpenIcon },
   { name: 'Ingredients', path: '/admin/ingredients', icon: CubeIcon },
@@ -23,7 +40,7 @@ const adminNavigation = [
   { name: 'Tags', path: '/admin/tags', icon: TagIcon },
 ];
 
-export default function Navbar({ onAddClick }) {
+export default function Navbar({ onAddClick, children, showActions }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,8 +66,7 @@ export default function Navbar({ onAddClick }) {
     setIsMenuOpen(false);
   };
 
-  // Update the account menu items
-  const accountMenuItems = [
+  const accountMenuItems: MenuItem[] = [
     { label: 'Admin Dashboard', href: '/admin' },
     { label: 'Manage Recipes', href: '/admin/recipes' },
     { label: 'Manage Ingredients', href: '/admin/ingredients' },
@@ -68,7 +84,6 @@ export default function Navbar({ onAddClick }) {
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="flex items-center">
                 <Logo />
-                {/* <AnimatedLogo className="h-8 w-8 text-gray-600 mx-2" /> */}
                 <span className="hidden sm:block ml-2 text-xl font-bold text-gray-800">Cucina</span>
               </Link>
             </div>
@@ -136,5 +151,4 @@ export default function Navbar({ onAddClick }) {
       </nav>
     </>
   );
-}
-
+} 

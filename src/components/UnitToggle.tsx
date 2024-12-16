@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUnitPreference } from '../context/UnitPreferenceContext';
 
-export default function UnitToggle() {
+const UnitToggle: React.FC = () => {
   const { unitSystem, toggleUnitSystem } = useUnitPreference();
 
   return (
@@ -30,4 +30,6 @@ export default function UnitToggle() {
       </button>
     </div>
   );
-} 
+};
+
+export default UnitToggle; 
