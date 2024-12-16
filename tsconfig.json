@@ -20,8 +20,9 @@
         "@/*": ["*"]
       },
       "esModuleInterop": true,
-      "allowSyntheticDefaultImports": true
+      "allowSyntheticDefaultImports": true,
+      "allowJs": true
     },
-    "include": ["src"],
-    "references": [{ "path": "./tsconfig.node.json" }]
+    "include": ["src/**/*"],
+    "references": [{ "path": "./tsconfig.json" }]
   }

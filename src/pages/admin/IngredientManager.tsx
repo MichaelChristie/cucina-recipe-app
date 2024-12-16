@@ -83,7 +83,6 @@ const AddIngredientModal: FC<AddIngredientModalProps> = ({ isOpen, onClose, onAd
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <h2 className="text-xl font-bold mb-4">Add New Ingredient</h2>
         <form onSubmit={handleSubmit}>
-          {/* Form fields */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -95,9 +94,63 @@ const AddIngredientModal: FC<AddIngredientModalProps> = ({ isOpen, onClose, onAd
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
-            {/* Other form fields */}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <select
+                required
+                value={newIngredient.category}
+                onChange={(e) => setNewIngredient(prev => ({ ...prev, category: e.target.value }))}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                {AVAILABLE_CATEGORIES.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Default Unit</label>
+              <select
+                required
+                value={newIngredient.defaultUnit}
+                onChange={(e) => setNewIngredient(prev => ({ ...prev, defaultUnit: e.target.value }))}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                {AVAILABLE_UNITS.map(unit => (
+                  <option key={unit} value={unit}>{unit}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Default Amount</label>
+              <input
+                type="number"
+                required
+                step="any"
+                value={newIngredient.defaultAmount}
+                onChange={(e) => setNewIngredient(prev => ({ ...prev, defaultAmount: parseFloat(e.target.value) }))}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
           </div>
-          {/* Form buttons */}
+
+          <div className="mt-6 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Add Ingredient
+            </button>
+          </div>
         </form>
       </div>
     </div>
@@ -245,6 +298,41 @@ const IngredientManager: FC = () => {
     }
   };
 
+  const getSortedIngredients = () => {
+    const sortedIngredients = [...ingredients];
+    sortedIngredients.sort((a, b) => {
+      if (sortConfig.key === 'createdAt') {
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+      
+      if (a[sortConfig.key] < b[sortConfig.key]) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (a[sortConfig.key] > b[sortConfig.key]) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+    return sortedIngredients;
+  };
+
+  interface SortIconProps {
+    columnKey: keyof Ingredient;
+  }
+
+  const SortIcon: FC<SortIconProps> = ({ columnKey }) => {
+    if (sortConfig.key !== columnKey) {
+      return <ChevronUpIcon className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100" />;
+    }
+    return sortConfig.direction === 'asc' ? (
+      <ChevronUpIcon className="h-4 w-4 text-gray-700" />
+    ) : (
+      <ChevronDownIcon className="h-4 w-4 text-gray-700" />
+    );
+  };
+
   if (loading) {
     return (
       <AdminLayout>
@@ -325,7 +413,7 @@ const IngredientManager: FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {ingredients.map((ingredient) => (
+                {getSortedIngredients().map((ingredient) => (
                   <tr key={ingredient.id} className="hover:bg-gray-50 transition-colors duration-150">
                     <td className="px-6 py-4 whitespace-nowrap text-gray-900">
                       {editingId === ingredient.id ? (
