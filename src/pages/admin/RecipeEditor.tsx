@@ -4,8 +4,8 @@ import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautif
 import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeService';
 import AdminLayout from '../../components/AdminLayout';
 import { 
-  ChevronLeftIcon, ClockIcon, ChartBarIcon, TagIcon, BeakerIcon, 
-  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, UserGroupIcon, ChevronRightIcon 
+  ChevronLeftIcon, TagIcon, 
+  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon 
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { 

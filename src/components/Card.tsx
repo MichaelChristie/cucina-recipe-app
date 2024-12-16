@@ -12,7 +12,7 @@ interface CardProps {
 const Card: FC<CardProps> = ({ recipe, tags, className }) => {
   // Helper function to get image URL
   const getImageUrl = (recipe: Recipe): string => {
-    if (recipe.image?.url) return recipe.image.url;
+    if (typeof recipe.image === 'object' && recipe.image?.url) return recipe.image.url;
     if (recipe.imageUrl) return recipe.imageUrl;
     if (typeof recipe.image === 'string') return recipe.image;
     return '/placeholder-recipe.jpg';

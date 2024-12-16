@@ -1,4 +1,5 @@
-import { createContext, useContext, FC, ReactNode, useState } from 'react';
+import { createContext, useContext, FC, useState } from 'react';
+import type { ReactNode } from 'react';
 
 type UnitSystem = 'metric' | 'imperial';
 
@@ -12,9 +13,9 @@ interface UnitPreferenceProviderProps {
   children: ReactNode;
 }
 
-export const UnitPreferenceContext = createContext<UnitPreferenceContextType | undefined>(undefined);
+const UnitPreferenceContext = createContext<UnitPreferenceContextType | undefined>(undefined);
 
-export const UnitPreferenceProvider: FC<UnitPreferenceProviderProps> = ({ children }) => {
+const UnitPreferenceProvider: FC<UnitPreferenceProviderProps> = ({ children }) => {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
   const toggleUnitSystem = () => {
@@ -28,7 +29,7 @@ export const UnitPreferenceProvider: FC<UnitPreferenceProviderProps> = ({ childr
   );
 };
 
-export const useUnitPreference = () => {
+const useUnitPreference = () => {
   const context = useContext(UnitPreferenceContext);
   if (context === undefined) {
     throw new Error('useUnitPreference must be used within a UnitPreferenceProvider');
@@ -36,4 +37,5 @@ export const useUnitPreference = () => {
   return context;
 };
 
+export { UnitPreferenceContext, UnitPreferenceProvider, useUnitPreference };
 export type { UnitSystem, UnitPreferenceContextType }; 
