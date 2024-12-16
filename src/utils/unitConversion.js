@@ -41,6 +41,13 @@ const CONVERSION_RATES = {
   lb_to_g: 453.592
 };
 
+// Helper to normalize unit names
+function normalizeUnit(unit) {
+  if (!unit) return '';
+  unit = unit.toLowerCase().trim();
+  return UNIT_MAPPINGS[unit] || unit;
+}
+
 export function convertUnit(amount, fromUnit, toUnit) {
   // Normalize units
   fromUnit = normalizeUnit(fromUnit);
@@ -95,37 +102,6 @@ export function convertUnit(amount, fromUnit, toUnit) {
     }
   };
 
-  // Helper to normalize unit names
-  function normalizeUnit(unit) {
-    if (!unit) return '';
-    unit = unit.toLowerCase().trim();
-    const unitMap = {
-      'gram': 'g',
-      'grams': 'g',
-      'g': 'g',
-      'kilogram': 'kg',
-      'kilograms': 'kg',
-      'kg': 'kg',
-      'ounce': 'oz',
-      'ounces': 'oz',
-      'oz': 'oz',
-      'pound': 'lb',
-      'pounds': 'lb',
-      'lb': 'lb',
-      'milliliter': 'ml',
-      'milliliters': 'ml',
-      'ml': 'ml',
-      'liter': 'l',
-      'liters': 'l',
-      'l': 'l',
-      'fluid_ounce': 'fl_oz',
-      'fluid_ounces': 'fl_oz',
-      'fluid ounce': 'fl_oz',
-      'fluid ounces': 'fl_oz'
-    };
-    return unitMap[unit] || unit;
-  }
-
   // If no conversion needed or possible, return original amount
   if (!conversions[fromUnit] || !conversions[fromUnit][toUnit]) {
     return amount;
@@ -134,4 +110,6 @@ export function convertUnit(amount, fromUnit, toUnit) {
   // Perform conversion and round to 2 decimal places
   const converted = conversions[fromUnit][toUnit](parseFloat(amount));
   return Math.round(converted * 100) / 100;
-} 
+}
+
+export { UNIT_MAPPINGS, CONVERSION_RATES, normalizeUnit }; 

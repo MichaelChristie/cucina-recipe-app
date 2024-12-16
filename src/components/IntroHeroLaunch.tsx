@@ -147,10 +147,223 @@ const IntroHeroLaunch: FC = () => {
     }
   }, [searchTerm, ingredients, selectedIngredients]);
 
+  const renderIngredientSearch = () => (
+    <div className="relative w-full" ref={searchRef}>
+      <div className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10 w-full">
+        <BeakerIcon className="h-5 w-5 flex-shrink-0" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setIsSearchFocused(true)}
+          onKeyDown={handleKeyDown}
+          placeholder="Search ingredients..."
+          className="bg-transparent outline-none placeholder-tasty-green/60 w-full"
+        />
+      </div>
+
+      {isSearchFocused && filteredIngredients.length > 0 && (
+        <div className="absolute z-20 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {filteredIngredients.map((ingredient, index) => (
+            <button
+              key={ingredient.id}
+              onClick={() => {
+                setSelectedIngredients(prev => [...prev, ingredient.id]);
+                setSearchTerm('');
+                inputRef.current?.focus();
+                setIsSearchFocused(true);
+                setHighlightedIndex(-1);
+              }}
+              onMouseEnter={() => setHighlightedIndex(index)}
+              className={`w-full text-left px-4 py-2 flex items-center justify-between ${
+                highlightedIndex === index 
+                  ? 'bg-tasty-green/10 text-tasty-green'
+                  : 'hover:bg-gray-50'
+              }`}
+            >
+              <span>{ingredient.name}</span>
+              <span className="text-sm text-gray-500">
+                ({ingredient.category})
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const getIngredientById = (ingredientId: string): Ingredient | undefined => {
+    return ingredients.find(ingredient => ingredient.id === ingredientId);
+  };
+
   return (
     <div className="w-full">
-      {/* Your existing JSX with proper type annotations */}
-      {/* ... */}
+      <div className="pb-8">
+        <h1 className="font-display text-display-large text-tasty-green mb-8">
+          Find Your Next Favorite Dish
+        </h1>
+
+        {/* Category dropdowns and search bar container */}
+        <div className="flex flex-wrap items-start gap-4">
+          {/* Category dropdowns wrapper */}
+          <div className="flex flex-wrap gap-2 w-full">
+            {categories.map(({ id, name, emoji }) => (
+              <div key={id} className="relative">
+                <button
+                  onClick={() => handleCategoryClick(id)}
+                  className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10"
+                >
+                  <span>{emoji}</span>
+                  <span>{name}</span>
+                  <ChevronDownIcon className={`h-5 w-5 transition-transform ${
+                    openCategory === id ? 'rotate-180' : ''
+                  }`} />
+                </button>
+                
+                {openCategory === id && (
+                  <div 
+                    className="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg transition-opacity duration-300"
+                  >
+                    <div className="p-2 space-y-1">
+                      {getTagsByCategory(id).map((tag) => (
+                        <label
+                          key={tag.id}
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedTags.includes(tag.id)}
+                            onChange={() => {
+                              setSelectedTags(prev =>
+                                prev.includes(tag.id)
+                                  ? prev.filter(tagId => tagId !== tag.id)
+                                  : [...prev, tag.id]
+                              );
+                              setOpenCategory(null);
+                            }}
+                            className="rounded border-gray-300 text-tasty-green focus:ring-tasty-green"
+                          />
+                          <span className="flex items-center gap-1">
+                            <span>{tag.emoji}</span>
+                            <span>{tag.name}</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <div className="flex-1">
+              {renderIngredientSearch()}
+            </div>
+          </div>
+        </div>
+
+        {/* Selected tags display */}
+        {selectedTags.length > 0 && (
+          <div className="mt-4">
+            <div className="flex flex-wrap gap-2">
+              {selectedTags.map(tagId => {
+                const tag = getTagById(tagId);
+                if (!tag) return null;
+                
+                return (
+                  <div
+                    key={tag.id}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-tasty-green/10 text-tasty-green border border-tasty-green/20 rounded-full text-sm"
+                  >
+                    <span className="flex items-center gap-1">
+                      <span>{tag.emoji}</span>
+                      <span>{tag.name}</span>
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSelectedTags(prev => 
+                          prev.filter(id => id !== tag.id)
+                        );
+                      }}
+                      className="p-0.5 hover:bg-tasty-green/10 rounded-full"
+                    >
+                      <XMarkIcon className="h-4 w-4 text-tasty-green" />
+                    </button>
+                  </div>
+                );
+              })}
+              
+              {/* Clear all button */}
+              {selectedTags.length > 1 && (
+                <button
+                  onClick={() => setSelectedTags([])}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 border border-red-200 rounded-full"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  <span>Clear all</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Selected ingredients display */}
+        {selectedIngredients.length > 0 && (
+          <div className="mt-4">
+            <div className="flex flex-wrap gap-2">
+              {selectedIngredients.map(ingredientId => {
+                const ingredient = getIngredientById(ingredientId);
+                if (!ingredient) return null;
+                
+                return (
+                  <div
+                    key={ingredient.id}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-tasty-green/10 text-tasty-green border border-tasty-green/20 rounded-full text-sm"
+                  >
+                    <span>{ingredient.name}</span>
+                    <button
+                      onClick={() => {
+                        setSelectedIngredients(prev => 
+                          prev.filter(id => id !== ingredient.id)
+                        );
+                      }}
+                      className="p-0.5 hover:bg-tasty-green/10 rounded-full"
+                    >
+                      <XMarkIcon className="h-4 w-4 text-tasty-green" />
+                    </button>
+                  </div>
+                );
+              })}
+              
+              {/* Clear all ingredients button */}
+              {selectedIngredients.length > 1 && (
+                <button
+                  onClick={() => setSelectedIngredients([])}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 border border-red-200 rounded-full"
+                >
+                  <XMarkIcon className="h-4 w-4" />
+                  <span>Clear all</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Recipe cards grid */}
+      <div className="pt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 [grid-auto-rows:1fr] max-w-[2000px] w-full mx-auto">
+          {filteredRecipes.map(recipe => (
+            <div key={recipe.id} className="h-full flex flex-col">
+              <Card 
+                recipe={recipe} 
+                tags={tags}
+                className="flex-1"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,31 +1,36 @@
-import { useState } from 'react';
+import { FC, useState, FormEvent } from 'react';
 import { signInWithGoogle, signInWithEmail, signUpWithEmail } from '../services/authService';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Layout from '../components/Layout';
 import toast from 'react-hot-toast';
 
-export default function Login() {
+interface FormData {
+  email: string;
+  password: string;
+}
+
+const Login: FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [formData, setFormData] = useState({
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
+  const [formData, setFormData] = useState<FormData>({
     email: '',
     password: ''
   });
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = async (): Promise<void> => {
     try {
       await signInWithGoogle();
       toast.success('Successfully signed in');
       navigate('/admin/dashboard');
     } catch (error) {
       console.error('Error signing in:', error);
-      toast.error(error.message || 'Failed to sign in');
+      toast.error(error instanceof Error ? error.message : 'Failed to sign in');
     }
   };
 
-  const handleEmailAuth = async (e) => {
+  const handleEmailAuth = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     try {
       if (isSignUp) {
@@ -38,7 +43,7 @@ export default function Login() {
       navigate('/admin/dashboard');
     } catch (error) {
       console.error('Error with email auth:', error);
-      toast.error(error.message || `Failed to ${isSignUp ? 'sign up' : 'sign in'}`);
+      toast.error(error instanceof Error ? error.message : `Failed to ${isSignUp ? 'sign up' : 'sign in'}`);
     }
   };
 
@@ -119,4 +124,6 @@ export default function Login() {
       </div>
     </Layout>
   );
-} 
+};
+
+export default Login; 

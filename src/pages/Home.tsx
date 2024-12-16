@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { FC } from 'react';
 import Layout from '../components/Layout';
 import IntroHeroLaunch from '../components/IntroHeroLaunch';
 
-export default function Home() {
+const Home: FC = () => {
   return (
     <Layout>
       <IntroHeroLaunch />
     </Layout>
   );
-} 
+};
+
+export default Home; 

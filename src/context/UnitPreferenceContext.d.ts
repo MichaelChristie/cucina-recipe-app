@@ -1,10 +1,8 @@
-declare module '../context/UnitPreferenceContext' {
-  export type UnitSystem = 'metric' | 'imperial';
-  
-  interface UnitPreferenceContextType {
-    unitSystem: UnitSystem;
-    setUnitSystem: (system: UnitSystem) => void;
-  }
+export type UnitSystem = 'metric' | 'imperial';
 
-  export function useUnitPreference(): UnitPreferenceContextType;
-} 
+export interface UnitPreferenceContextType {
+  unitSystem: UnitSystem;
+  setUnitSystem: (system: UnitSystem) => void;
+}
+
+export function useUnitPreference(): UnitPreferenceContextType; 

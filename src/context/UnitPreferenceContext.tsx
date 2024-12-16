@@ -5,6 +5,7 @@ type UnitSystem = 'metric' | 'imperial';
 interface UnitPreferenceContextType {
   unitSystem: UnitSystem;
   setUnitSystem: (system: UnitSystem) => void;
+  toggleUnitSystem: () => void;
 }
 
 interface UnitPreferenceProviderProps {
@@ -16,8 +17,12 @@ const UnitPreferenceContext = createContext<UnitPreferenceContextType | undefine
 export const UnitPreferenceProvider: FC<UnitPreferenceProviderProps> = ({ children }) => {
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
 
+  const toggleUnitSystem = () => {
+    setUnitSystem(current => current === 'metric' ? 'imperial' : 'metric');
+  };
+
   return (
-    <UnitPreferenceContext.Provider value={{ unitSystem, setUnitSystem }}>
+    <UnitPreferenceContext.Provider value={{ unitSystem, setUnitSystem, toggleUnitSystem }}>
       {children}
     </UnitPreferenceContext.Provider>
   );

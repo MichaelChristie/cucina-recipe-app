@@ -18,9 +18,10 @@ import { MDXEditor } from '@mdxeditor/editor';
 import { marked } from 'marked';
 import { getTags } from "../services/tagService";
 import { getIngredients } from '../services/ingredientService';
+import { Recipe, Tag, Ingredient as IngredientType } from '../types/recipe';
 
-const getCategoryFromTags = (recipeTags, allTags) => {
-  const tagCategories = {
+const getCategoryFromTags = (recipeTags: string[], allTags: Tag[]): string => {
+  const tagCategories: Record<string, number> = {
     'special': 1,
     'style': 2,
     'cuisine': 3,
@@ -35,17 +36,18 @@ const getCategoryFromTags = (recipeTags, allTags) => {
   return matchingTags[0]?.name || 'Food & Drink';
 };
 
-export default function RecipeDetails() {
-  const { id } = useParams();
+export default function RecipeDetails(): JSX.Element {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [recipe, setRecipe] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [allTags, setAllTags] = useState([]);
-  const [allIngredients, setAllIngredients] = useState([]);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [allIngredients, setAllIngredients] = useState<IngredientType[]>([]);
 
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
+        if (!id) return;
         const data = await getRecipeById(id);
         setRecipe(data);
       } catch (error) {
@@ -74,7 +76,7 @@ export default function RecipeDetails() {
     loadIngredients();
   }, []);
 
-  const getIngredientById = (ingredientId) => {
+  const getIngredientById = (ingredientId: string): IngredientType | undefined => {
     return allIngredients.find(ing => ing.id === ingredientId);
   };
 
@@ -159,7 +161,6 @@ export default function RecipeDetails() {
                       ))}
                   </div>
                 )}
-
 
                 {/* Quick Info Panel */}
                 <div className="mt-8 p-4">
