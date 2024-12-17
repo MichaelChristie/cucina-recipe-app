@@ -81,9 +81,8 @@ private struct RecipeHeaderInfo: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(recipe.title)
-                .font(.title)
-                .fontWeight(.bold)
-                .foregroundColor(Color("PrimaryColor"))
+                .font(.system(size: 34, weight: .regular, design: .serif))
+                 .foregroundColor(Color("PrimaryColor"))
             Text(recipe.description)
                 .font(.body)
                 .foregroundColor(.secondary)
