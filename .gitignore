@@ -45,3 +45,8 @@ config/*.json
 .env
 .env.local
 .env.*.local
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+*.xcuserdatad/
