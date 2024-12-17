@@ -5,6 +5,7 @@ Tech Stack:
 - Tailwind CSS
 - Database/Hosting: Firebase/Firestore
 - UI Components: Hero Icons
+- iOS App: SwiftUI
 
 Development Environment:
 - Build Tool: Vite

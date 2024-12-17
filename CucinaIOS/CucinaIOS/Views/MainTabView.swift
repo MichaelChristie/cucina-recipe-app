@@ -23,18 +23,12 @@ struct MainTabView: View {
                     Label("Account", systemImage: "person.circle")
                 }
         }
-        .onAppear {
-            // Set tab bar appearance to dark
-            let appearance = UITabBarAppearance()
-            appearance.configureWithDefaultBackground()
-            appearance.backgroundColor = .systemBackground
-            UITabBar.appearance().scrollEdgeAppearance = appearance
-            UITabBar.appearance().standardAppearance = appearance
-        }
+        .tint(Color("PrimaryColor"))
     }
 }
 
 #Preview {
     MainTabView()
-        .preferredColorScheme(.dark)
+    .preferredColorScheme(.dark)
+
 } 

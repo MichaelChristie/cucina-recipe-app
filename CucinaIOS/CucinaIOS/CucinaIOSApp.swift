@@ -48,9 +48,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     // Ensure the tint color is set for the tab bar
     UITabBar.appearance().tintColor = primaryColor
 
-    // Set dark mode as default
-    UIWindow.appearance().overrideUserInterfaceStyle = .dark
-
     return true
   }
 }
@@ -64,7 +61,6 @@ struct CucinaIOSApp: App {
   var body: some Scene {
     WindowGroup {
       MainTabView()
-        .preferredColorScheme(.dark)
     }
       
   }
@@ -72,13 +68,11 @@ struct CucinaIOSApp: App {
 
 #Preview {
     MainTabView()
-        .preferredColorScheme(.dark)
 }
 
 // Use this version for older Xcode versions
 struct CucinaIOSApp_Previews: PreviewProvider {
     static var previews: some View {
         MainTabView()
-            .preferredColorScheme(.dark)
     }
 }

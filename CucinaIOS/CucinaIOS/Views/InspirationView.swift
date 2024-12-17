@@ -65,6 +65,7 @@ struct RecipeCard: View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
                 // Background Image
+                
                 if isVisible, let imageURL = recipe.imageURL, let url = URL(string: imageURL) {
                     AsyncImage(url: url, transaction: .init(animation: .easeInOut)) { phase in
                         switch phase {
@@ -122,7 +123,6 @@ struct RecipeCard: View {
                 // Content overlay
                 VStack(alignment: .leading, spacing: 16) {
                     Spacer()
-                    Spacer()
                     
                     // Title and Description
                     VStack(alignment: .leading, spacing: 8) {
@@ -138,28 +138,22 @@ struct RecipeCard: View {
                             .multilineTextAlignment(.leading)
                     }
                     
-                    // Recipe Details
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Ingredients preview
-                        if !recipe.ingredients.isEmpty {
-                            Text("Ingredients: " + recipe.ingredients.prefix(3).map { "\($0.amount) \($0.unit) \($0.name)" }.joined(separator: ", "))
+                    // Tags
+                    HStack(spacing: 8) {
+                        ForEach(["spanish", "datenight"], id: \.self) { tag in
+                            Text("#\(tag)")
                                 .font(.subheadline)
-                                .foregroundColor(.white.opacity(0.8))
-                                .lineLimit(1)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.white.opacity(0.2))
+                                .cornerRadius(16)
+                                .foregroundColor(.white)
                         }
-                        
-                        // Time and Servings
-                        HStack(spacing: 20) {
-                            Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
-                            Spacer()
-                            Label("\(recipe.servings) servings", systemImage: "person.2")
-                        }
-                        .foregroundColor(.white.opacity(0.8))
-                        .font(.subheadline)
                     }
+                    .padding(.bottom, 56)
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, geometry.safeAreaInsets.bottom + 120) // Increased bottom padding to shift content up
+                .padding(.bottom, geometry.safeAreaInsets.bottom + 48)
             }
         }
     }

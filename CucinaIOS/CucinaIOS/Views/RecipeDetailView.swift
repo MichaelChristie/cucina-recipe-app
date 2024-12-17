@@ -5,23 +5,37 @@ struct RecipeDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+        ScrollView(.vertical, showsIndicators: false) {
+            ZStack(alignment: .top) {
+                // Image layer
                 RecipeHeaderImage(imageURL: recipe.imageURL)
+                    .ignoresSafeArea()
+                    .frame(maxWidth: .infinity)
                 
-                VStack(alignment: .leading, spacing: 16) {
-                    RecipeHeaderInfo(recipe: recipe)
-                    RecipeIngredients(ingredients: recipe.ingredients)
-                    // Temporarily removing steps section until Recipe model is updated
-                    // if let steps = recipe.steps as? [[String: Any]] {
-                    //     RecipeInstructions(steps: steps)
-                    // }
-                    RecipeTags(tags: recipe.dietaryTags)
+                // Content layer
+                VStack(alignment: .leading, spacing: 0) {
+                    // Spacer to push content below image
+                    Color.clear
+                        .frame(height: 250)
+                    
+                    // Content
+                    VStack(alignment: .leading, spacing: 16) {
+                        RecipeHeaderInfo(recipe: recipe)
+                        RecipeIngredients(ingredients: recipe.ingredients)
+                        RecipeTags(tags: recipe.dietaryTags)
+                    }
+                    .padding()
+                    .background(
+                        Rectangle()
+                            .fill(.background)
+                            .cornerRadius(30, corners: [.topLeft, .topRight])
+                    )
                 }
-                .padding()
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
     }
 }
 
@@ -30,19 +44,22 @@ private struct RecipeHeaderImage: View {
     let imageURL: String?
     
     var body: some View {
-        Group {
+        GeometryReader { geometry in
             if let imageURL = imageURL, let url = URL(string: imageURL) {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
                         ProgressView()
-                            .frame(height: 300)
+                            .frame(maxWidth: geometry.size.width)
+                            .frame(height: 520)
                     case .success(let image):
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(height: 300)
+                            .frame(width: geometry.size.width)
+                            .frame(height: 520)
                             .clipped()
+                            .offset(y: -120)
                     case .failure:
                         PlaceholderImage()
                     @unknown default:
@@ -53,6 +70,7 @@ private struct RecipeHeaderImage: View {
                 PlaceholderImage()
             }
         }
+        .frame(height: 520)
     }
 }
 
@@ -65,11 +83,10 @@ private struct RecipeHeaderInfo: View {
             Text(recipe.title)
                 .font(.title)
                 .fontWeight(.bold)
-            
+                .foregroundColor(Color("PrimaryColor"))
             Text(recipe.description)
                 .font(.body)
                 .foregroundColor(.secondary)
-            
             HStack(spacing: 20) {
                 Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
                 Spacer()
@@ -165,6 +182,23 @@ private struct PlaceholderImage: View {
             .aspectRatio(contentMode: .fit)
             .frame(height: 300)
             .background(Color.gray.opacity(0.3))
+    }
+}
+
+// Add this extension for rounded corners
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        return Path(path.cgPath)
     }
 }
 
