@@ -5,42 +5,55 @@ struct InspirationView: View {
     @StateObject private var recipeService = RecipeService()
     @State private var testMessage = "Testing Firebase Connection..."
     @State private var visibleRecipeID: String?
+    @State private var selectedRecipe: Recipe?
+    @State private var showingRecipeDetail = false
     
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(spacing: 0) {
-                    if recipeService.recipes.isEmpty {
-                        Text("No recipes found")
-                            .frame(width: geometry.size.width, height: geometry.size.height)
-                            .background(Color.gray.opacity(0.2))
-                    } else {
-                        ForEach(recipeService.recipes, id: \.uniqueId) { recipe in
-                            RecipeCard(recipe: recipe, isVisible: visibleRecipeID == recipe.uniqueId)
+        NavigationStack {
+            GeometryReader { geometry in
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 0) {
+                        if recipeService.recipes.isEmpty {
+                            Text("No recipes found")
                                 .frame(width: geometry.size.width, height: geometry.size.height)
-                                .onAppear {
-                                    visibleRecipeID = recipe.uniqueId
-                                }
-                                .onDisappear {
-                                    if visibleRecipeID == recipe.uniqueId {
-                                        visibleRecipeID = nil
+                                .background(Color.gray.opacity(0.2))
+                        } else {
+                            ForEach(recipeService.recipes, id: \.uniqueId) { recipe in
+                                RecipeCard(recipe: recipe, isVisible: visibleRecipeID == recipe.uniqueId)
+                                    .frame(width: geometry.size.width, height: geometry.size.height)
+                                    .onAppear {
+                                        visibleRecipeID = recipe.uniqueId
                                     }
-                                }
+                                    .onDisappear {
+                                        if visibleRecipeID == recipe.uniqueId {
+                                            visibleRecipeID = nil
+                                        }
+                                    }
+                                    .onTapGesture {
+                                        selectedRecipe = recipe
+                                        showingRecipeDetail = true
+                                    }
+                            }
                         }
                     }
                 }
-            }
-            .scrollTargetBehavior(.paging)
-            .task {
-                do {
-                    try await recipeService.fetchRecipes()
-                    testMessage = "Successfully connected to Firebase! Found \(recipeService.recipes.count) recipes."
-                } catch {
-                    testMessage = "Error connecting to Firebase: \(error.localizedDescription)"
+                .scrollTargetBehavior(.paging)
+                .navigationDestination(isPresented: $showingRecipeDetail) {
+                    if let recipe = selectedRecipe {
+                        RecipeDetailView(recipe: recipe)
+                    }
+                }
+                .task {
+                    do {
+                        try await recipeService.fetchRecipes()
+                        testMessage = "Successfully connected to Firebase! Found \(recipeService.recipes.count) recipes."
+                    } catch {
+                        testMessage = "Error connecting to Firebase: \(error.localizedDescription)"
+                    }
                 }
             }
+            .ignoresSafeArea()
         }
-        .ignoresSafeArea()
     }
 }
 
