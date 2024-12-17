@@ -46,6 +46,7 @@ config/*.json
 .env.local
 .env.*.local
 
-# XCode user-specific files
+# Xcode
 *.xcuserstate
 xcuserdata/
+*.xcuserdatad/

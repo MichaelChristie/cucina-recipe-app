@@ -60,10 +60,12 @@ struct InspirationView: View {
 struct RecipeCard: View {
     let recipe: Recipe
     let isVisible: Bool
+    @State private var isLiked = false
+    @State private var isSaved = false
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .bottom) {
+            ZStack(alignment: .trailing) {
                 // Background Image
                 
                 if isVisible, let imageURL = recipe.imageURL, let url = URL(string: imageURL) {
@@ -120,7 +122,50 @@ struct RecipeCard: View {
                 .frame(height: geometry.size.height * 0.7)
                 .frame(maxHeight: .infinity, alignment: .bottom)
                 
-                // Content overlay
+                // Side Icons - Centered vertically
+                VStack(spacing: 24) {
+                    // Push icons to vertical center
+                    Spacer()
+                    
+                    // Like Button
+                    Button(action: {
+                        isLiked.toggle()
+                    }) {
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(isLiked ? .red : .white)
+                    }
+                    
+                    // Share Button
+                    Button(action: {
+                        // Share action
+                    }) {
+                        Image(systemName: "paperplane.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(.white)
+                    }
+                    
+                    // Save Button
+                    Button(action: {
+                        isSaved.toggle()
+                    }) {
+                        Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 28, height: 28)
+                            .foregroundColor(isSaved ? .yellow : .white)
+                    }
+                    
+                    // Equal spacer to center the icons
+                    Spacer()
+                }
+                .padding(.trailing, 24)
+                
+                // Content overlay (title, description, tags)
                 VStack(alignment: .leading, spacing: 16) {
                     Spacer()
                     
