@@ -150,4 +150,61 @@ struct RecipeCard: View {
             }
         }
     }
-} 
+}
+
+#Preview {
+    InspirationView()
+        .environmentObject(RecipeService()) // Provide the environment object
+}
+
+// For older Xcode versions
+struct InspirationView_Previews: PreviewProvider {
+    static var previews: some View {
+        InspirationView()
+            .environmentObject(RecipeService())
+    }
+}
+
+// Comment out the problematic preview code until we fix it
+extension Recipe {
+    static var sampleRecipe: Recipe {
+        let ingredients = [
+            Ingredient(ingredientId: "1", name: "Spaghetti", amount: 1.0, unit: "pound"),
+            Ingredient(ingredientId: "2", name: "Eggs", amount: 4.0, unit: "large"),
+            Ingredient(ingredientId: "3", name: "Pecorino Romano", amount: 1.0, unit: "cup")
+        ]
+        
+        return try! JSONDecoder().decode(Recipe.self, from: """
+        {
+            "id": "preview-1",
+            "title": "Spaghetti Carbonara",
+            "description": "Classic Italian pasta dish made with eggs, cheese, pancetta and black pepper",
+            "ingredients": \(String(data: try! JSONEncoder().encode(ingredients), encoding: .utf8)!),
+            "steps": [
+                {"text": "Boil pasta", "confirmed": false},
+                {"text": "Mix eggs and cheese", "confirmed": false},
+                {"text": "Combine and serve", "confirmed": false}
+            ],
+            "cuisine_type": "Italian",
+            "dietary_tags": ["pasta", "italian", "dinner"],
+            "prepTime": 15,
+            "cookTime": 20,
+            "servings": 4,
+            "image": "https://example.com/carbonara.jpg",
+            "created_at": \(Date().timeIntervalSince1970),
+            "updated_at": \(Date().timeIntervalSince1970)
+        }
+        """.data(using: .utf8)!)
+    }
+}
+
+#Preview {
+    InspirationView()
+        .environmentObject(RecipeService())
+}
+
+#Preview("Recipe Card") {
+    RecipeCard(recipe: .sampleRecipe, isVisible: true)
+        .frame(height: 800)
+}
+ 

@@ -18,6 +18,39 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     config.httpMaximumConnectionsPerHost = 4
     URLSession.shared.configuration.httpMaximumConnectionsPerHost = 4
 
+    // Configure tab bar appearance
+    let appearance = UITabBarAppearance()
+    appearance.configureWithDefaultBackground()
+    appearance.backgroundColor = .systemBackground
+    
+    // Set the active tab color using PrimaryColor from Assets
+    let primaryColor = UIColor(named: "PrimaryColor") ?? .systemBlue
+    
+    // Configure selected state
+    appearance.stackedLayoutAppearance.selected.iconColor = primaryColor
+    appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: primaryColor]
+    
+    // Configure all layout appearances (stacked, inline, compact)
+    let appearances = [
+        appearance.stackedLayoutAppearance,
+        appearance.inlineLayoutAppearance,
+        appearance.compactInlineLayoutAppearance
+    ]
+    
+    appearances.forEach { itemAppearance in
+        itemAppearance.selected.iconColor = primaryColor
+        itemAppearance.selected.titleTextAttributes = [.foregroundColor: primaryColor]
+    }
+    
+    UITabBar.appearance().scrollEdgeAppearance = appearance
+    UITabBar.appearance().standardAppearance = appearance
+    
+    // Ensure the tint color is set for the tab bar
+    UITabBar.appearance().tintColor = primaryColor
+
+    // Set dark mode as default
+    UIWindow.appearance().overrideUserInterfaceStyle = .dark
+
     return true
   }
 }
@@ -31,6 +64,21 @@ struct CucinaIOSApp: App {
   var body: some Scene {
     WindowGroup {
       MainTabView()
+        .preferredColorScheme(.dark)
     }
+      
   }
+}
+
+#Preview {
+    MainTabView()
+        .preferredColorScheme(.dark)
+}
+
+// Use this version for older Xcode versions
+struct CucinaIOSApp_Previews: PreviewProvider {
+    static var previews: some View {
+        MainTabView()
+            .preferredColorScheme(.dark)
+    }
 }

@@ -7,6 +7,13 @@ struct Ingredient: Codable {
     var name: String
     var unit: String
     
+    init(ingredientId: String, name: String, amount: Double, unit: String) {
+        self.ingredientId = ingredientId
+        self.name = name
+        self.amount = amount
+        self.unit = unit
+    }
+    
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         ingredientId = try container.decode(String.self, forKey: .ingredientId)
