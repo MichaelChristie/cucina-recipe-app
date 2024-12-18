@@ -1,4 +1,4 @@
-import { FC, useEffect, useState, useCallback } from 'react';
+import { FC, useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
@@ -6,7 +6,7 @@ import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeSer
 import AdminLayout from '../../components/AdminLayout';
 import { 
   ChevronLeftIcon, TagIcon, 
-  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon 
+  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon, PencilIcon 
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { 
@@ -30,6 +30,8 @@ import { getTags } from '../../services/tagService';
 import { getIngredients, addIngredient as addIngredientToDb } from '../../services/ingredientService';
 import { EditorRecipe, EditorIngredient, StickyFooterProps, AddIngredientModalProps } from '../../types/editor';
 import { Tag, Ingredient } from '../../types/admin';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { storage } from '../../firebase/config';
 
 // Constants remain the same
 const UNITS = {
@@ -270,6 +272,207 @@ const AddIngredientModal: FC<AddIngredientModalProps> = ({ isOpen, onClose, onAd
           </div>
         </form>
       </div>
+    </div>
+  );
+};
+
+interface ImageUploadProps {
+  image: string;
+  onImageChange: (url: string) => void;
+  className?: string;
+}
+
+interface UploadProgressProps {
+  progress: number;
+}
+
+const UploadProgress: FC<UploadProgressProps> = ({ progress }) => {
+  const radius = 12;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      <svg className="w-8 h-8">
+        <circle
+          className="text-gray-200"
+          strokeWidth="4"
+          stroke="currentColor"
+          fill="transparent"
+          r={radius}
+          cx="16"
+          cy="16"
+        />
+        <circle
+          className="text-blue-600"
+          strokeWidth="4"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          stroke="currentColor"
+          fill="transparent"
+          r={radius}
+          cx="16"
+          cy="16"
+        />
+      </svg>
+      <span className="absolute text-xs">{Math.round(progress)}%</span>
+    </div>
+  );
+};
+
+const ImageUpload: FC<ImageUploadProps> = ({ image, onImageChange, className = '' }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleImageUpload(files[0]);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleImageUpload(files[0]);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    const storageRef = ref(storage, `recipe-images/${Date.now()}-${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error('Upload error:', error);
+        toast.error('Failed to upload image');
+        setIsUploading(false);
+      },
+      async () => {
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          onImageChange(downloadURL);
+          toast.success('Image uploaded successfully');
+        } catch (error) {
+          console.error('Error getting download URL:', error);
+          toast.error('Failed to process uploaded image');
+        }
+        setIsUploading(false);
+      }
+    );
+  };
+
+  const handleDelete = async () => {
+    if (!image) return;
+
+    try {
+      const imageRef = ref(storage, image);
+      await deleteObject(imageRef);
+      onImageChange('');
+      toast.success('Image deleted successfully');
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast.error('Failed to delete image');
+    }
+  };
+
+  return (
+    <div
+      className={`relative ${className}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        accept="image/*"
+        className="hidden"
+      />
+      
+      {image ? (
+        // Image preview container
+        <div className="relative h-48 rounded-lg overflow-hidden group">
+          <img
+            src={image}
+            alt="Recipe preview"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 bg-white rounded-full hover:bg-gray-100"
+                title="Edit image"
+              >
+                <PencilIcon className="h-5 w-5 text-gray-600" />
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="p-2 bg-white rounded-full hover:bg-gray-100"
+                title="Delete image"
+              >
+                <TrashIcon className="h-5 w-5 text-red-600" />
+              </button>
+              {isUploading && <UploadProgress progress={uploadProgress} />}
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Upload button when no image
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className={`w-full h-48 border-2 border-dashed rounded-lg flex items-center justify-center transition-colors ${
+            isDragging
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-300 hover:border-gray-400'
+          }`}
+        >
+          <div className="text-center">
+            {isUploading ? (
+              <UploadProgress progress={uploadProgress} />
+            ) : (
+              <>
+                <PlusIcon className="h-12 w-12 text-gray-400 mx-auto" />
+                <span className="mt-2 block text-sm font-medium text-gray-600">
+                  Drop an image here, or click to upload
+                </span>
+              </>
+            )}
+          </div>
+        </button>
+      )}
     </div>
   );
 };
@@ -644,16 +847,12 @@ const RecipeEditor: FC = () => {
             <span className="text-gray-900">{id ? 'Edit Recipe' : 'New Recipe'}</span>
           </nav>
 
-          {/* Image Preview */}
-          {recipe.image && (
-            <div className="mt-2 relative h-48 rounded-lg overflow-hidden">
-              <img
-                src={recipe.image}
-                alt="Recipe preview"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
+          {/* Image Upload */}
+          <ImageUpload
+            image={recipe.image}
+            onImageChange={(url) => setRecipe({ ...recipe, image: url })}
+            className="mt-6"
+          />
 
           {/* Title */}
           <div>
