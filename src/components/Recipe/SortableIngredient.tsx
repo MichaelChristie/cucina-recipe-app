@@ -47,13 +47,20 @@ export const SortableIngredient: FC<SortableIngredientProps> = memo(({
     transition,
     isDragging
   } = useSortable({ 
-    id: ingredient.id
+    id: ingredient.id,
+    data: {
+      index,
+      ingredient
+    }
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition || 'transform 200ms ease, opacity 200ms ease',
+    zIndex: isDragging ? 999 : 'auto',
     opacity: isDragging ? 0.5 : 1,
+    position: 'relative' as const,
+    touchAction: 'none'
   };
 
   const filteredIngredients = availableIngredients.filter(ing => 
@@ -68,7 +75,7 @@ export const SortableIngredient: FC<SortableIngredientProps> = memo(({
         isDragging ? 'shadow-lg ring-2 ring-blue-500' : ''
       }`}
     >
-      <div {...attributes} {...listeners} className="cursor-move">
+      <div {...attributes} {...listeners} className="cursor-move touch-none">
         <Bars3Icon className="h-5 w-5 text-gray-500" />
       </div>
 

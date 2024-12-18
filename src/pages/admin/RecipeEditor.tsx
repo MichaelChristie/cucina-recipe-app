@@ -531,17 +531,14 @@ const RecipeEditor: FC = () => {
   };
 
   const addIngredient = (): void => {
-    const newId = generateId();
     const newIngredient = {
-      id: newId,
+      id: generateId(),
       name: '',
       amount: '',
       unit: '',
       ingredientId: '',
       confirmed: false
     };
-    
-    console.log('Adding new ingredient:', newIngredient);
     
     setRecipe(prev => ({
       ...prev,
@@ -795,6 +792,8 @@ const RecipeEditor: FC = () => {
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 3,
+        delay: 0,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -816,10 +815,31 @@ const RecipeEditor: FC = () => {
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    console.log('Drag started:', {
-      id: event.active.id,
-      ingredients: recipe.ingredients.map(ing => ing.id)
-    });
+    const { active } = event;
+    setActiveId(active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    if (active.id !== over.id) {
+      const oldIndex = recipe.ingredients.findIndex(ing => ing.id === active.id);
+      const newIndex = recipe.ingredients.findIndex(ing => ing.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newIngredients = [...recipe.ingredients];
+        const [movedItem] = newIngredients.splice(oldIndex, 1);
+        newIngredients.splice(newIndex, 0, movedItem);
+
+        setRecipe(prev => ({
+          ...prev,
+          ingredients: newIngredients
+        }));
+      }
+    }
   };
 
   const handleDragMove = (event: DragMoveEvent) => {
@@ -1063,8 +1083,8 @@ const RecipeEditor: FC = () => {
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
-              onDragEnd={handleIngredientDragEnd}
               onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
             >
               <SortableContext
                 items={recipe.ingredients.map(ing => ing.id)}
