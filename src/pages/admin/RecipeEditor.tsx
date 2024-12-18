@@ -1,4 +1,4 @@
-import { FC, useEffect, useState, useCallback } from 'react';
+import { FC, useEffect, useState, useCallback, DragEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeService';
@@ -29,6 +29,10 @@ import { getTags } from '../../services/tagService';
 import { getIngredients, addIngredient as addIngredientToDb } from '../../services/ingredientService';
 import { EditorRecipe, EditorIngredient, StickyFooterProps, AddIngredientModalProps } from '../../types/editor';
 import { Tag, Ingredient } from '../../types/admin';
+import { uploadMedia } from '../../services/storageService';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../firebase/config';
+import { useAuth } from '../../hooks/useAuth';
 
 // Constants remain the same
 const UNITS = {
@@ -311,6 +315,8 @@ const RecipeEditor: FC = () => {
   const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
   const [newIngredientName, setNewIngredientName] = useState('');
   const [activeIngredientIndex, setActiveIngredientIndex] = useState<number | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (id) {
@@ -621,6 +627,119 @@ const RecipeEditor: FC = () => {
     }
   };
 
+  const handleMediaUpload = async (file: File) => {
+    try {
+      const downloadUrl = await uploadMedia(
+        file,
+        `recipes/${recipe.id || 'new'}/media`,
+        ({ progress, error }) => {
+          if (error) {
+            toast.error('Upload failed');
+            return;
+          }
+          setUploadProgress(progress);
+        }
+      );
+
+      // Update recipe with new media URL
+      setRecipe(prev => ({
+        ...prev,
+        image: downloadUrl
+      }));
+
+      toast.success('Media uploaded successfully');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload media');
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Only allow images
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Check if user is authenticated
+    if (!user) {
+      toast.error('You must be logged in to upload images');
+      return;
+    }
+
+    try {
+      // Create a unique filename
+      const fileExtension = file.name.split('.').pop();
+      const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+      
+      const storageRef = ref(
+        storage, 
+        `recipes/${recipe.id || 'new'}/${uniqueFileName}`
+      );
+      
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error('Upload error:', error);
+          toast.error('Failed to upload image');
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setRecipe(prev => ({
+              ...prev,
+              image: downloadURL
+            }));
+            setUploadProgress(0);
+            toast.success('Image uploaded successfully');
+          } catch (error) {
+            console.error('Error getting download URL:', error);
+            toast.error('Failed to complete image upload');
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload image');
+    }
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (!imageFile) {
+      toast.error('Please drop an image file');
+      return;
+    }
+
+    await handleImageUpload({ target: { files: [imageFile] } } as any);
+  };
+
   return (
     <AdminLayout>
       <div className="pb-24">
@@ -644,15 +763,103 @@ const RecipeEditor: FC = () => {
           </nav>
 
           {/* Image Preview */}
-          {recipe.image && (
-            <div className="mt-2 relative h-48 rounded-lg overflow-hidden">
-              <img
-                src={recipe.image}
-                alt="Recipe preview"
-                className="w-full h-full object-cover"
-              />
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Recipe Image
+            </label>
+            <div className="flex items-start space-x-4">
+              <div 
+                className="relative group"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                {recipe.image ? (
+                  <div className="relative w-48 h-48 rounded-lg overflow-hidden">
+                    <img
+                      src={recipe.image}
+                      alt="Recipe preview"
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Overlay with persistent buttons */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50">
+                      <div className="absolute top-2 right-2 flex space-x-2">
+                        <label
+                          htmlFor="image-upload"
+                          className="p-1.5 bg-white/90 hover:bg-white text-blue-600 rounded-full cursor-pointer transition-colors duration-200"
+                        >
+                          <PlusIcon className="h-4 w-4" />
+                          <input
+                            id="image-upload"
+                            name="image-upload"
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={handleImageUpload}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setRecipe(prev => ({ ...prev, image: '' }))}
+                          className="p-1.5 bg-white/90 hover:bg-white text-red-600 rounded-full transition-colors duration-200"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-sm text-white/75">
+                        <p className="bg-black/50 px-2 py-1 rounded">
+                          Drop image to replace
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center transition-colors duration-200 ease-in-out">
+                    <div className="text-center p-4">
+                      <div className="text-gray-500">
+                        <svg
+                          className="mx-auto h-12 w-12"
+                          stroke="currentColor"
+                          fill="none"
+                          viewBox="0 0 48 48"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <div className="mt-4">
+                          <label
+                            htmlFor="image-upload"
+                            className="cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                          >
+                            <span>Upload an image</span>
+                            <input
+                              id="image-upload"
+                              name="image-upload"
+                              type="file"
+                              accept="image/*"
+                              className="sr-only"
+                              onChange={handleImageUpload}
+                            />
+                          </label>
+                          <p className="mt-1 text-xs text-gray-500">
+                            or drag and drop
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">
+                          PNG, JPG, GIF up to 10MB
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          </div>
 
           {/* Title */}
           <div>
