@@ -1,6 +1,23 @@
-import { FC, useEffect, useState, useCallback, DragEvent } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import SortableIngredient from '../../components/Recipe/SortableIngredient';
+import { CSS } from '@dnd-kit/utilities';
 import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeService';
 import AdminLayout from '../../components/AdminLayout';
 import { 
@@ -33,6 +50,7 @@ import { uploadMedia } from '../../services/storageService';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../firebase/config';
 import { useAuth } from '../../hooks/useAuth';
+import SortableTestItem from '../../components/Recipe/SortableTestItem';
 
 // Constants remain the same
 const UNITS = {
@@ -277,6 +295,12 @@ const AddIngredientModal: FC<AddIngredientModalProps> = ({ isOpen, onClose, onAd
   );
 };
 
+// Add this interface near the top with other interfaces/types
+interface TestItem {
+  id: string;
+  content: string;
+}
+
 const RecipeEditor: FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -298,7 +322,7 @@ const RecipeEditor: FC = () => {
     steps: [],
     tags: [],
     showTagsPanel: false,
-    authorId: '', // You'll need to get this from your auth context
+    authorId: '',
     createdAt: new Date(),
     updatedAt: new Date()
   });
@@ -317,6 +341,11 @@ const RecipeEditor: FC = () => {
   const [activeIngredientIndex, setActiveIngredientIndex] = useState<number | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const { user } = useAuth();
+  const [testItems, setTestItems] = useState<TestItem[]>([
+    { id: '1', content: 'Item 1' },
+    { id: '2', content: 'Item 2' },
+    { id: '3', content: 'Item 3' },
+  ]);
 
   useEffect(() => {
     if (id) {
@@ -497,21 +526,21 @@ const RecipeEditor: FC = () => {
   };
 
   const addIngredient = (): void => {
-    const newIndex = recipe.ingredients.length;
-    setRecipe({
-      ...recipe,
-      ingredients: [...(recipe.ingredients || []), { 
-        id: generateId(),
-        name: '', 
-        amount: '', 
-        unit: '',
-        ingredientId: '',
-        confirmed: false
-      }]
-    });
-    setTimeout(() => {
-      document.querySelector(`#ingredient-${newIndex}`)?.focus();
-    }, 0);
+    const newIngredient = {
+      id: `temp-${Date.now()}`,
+      name: '',
+      amount: '',
+      unit: '',
+      ingredientId: '',
+      confirmed: false
+    };
+    
+    console.log('Adding new ingredient:', newIngredient);
+    
+    setRecipe(prev => ({
+      ...prev,
+      ingredients: [...prev.ingredients, newIngredient]
+    }));
   };
 
   const removeIngredient = (index: number): void => {
@@ -519,14 +548,24 @@ const RecipeEditor: FC = () => {
     setRecipe({ ...recipe, ingredients: newIngredients });
   };
 
-  const handleDragEnd = (result: DropResult): void => {
-    if (!result.destination) return;
+  const handleIngredientDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
     
-    const items = Array.from(recipe.ingredients);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    
-    setRecipe({ ...recipe, ingredients: items });
+    if (!over || active.id === over.id) return;
+
+    setRecipe(prev => {
+      const oldIndex = prev.ingredients.findIndex(
+        ing => (ing.id || `temp-${ing.id}`) === active.id
+      );
+      const newIndex = prev.ingredients.findIndex(
+        ing => (ing.id || `temp-${ing.id}`) === over.id
+      );
+
+      return {
+        ...prev,
+        ingredients: arrayMove(prev.ingredients, oldIndex, newIndex)
+      };
+    });
   };
 
   const handleIngredientKeyDown = (e: React.KeyboardEvent, index: number, filteredIngredients: Ingredient[]): void => {
@@ -738,6 +777,38 @@ const RecipeEditor: FC = () => {
     }
 
     await handleImageUpload({ target: { files: [imageFile] } } as any);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleTestDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+
+    setTestItems((items) => {
+      const oldIndex = items.findIndex(item => item.id === active.id);
+      const newIndex = items.findIndex(item => item.id === over.id);
+      
+      return arrayMove(items, oldIndex, newIndex);
+    });
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    console.log('Drag started:', event);
+  };
+
+  const handleDragMove = (event: DragMoveEvent) => {
+    console.log('Drag moving:', event);
   };
 
   return (
@@ -955,155 +1026,74 @@ const RecipeEditor: FC = () => {
 
           {/* Ingredients */}
           <div className="mt-6">
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="ingredients">
-                {(provided) => (
-                  <div 
-                    {...provided.droppableProps} 
-                    ref={provided.innerRef}
-                    className="space-y-4"
-                  >
-                    {recipe.ingredients?.map((ingredient, index) => (
-                      <Draggable 
-                        key={ingredient.id}
-                        draggableId={ingredient.id}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`flex gap-2 items-center ${snapshot.isDragging ? 'dragging' : ''}`}
-                          >
-                            <div
-                              {...provided.dragHandleProps}
-                              className="cursor-move p-2 hover:bg-gray-100 rounded"
-                            >
-                              <Bars3Icon className="h-5 w-5 text-gray-500" />
-                            </div>
-                            <div className="flex-1 relative ingredient-field">
-                              <input
-                                id={`ingredient-${index}`}
-                                type="text"
-                                value={ingredient.name || ''}
-                                onChange={(e) => {
-                                  handleIngredientChange(index, 'name', e.target.value);
-                                  setSelectedSuggestionIndex(0); // Reset selection on type
-                                }}
-                                onFocus={() => {
-                                  setActiveIngredient({ index, field: 'name' });
-                                  setSelectedSuggestionIndex(0);
-                                }}
-                                onKeyDown={(e) => {
-                                  const filteredIngredients = availableIngredients.filter(ing => 
-                                    ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
-                                  );
-                                  handleIngredientKeyDown(e, index, filteredIngredients);
-                                }}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
-                                placeholder="Start typing ingredient name..."
-                              />
-                              {activeIngredient.index === index && 
-                               activeIngredient.field === 'name' && 
-                               ingredient.name && (
-                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                                  {availableIngredients
-                                    .filter(ing => 
-                                      ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
-                                    )
-                                    .map((ing, suggestionIndex) => (
-                                      <button
-                                        key={ing.id}
-                                        type="button"
-                                        className={`w-full text-left px-4 py-2 ${
-                                          selectedSuggestionIndex === suggestionIndex 
-                                            ? 'bg-blue-50 text-blue-700' 
-                                            : 'hover:bg-gray-100'
-                                        }`}
-                                        onClick={() => {
-                                          handleIngredientSelect(index, ing);
-                                          document.querySelector(`#amount-${index}`)?.focus();
-                                        }}
-                                        onMouseEnter={() => setSelectedSuggestionIndex(suggestionIndex)}
-                                      >
-                                        <span className="font-medium">{ing.name}</span>
-                                        <span className="text-sm text-gray-500 ml-2">({ing.category})</span>
-                                      </button>
-                                    ))}
-                                  {availableIngredients.filter(ing => 
-                                    ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
-                                  ).length === 0 && (
-                                    <div>
-                                      <div className="px-4 py-2 text-gray-500 italic">
-                                        No ingredients found
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setNewIngredientName(ingredient.name);
-                                          setActiveIngredientIndex(index);
-                                          setIsIngredientModalOpen(true);
-                                        }}
-                                        onMouseEnter={() => setSelectedSuggestionIndex(0)}
-                                        className={`w-full text-left px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium border-t
-                                          ${selectedSuggestionIndex === 0 ? 'bg-blue-50' : ''}`}
-                                      >
-                                        + Create "{ingredient.name}"
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            <input
-                              id={`amount-${index}`}
-                              type="number"
-                              value={ingredient.amount || ''}
-                              onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
-                              onFocus={() => setActiveIngredient({ index, field: 'amount' })}
-                              onKeyDown={(e) => handleIngredientKeyDown(e, index, [])}
-                              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 mx-2"
-                              placeholder="Amount"
-                              step="0.01"
-                            />
-                            <div className="relative ingredient-field w-32 mx-2">
-                              <select
-                                value={ingredient.unit || ''}
-                                onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
-                                onFocus={() => setActiveIngredient({ index, field: 'unit' })}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
-                              >
-                                <option value="">Select unit</option>
-                                {AVAILABLE_UNITS.map(unit => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleIngredientChange(index, 'confirmed', !ingredient.confirmed)}
-                              className={`p-2 rounded-full ${ingredient.confirmed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'} hover:bg-opacity-80`}
-                            >
-                              <CheckIcon className="h-5 w-5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => removeIngredient(index)}
-                              className="p-2 text-red-600 hover:bg-red-100 rounded-full"
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </button>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Ingredients</h2>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleIngredientDragEnd}
+              modifiers={[restrictToVerticalAxis]}
+            >
+              <SortableContext
+                items={recipe.ingredients.map(ing => ing.id || `temp-${ing.id}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-4">
+                  {recipe.ingredients.map((ingredient, index) => (
+                    <SortableIngredient
+                      key={ingredient.id || `temp-${index}`}
+                      ingredient={ingredient}
+                      index={index}
+                      onNameChange={handleIngredientChange}
+                      onAmountChange={handleIngredientChange}
+                      onUnitChange={handleIngredientChange}
+                      onConfirmChange={handleIngredientChange}
+                      onRemove={removeIngredient}
+                      activeIngredient={activeIngredient}
+                      setActiveIngredient={setActiveIngredient}
+                      selectedSuggestionIndex={selectedSuggestionIndex}
+                      availableIngredients={availableIngredients}
+                      handleIngredientSelect={handleIngredientSelect}
+                      handleIngredientKeyDown={handleIngredientKeyDown}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+
+            {/* Add Ingredient button */}
+            <button
+              type="button"
+              onClick={addIngredient}
+              className="mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border border-gray-300 flex items-center gap-2"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Add Ingredient
+            </button>
+          </div>
+
+          {/* Test list with its own DndContext */}
+          <div className="mt-6 border-t pt-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Test Sortable List</h2>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleTestDragEnd}
+            >
+              <SortableContext
+                items={testItems.map(item => item.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div>
+                  {testItems.map((item) => (
+                    <SortableTestItem
+                      key={item.id}
+                      id={item.id}
+                      content={item.content}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           </div>
 
           {/* Steps */}
@@ -1157,18 +1147,20 @@ const RecipeEditor: FC = () => {
             </div>
           </div>
         </form>
+
+        <StickyFooter 
+          onSave={handleSave}
+          onClose={handleSaveAndClose}
+          saving={saving}
+        />
+        
+        <AddIngredientModal
+          isOpen={isIngredientModalOpen}
+          onClose={() => setIsIngredientModalOpen(false)}
+          onAdd={handleCreateIngredient}
+          initialName={newIngredientName}
+        />
       </div>
-      <StickyFooter 
-        onSave={handleSave}
-        onClose={handleSaveAndClose}
-        saving={saving}
-      />
-      <AddIngredientModal
-        isOpen={isIngredientModalOpen}
-        onClose={() => setIsIngredientModalOpen(false)}
-        onAdd={handleCreateIngredient}
-        initialName={newIngredientName}
-      />
     </AdminLayout>
   );
 };
