@@ -1,4 +1,4 @@
-import { initializeApp, getApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, collection, CollectionReference } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
@@ -13,14 +13,10 @@ const firebaseConfig: FirebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Initialize Firebase only if an instance doesn't exist
-let app;
-try {
-  app = getApp();
-} catch (error) {
-  app = initializeApp(firebaseConfig);
-}
+// Initialize Firebase only if it hasn't been initialized already
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
+// Initialize Firebase services
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);

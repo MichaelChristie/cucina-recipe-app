@@ -1,31 +1,12 @@
-import { FC, useEffect, useState, useRef, useCallback } from 'react';
+import { FC, useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  DndContext, 
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
-  DragMoveEvent,
-  DragOverlay
-} from '@dnd-kit/core';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy
-} from '@dnd-kit/sortable';
-import SortableIngredient from '../../components/Recipe/SortableIngredient';
-import { CSS } from '@dnd-kit/utilities';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import type { DropResult } from '@hello-pangea/dnd';
 import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeService';
 import AdminLayout from '../../components/AdminLayout';
 import { 
   ChevronLeftIcon, TagIcon, 
-  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon 
+  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon, PencilIcon 
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { 
@@ -49,11 +30,8 @@ import { getTags } from '../../services/tagService';
 import { getIngredients, addIngredient as addIngredientToDb } from '../../services/ingredientService';
 import { EditorRecipe, EditorIngredient, StickyFooterProps, AddIngredientModalProps } from '../../types/editor';
 import { Tag, Ingredient } from '../../types/admin';
-import { uploadMedia } from '../../services/storageService';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../../firebase/config';
-import { useAuth } from '../../hooks/useAuth';
-import SortableTestItem from '../../components/Recipe/SortableTestItem';
 
 // Constants remain the same
 const UNITS = {
@@ -298,11 +276,206 @@ const AddIngredientModal: FC<AddIngredientModalProps> = ({ isOpen, onClose, onAd
   );
 };
 
-// Add this interface near the top with other interfaces/types
-interface TestItem {
-  id: string;
-  content: string;
+interface ImageUploadProps {
+  image: string;
+  onImageChange: (url: string) => void;
+  className?: string;
 }
+
+interface UploadProgressProps {
+  progress: number;
+}
+
+const UploadProgress: FC<UploadProgressProps> = ({ progress }) => {
+  const radius = 12;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      <svg className="w-8 h-8">
+        <circle
+          className="text-gray-200"
+          strokeWidth="4"
+          stroke="currentColor"
+          fill="transparent"
+          r={radius}
+          cx="16"
+          cy="16"
+        />
+        <circle
+          className="text-blue-600"
+          strokeWidth="4"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          stroke="currentColor"
+          fill="transparent"
+          r={radius}
+          cx="16"
+          cy="16"
+        />
+      </svg>
+      <span className="absolute text-xs">{Math.round(progress)}%</span>
+    </div>
+  );
+};
+
+const ImageUpload: FC<ImageUploadProps> = ({ image, onImageChange, className = '' }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleImageUpload(files[0]);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleImageUpload(files[0]);
+    }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    const storageRef = ref(storage, `recipe-images/${Date.now()}-${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error('Upload error:', error);
+        toast.error('Failed to upload image');
+        setIsUploading(false);
+      },
+      async () => {
+        try {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          onImageChange(downloadURL);
+          toast.success('Image uploaded successfully');
+        } catch (error) {
+          console.error('Error getting download URL:', error);
+          toast.error('Failed to process uploaded image');
+        }
+        setIsUploading(false);
+      }
+    );
+  };
+
+  const handleDelete = async () => {
+    if (!image) return;
+
+    try {
+      const imageRef = ref(storage, image);
+      await deleteObject(imageRef);
+      onImageChange('');
+      toast.success('Image deleted successfully');
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      toast.error('Failed to delete image');
+    }
+  };
+
+  return (
+    <div
+      className={`relative ${className}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        accept="image/*"
+        className="hidden"
+      />
+      
+      {image ? (
+        // Image preview container
+        <div className="relative h-48 rounded-lg overflow-hidden group">
+          <img
+            src={image}
+            alt="Recipe preview"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 bg-white rounded-full hover:bg-gray-100"
+                title="Edit image"
+              >
+                <PencilIcon className="h-5 w-5 text-gray-600" />
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="p-2 bg-white rounded-full hover:bg-gray-100"
+                title="Delete image"
+              >
+                <TrashIcon className="h-5 w-5 text-red-600" />
+              </button>
+              {isUploading && <UploadProgress progress={uploadProgress} />}
+            </div>
+          </div>
+        </div>
+      ) : (
+        // Upload button when no image
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className={`w-full h-48 border-2 border-dashed rounded-lg flex items-center justify-center transition-colors ${
+            isDragging
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-300 hover:border-gray-400'
+          }`}
+        >
+          <div className="text-center">
+            {isUploading ? (
+              <UploadProgress progress={uploadProgress} />
+            ) : (
+              <>
+                <PlusIcon className="h-12 w-12 text-gray-400 mx-auto" />
+                <span className="mt-2 block text-sm font-medium text-gray-600">
+                  Drop an image here, or click to upload
+                </span>
+              </>
+            )}
+          </div>
+        </button>
+      )}
+    </div>
+  );
+};
 
 const RecipeEditor: FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -886,104 +1059,12 @@ const RecipeEditor: FC = () => {
             <span className="text-gray-900">{id ? 'Edit Recipe' : 'New Recipe'}</span>
           </nav>
 
-          {/* Image Preview */}
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Recipe Image
-            </label>
-            <div className="flex items-start space-x-4">
-              <div 
-                className="relative group"
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                {recipe.image ? (
-                  <div className="relative w-48 h-48 rounded-lg overflow-hidden">
-                    <img
-                      src={recipe.image}
-                      alt="Recipe preview"
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Overlay with persistent buttons */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50">
-                      <div className="absolute top-2 right-2 flex space-x-2">
-                        <label
-                          htmlFor="image-upload"
-                          className="p-1.5 bg-white/90 hover:bg-white text-blue-600 rounded-full cursor-pointer transition-colors duration-200"
-                        >
-                          <PlusIcon className="h-4 w-4" />
-                          <input
-                            id="image-upload"
-                            name="image-upload"
-                            type="file"
-                            accept="image/*"
-                            className="sr-only"
-                            onChange={handleImageUpload}
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setRecipe(prev => ({ ...prev, image: '' }))}
-                          className="p-1.5 bg-white/90 hover:bg-white text-red-600 rounded-full transition-colors duration-200"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-sm text-white/75">
-                        <p className="bg-black/50 px-2 py-1 rounded">
-                          Drop image to replace
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="w-48 h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center transition-colors duration-200 ease-in-out">
-                    <div className="text-center p-4">
-                      <div className="text-gray-500">
-                        <svg
-                          className="mx-auto h-12 w-12"
-                          stroke="currentColor"
-                          fill="none"
-                          viewBox="0 0 48 48"
-                          aria-hidden="true"
-                        >
-                          <path
-                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                            strokeWidth={2}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                        <div className="mt-4">
-                          <label
-                            htmlFor="image-upload"
-                            className="cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                          >
-                            <span>Upload an image</span>
-                            <input
-                              id="image-upload"
-                              name="image-upload"
-                              type="file"
-                              accept="image/*"
-                              className="sr-only"
-                              onChange={handleImageUpload}
-                            />
-                          </label>
-                          <p className="mt-1 text-xs text-gray-500">
-                            or drag and drop
-                          </p>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          PNG, JPG, GIF up to 10MB
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          {/* Image Upload */}
+          <ImageUpload
+            image={recipe.image}
+            onImageChange={(url) => setRecipe({ ...recipe, image: url })}
+            className="mt-6"
+          />
 
           {/* Title */}
           <div>
