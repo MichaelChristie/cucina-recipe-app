@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   DndContext, 
@@ -7,7 +7,10 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent
+  DragEndEvent,
+  DragStartEvent,
+  DragMoveEvent,
+  DragOverlay
 } from '@dnd-kit/core';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
@@ -346,6 +349,8 @@ const RecipeEditor: FC = () => {
     { id: '2', content: 'Item 2' },
     { id: '3', content: 'Item 3' },
   ]);
+  const ingredientsContainerRef = useRef<HTMLDivElement>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -526,8 +531,9 @@ const RecipeEditor: FC = () => {
   };
 
   const addIngredient = (): void => {
+    const newId = generateId();
     const newIngredient = {
-      id: `temp-${Date.now()}`,
+      id: newId,
       name: '',
       amount: '',
       unit: '',
@@ -551,21 +557,27 @@ const RecipeEditor: FC = () => {
   const handleIngredientDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (!over || active.id === over.id) return;
+    if (!over) return;
 
-    setRecipe(prev => {
-      const oldIndex = prev.ingredients.findIndex(
-        ing => (ing.id || `temp-${ing.id}`) === active.id
-      );
-      const newIndex = prev.ingredients.findIndex(
-        ing => (ing.id || `temp-${ing.id}`) === over.id
-      );
+    if (active.id !== over.id) {
+      const oldIndex = recipe.ingredients.findIndex(ing => ing.id === active.id);
+      const newIndex = recipe.ingredients.findIndex(ing => ing.id === over.id);
 
-      return {
-        ...prev,
-        ingredients: arrayMove(prev.ingredients, oldIndex, newIndex)
-      };
-    });
+      console.log('Moving ingredient:', {
+        from: oldIndex,
+        to: newIndex,
+        activeId: active.id,
+        overId: over.id
+      });
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newIngredients = arrayMove(recipe.ingredients, oldIndex, newIndex);
+        setRecipe(prev => ({
+          ...prev,
+          ingredients: newIngredients
+        }));
+      }
+    }
   };
 
   const handleIngredientKeyDown = (e: React.KeyboardEvent, index: number, filteredIngredients: Ingredient[]): void => {
@@ -782,7 +794,7 @@ const RecipeEditor: FC = () => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // 8px movement required before drag starts
+        distance: 3,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -804,12 +816,33 @@ const RecipeEditor: FC = () => {
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    console.log('Drag started:', event);
+    console.log('Drag started:', {
+      id: event.active.id,
+      ingredients: recipe.ingredients.map(ing => ing.id)
+    });
   };
 
   const handleDragMove = (event: DragMoveEvent) => {
     console.log('Drag moving:', event);
   };
+
+  useEffect(() => {
+    console.log('Recipe ingredients updated:', 
+      recipe.ingredients.map((ing, idx) => ({
+        index: idx,
+        id: ing.id,
+        tempId: `temp-${ing.id}`,
+        name: ing.name
+      }))
+    );
+  }, [recipe.ingredients]);
+
+  useEffect(() => {
+    console.log('Current ingredients:', recipe.ingredients.map(ing => ({
+      id: ing.id,
+      name: ing.name
+    })));
+  }, [recipe.ingredients]);
 
   return (
     <AdminLayout>
@@ -1031,16 +1064,16 @@ const RecipeEditor: FC = () => {
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={handleIngredientDragEnd}
-              modifiers={[restrictToVerticalAxis]}
+              onDragStart={handleDragStart}
             >
               <SortableContext
-                items={recipe.ingredients.map(ing => ing.id || `temp-${ing.id}`)}
+                items={recipe.ingredients.map(ing => ing.id)}
                 strategy={verticalListSortingStrategy}
               >
                 <div className="space-y-4">
                   {recipe.ingredients.map((ingredient, index) => (
                     <SortableIngredient
-                      key={ingredient.id || `temp-${index}`}
+                      key={ingredient.id}
                       ingredient={ingredient}
                       index={index}
                       onNameChange={handleIngredientChange}
@@ -1058,6 +1091,15 @@ const RecipeEditor: FC = () => {
                   ))}
                 </div>
               </SortableContext>
+              
+              {/* Add DragOverlay for better visual feedback */}
+              <DragOverlay>
+                {activeId ? (
+                  <div className="bg-white p-4 rounded-lg shadow-lg border-2 border-blue-500">
+                    {recipe.ingredients.find(ing => ing.id === activeId)?.name}
+                  </div>
+                ) : null}
+              </DragOverlay>
             </DndContext>
 
             {/* Add Ingredient button */}

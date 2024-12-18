@@ -9,16 +9,6 @@ interface SortableTestItemProps {
   content: string;
 }
 
-const animateLayoutChanges: AnimateLayoutChanges = (args) => {
-  const { isSorting, wasSorting } = args;
-  
-  if (isSorting || wasSorting) {
-    return defaultAnimateLayoutChanges(args);
-  }
-
-  return true;
-};
-
 export const SortableTestItem: FC<SortableTestItemProps> = ({ id, content }) => {
   const {
     attributes,
@@ -30,7 +20,13 @@ export const SortableTestItem: FC<SortableTestItemProps> = ({ id, content }) => 
     isSorting
   } = useSortable({ 
     id,
-    animateLayoutChanges
+    animateLayoutChanges: (args) => {
+      const { isSorting, wasSorting } = args;
+      if (isSorting || wasSorting) {
+        return defaultAnimateLayoutChanges(args);
+      }
+      return true;
+    }
   });
 
   const style = {

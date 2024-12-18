@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Bars3Icon, TrashIcon } from '@heroicons/react/24/outline';
@@ -21,18 +21,7 @@ interface SortableIngredientProps {
   handleIngredientKeyDown: (e: React.KeyboardEvent, index: number, filteredIngredients: Ingredient[]) => void;
 }
 
-// Add this animation configuration
-const animateLayoutChanges: AnimateLayoutChanges = (args) => {
-  const { isSorting, wasSorting } = args;
-  
-  if (isSorting || wasSorting) {
-    return defaultAnimateLayoutChanges(args);
-  }
-
-  return true;
-};
-
-export const SortableIngredient: FC<SortableIngredientProps> = ({ 
+export const SortableIngredient: FC<SortableIngredientProps> = memo(({ 
   ingredient,
   index,
   onNameChange,
@@ -46,27 +35,25 @@ export const SortableIngredient: FC<SortableIngredientProps> = ({
   handleIngredientSelect,
   handleIngredientKeyDown
 }) => {
+  if (!ingredient.id) {
+    console.error('Ingredient missing ID:', ingredient);
+  }
+
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-    isDragging,
-    isSorting
+    isDragging
   } = useSortable({ 
-    id: ingredient.id || `temp-${ingredient.id}`,
-    animateLayoutChanges
+    id: ingredient.id
   });
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition || 'transform 200ms ease, opacity 200ms ease',
-    zIndex: isDragging ? 999 : 'auto',
-    opacity: isDragging ? 0.8 : 1,
-    position: 'relative' as const,
-    touchAction: 'none',
-    scale: isDragging ? 1.02 : 1,
+    transition,
+    opacity: isDragging ? 0.5 : 1,
   };
 
   const filteredIngredients = availableIngredients.filter(ing => 
@@ -77,9 +64,9 @@ export const SortableIngredient: FC<SortableIngredientProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex gap-2 items-center bg-white rounded-lg p-2 transition-all duration-200 ${
-        isDragging ? 'shadow-lg ring-2 ring-blue-500 opacity-80' : ''
-      } ${isSorting ? 'transition-transform' : ''}`}
+      className={`flex gap-2 items-center bg-white rounded-lg p-2 ${
+        isDragging ? 'shadow-lg ring-2 ring-blue-500' : ''
+      }`}
     >
       <div {...attributes} {...listeners} className="cursor-move">
         <Bars3Icon className="h-5 w-5 text-gray-500" />
@@ -154,6 +141,6 @@ export const SortableIngredient: FC<SortableIngredientProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default SortableIngredient; 
