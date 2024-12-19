@@ -15,6 +15,7 @@ export interface Recipe {
   authorId: string;
   createdAt: Date;
   updatedAt: Date;
+  video?: VideoMetadata;
 }
 
 export interface RecipeIngredient {
@@ -40,4 +41,12 @@ export interface IngredientDivider {
   id: string;
   type: 'divider';
   label: string;
+}
+
+export interface VideoMetadata {
+  url: string;
+  thumbnailUrl?: string;
+  duration?: number;
+  size?: number;
+  format?: string;
 } 

@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cucina App</title>
+    <title>Cucina Recipe App</title>
+    <!-- Preload FFmpeg files -->
+    <link rel="preload" href="/ffmpeg/ffmpeg-core.js" as="script">
+    <link rel="preload" href="/ffmpeg/ffmpeg-core.worker.js" as="worker">
+    <link rel="preload" href="/ffmpeg/ffmpeg-core.wasm" as="fetch" crossorigin="anonymous">
   </head>
   <body>
     <div id="root"></div>

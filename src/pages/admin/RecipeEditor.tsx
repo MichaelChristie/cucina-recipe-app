@@ -32,6 +32,9 @@ import { EditorRecipe, EditorIngredient, StickyFooterProps, AddIngredientModalPr
 import { Tag, Ingredient } from '../../types/admin';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../../firebase/config';
+import { getAuth } from 'firebase/auth';
+import { getFFmpeg, loadFFmpeg } from '../../utils/ffmpeg';
+import { formatBytes, formatDuration } from '../../utils/formatters';
 
 // Constants remain the same
 const UNITS = {
@@ -289,7 +292,8 @@ interface UploadProgressProps {
 const UploadProgress: FC<UploadProgressProps> = ({ progress }) => {
   const radius = 12;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (progress / 100) * circumference;
+  const progressValue = isNaN(progress) ? 0 : Math.min(Math.max(progress, 0), 100);
+  const offset = circumference - (progressValue / 100) * circumference;
 
   return (
     <div className="relative inline-flex items-center justify-center">
@@ -306,8 +310,8 @@ const UploadProgress: FC<UploadProgressProps> = ({ progress }) => {
         <circle
           className="text-blue-600"
           strokeWidth="4"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
+          strokeDasharray={circumference.toString()}
+          strokeDashoffset={offset.toString()}
           strokeLinecap="round"
           stroke="currentColor"
           fill="transparent"
@@ -316,7 +320,7 @@ const UploadProgress: FC<UploadProgressProps> = ({ progress }) => {
           cy="16"
         />
       </svg>
-      <span className="absolute text-xs">{Math.round(progress)}%</span>
+      <span className="absolute text-xs">{Math.round(progressValue)}%</span>
     </div>
   );
 };
@@ -477,6 +481,265 @@ const ImageUpload: FC<ImageUploadProps> = ({ image, onImageChange, className = '
   );
 };
 
+interface VideoMetadata {
+  url: string;
+  thumbnailUrl?: string;
+  duration?: number;
+  size?: number;
+  format?: string;
+}
+
+interface VideoUploadProps {
+  video: VideoMetadata | null;
+  onVideoChange: (video: VideoMetadata | null) => void;
+  className?: string;
+}
+
+const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '' }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
+
+  useEffect(() => {
+    const initFFmpeg = async () => {
+      try {
+        await loadFFmpeg();
+        setFfmpegLoaded(true);
+      } catch (error) {
+        console.error('Error loading FFmpeg:', error);
+        toast.error('Failed to load video processing capabilities');
+      }
+    };
+    initFFmpeg();
+  }, []);
+
+  const processVideo = async (file: File): Promise<Blob> => {
+    if (!ffmpegLoaded) {
+      throw new Error('FFmpeg not loaded');
+    }
+
+    setIsProcessing(true);
+    try {
+      const ffmpeg = getFFmpeg();
+      const inputFileName = 'input.mp4';
+      const outputFileName = 'output.mp4';
+      
+      // Convert File to ArrayBuffer
+      const arrayBuffer = await file.arrayBuffer();
+      
+      // Write file to FFmpeg virtual filesystem
+      await ffmpeg.writeFile(inputFileName, new Uint8Array(arrayBuffer));
+      
+      // Process video: compress and limit to 720p
+      await ffmpeg.exec([
+        '-i', inputFileName,
+        '-vf', 'scale=-2:min(720,ih)',
+        '-c:v', 'libx264',
+        '-crf', '28',
+        '-preset', 'medium',
+        '-c:a', 'aac',
+        '-b:a', '128k',
+        '-movflags', '+faststart',
+        outputFileName
+      ]);
+
+      // Read the processed file
+      const data = await ffmpeg.readFile(outputFileName);
+      const processedBlob = new Blob([data], { type: 'video/mp4' });
+
+      // Clean up
+      await ffmpeg.deleteFile(inputFileName);
+      await ffmpeg.deleteFile(outputFileName);
+
+      return processedBlob;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleVideoUpload = async (file: File) => {
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please upload a video file');
+      return;
+    }
+
+    // Check file size (limit to 100MB before processing)
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error('Video file is too large. Maximum size is 100MB');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      // Process video
+      const processedVideo = await processVideo(file);
+      
+      // Create a unique filename
+      const filename = `recipe-videos/${Date.now()}-${file.name}`;
+      const storageRef = ref(storage, filename);
+
+      // Upload the processed video
+      const uploadTask = uploadBytesResumable(storageRef, processedVideo);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error('Upload error:', error);
+          toast.error('Failed to upload video');
+          setIsUploading(false);
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            
+            // Create video metadata
+            const metadata: VideoMetadata = {
+              url: downloadURL,
+              size: processedVideo.size,
+              format: 'mp4',
+            };
+
+            onVideoChange(metadata);
+            toast.success('Video uploaded successfully');
+          } catch (error) {
+            console.error('Error getting download URL:', error);
+            toast.error('Failed to process uploaded video');
+          }
+          setIsUploading(false);
+        }
+      );
+    } catch (error) {
+      console.error('Error processing video:', error);
+      toast.error('Failed to process video');
+      setIsUploading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!video?.url) return;
+
+    try {
+      const videoRef = ref(storage, video.url);
+      await deleteObject(videoRef);
+      onVideoChange(null);
+      toast.success('Video deleted successfully');
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      toast.error('Failed to delete video');
+    }
+  };
+
+  return (
+    <div
+      className={`relative ${className}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragging(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        setIsDragging(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          handleVideoUpload(files[0]);
+        }
+      }}
+    >
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={(e) => {
+          const files = e.target.files;
+          if (files && files.length > 0) {
+            handleVideoUpload(files[0]);
+          }
+        }}
+        accept="video/*"
+        className="hidden"
+      />
+
+      {video?.url ? (
+        <div className="relative rounded-lg overflow-hidden group">
+          <video
+            src={video.url}
+            controls
+            className="w-full h-48 object-cover"
+          />
+          <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 bg-white rounded-full hover:bg-gray-100"
+                title="Replace video"
+              >
+                <PencilIcon className="h-5 w-5 text-gray-600" />
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="p-2 bg-white rounded-full hover:bg-gray-100"
+                title="Delete video"
+              >
+                <TrashIcon className="h-5 w-5 text-red-600" />
+              </button>
+            </div>
+          </div>
+          {video.size && (
+            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-sm px-2 py-1">
+              {formatBytes(video.size)}
+            </div>
+          )}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className={`w-full h-48 border-2 border-dashed rounded-lg flex items-center justify-center transition-colors ${
+            isDragging
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-gray-300 hover:border-gray-400'
+          }`}
+          disabled={isUploading || isProcessing}
+        >
+          <div className="text-center">
+            {isUploading ? (
+              <UploadProgress progress={uploadProgress} />
+            ) : isProcessing ? (
+              <div className="flex flex-col items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-2" />
+                <span className="text-sm text-gray-600">Processing video...</span>
+              </div>
+            ) : (
+              <>
+                <PlusIcon className="h-12 w-12 text-gray-400 mx-auto" />
+                <span className="mt-2 block text-sm font-medium text-gray-600">
+                  Drop a video here, or click to upload
+                </span>
+                <span className="mt-1 block text-xs text-gray-500">
+                  MP4, MOV up to 100MB
+                </span>
+              </>
+            )}
+          </div>
+        </button>
+      )}
+    </div>
+  );
+};
+
 const RecipeEditor: FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -500,7 +763,8 @@ const RecipeEditor: FC = () => {
     showTagsPanel: false,
     authorId: '', // You'll need to get this from your auth context
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    video: null,
   });
 
   const [loading, setLoading] = useState(id ? true : false);
@@ -871,6 +1135,16 @@ const RecipeEditor: FC = () => {
             onImageChange={(url) => setRecipe({ ...recipe, image: url })}
             className="mt-6"
           />
+
+          {/* Video Upload */}
+          <div className="mt-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Video (Optional)</h2>
+            <VideoUpload
+              video={recipe.video}
+              onVideoChange={(video) => setRecipe({ ...recipe, video })}
+              className="mt-2"
+            />
+          </div>
 
           {/* Title */}
           <div>

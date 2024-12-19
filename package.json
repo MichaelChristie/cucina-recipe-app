@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "commonjs",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "npm run copy-ffmpeg && vite",
+    "build": "npm run copy-ffmpeg && vite build",
+    "copy-ffmpeg": "mkdir -p public/ffmpeg && cp node_modules/@ffmpeg/core/dist/umd/ffmpeg-core.* public/ffmpeg/",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{js,jsx}\"",
     "preview": "vite preview",
@@ -14,6 +15,9 @@
     "install": "echo 'This runs with npm run install'"
   },
   "dependencies": {
+    "@ffmpeg/core": "^0.12.2",
+    "@ffmpeg/ffmpeg": "0.12.7",
+    "@ffmpeg/util": "0.12.1",
     "@firebase/app": "^0.10.16",
     "@firebase/firestore": "^4.7.5",
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
