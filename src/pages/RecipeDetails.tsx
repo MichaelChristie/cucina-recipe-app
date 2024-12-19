@@ -245,16 +245,27 @@ export default function RecipeDetails(): JSX.Element {
               <UnitToggle />
             </div>
 
-            <ul className="list-disc pl-5 space-y-4">
-              {recipe.ingredients?.map((ingredient, index) => {
-                const ingredientDetails = getIngredientById(ingredient.ingredientId);
+            <ul className="space-y-4">
+              {recipe.ingredients?.map((item, index) => {
+                if ('type' in item && item.type === 'divider') {
+                  return (
+                    <li key={item.id} className="list-none">
+                      <div className="flex items-center gap-2 mt-6 mb-2">
+                        <span className="font-bold text-gray-900">{item.label}</span>
+                        <div className="flex-1 h-px bg-gray-400 ml-1"></div>
+                      </div>
+                    </li>
+                  );
+                }
+
+                const ingredientDetails = getIngredientById(item.ingredientId);
                 if (!ingredientDetails) return null;
 
                 return (
-                  <li key={index} className="text-gray-700">
+                  <li key={item.id || index} className="text-gray-700 list-none">
                     <Ingredient
-                      amount={ingredient.amount}
-                      unit={ingredient.unit}
+                      amount={item.amount}
+                      unit={item.unit}
                       name={ingredientDetails.name}
                       defaultUnit={ingredientDetails.defaultUnit}
                     />

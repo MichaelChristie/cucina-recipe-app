@@ -6,7 +6,7 @@ import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeSer
 import AdminLayout from '../../components/AdminLayout';
 import { 
   ChevronLeftIcon, TagIcon, 
-  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon, PencilIcon 
+  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon, PencilIcon, PlusCircleIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { 
@@ -584,7 +584,7 @@ const RecipeEditor: FC = () => {
       }
 
       const hasInvalidIngredients = recipe.ingredients?.some(
-        ing => !ing.ingredientId
+        item => !('type' in item) && !item.ingredientId
       );
       
       if (hasInvalidIngredients) {
@@ -596,12 +596,17 @@ const RecipeEditor: FC = () => {
         ...recipe,
         tags: recipe.tags || [],
         nutrition: recipe.nutrition || { calories: '' },
-        ingredients: recipe.ingredients?.map(ing => ({
-          ingredientId: ing.ingredientId,
-          name: ing.name,
-          amount: ing.amount,
-          unit: ing.unit
-        })) || [],
+        ingredients: recipe.ingredients?.map(item => {
+          if ('type' in item && item.type === 'divider') {
+            return item;
+          }
+          return {
+            ingredientId: item.ingredientId,
+            name: item.name,
+            amount: item.amount,
+            unit: item.unit
+          };
+        }) || [],
         steps: recipe.steps || []
       };
 
@@ -825,6 +830,19 @@ const RecipeEditor: FC = () => {
     }
   };
 
+  const addDivider = () => {
+    const newDivider = {
+      id: generateId(),
+      type: 'divider' as const,
+      label: 'New Section'
+    };
+    
+    setRecipe(prev => ({
+      ...prev,
+      ingredients: [...prev.ingredients, newDivider]
+    }));
+  };
+
   return (
     <AdminLayout>
       <div className="pb-24">
@@ -948,6 +966,28 @@ const RecipeEditor: FC = () => {
 
           {/* Ingredients */}
           <div className="mt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Ingredients</h2>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={addIngredient}
+                  className="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-50 border border-gray-300 flex items-center gap-2 shadow-sm"
+                >
+                  <PlusIcon className="h-5 w-5" />
+                  Add Ingredient
+                </button>
+                <button
+                  type="button"
+                  onClick={addDivider}
+                  className="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-50 border border-gray-300 flex items-center gap-2 shadow-sm"
+                >
+                  <PlusCircleIcon className="h-5 w-5" />
+                  Add Section Divider
+                </button>
+              </div>
+            </div>
+
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="ingredients">
                 {(provided) => (
@@ -956,10 +996,10 @@ const RecipeEditor: FC = () => {
                     ref={provided.innerRef}
                     className="space-y-4"
                   >
-                    {recipe.ingredients?.map((ingredient, index) => (
+                    {recipe.ingredients?.map((item, index) => (
                       <Draggable 
-                        key={ingredient.id}
-                        draggableId={ingredient.id}
+                        key={item.id}
+                        draggableId={item.id}
                         index={index}
                       >
                         {(provided, snapshot) => (
@@ -974,120 +1014,151 @@ const RecipeEditor: FC = () => {
                             >
                               <Bars3Icon className="h-5 w-5 text-gray-500" />
                             </div>
-                            <div className="flex-1 relative ingredient-field">
-                              <input
-                                id={`ingredient-${index}`}
-                                type="text"
-                                value={ingredient.name || ''}
-                                onChange={(e) => {
-                                  handleIngredientChange(index, 'name', e.target.value);
-                                  setSelectedSuggestionIndex(0); // Reset selection on type
-                                }}
-                                onFocus={() => {
-                                  setActiveIngredient({ index, field: 'name' });
-                                  setSelectedSuggestionIndex(0);
-                                }}
-                                onKeyDown={(e) => {
-                                  const filteredIngredients = availableIngredients.filter(ing => 
-                                    ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
-                                  );
-                                  handleIngredientKeyDown(e, index, filteredIngredients);
-                                }}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
-                                placeholder="Start typing ingredient name..."
-                              />
-                              {activeIngredient.index === index && 
-                               activeIngredient.field === 'name' && 
-                               ingredient.name && (
-                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                                  {availableIngredients
-                                    .filter(ing => 
-                                      ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
-                                    )
-                                    .map((ing, suggestionIndex) => (
-                                      <button
-                                        key={ing.id}
-                                        type="button"
-                                        className={`w-full text-left px-4 py-2 ${
-                                          selectedSuggestionIndex === suggestionIndex 
-                                            ? 'bg-blue-50 text-blue-700' 
-                                            : 'hover:bg-gray-100'
-                                        }`}
-                                        onClick={() => {
-                                          handleIngredientSelect(index, ing);
-                                          document.querySelector(`#amount-${index}`)?.focus();
-                                        }}
-                                        onMouseEnter={() => setSelectedSuggestionIndex(suggestionIndex)}
-                                      >
-                                        <span className="font-medium">{ing.name}</span>
-                                        <span className="text-sm text-gray-500 ml-2">({ing.category})</span>
-                                      </button>
-                                    ))}
-                                  {availableIngredients.filter(ing => 
-                                    ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
-                                  ).length === 0 && (
-                                    <div>
-                                      <div className="px-4 py-2 text-gray-500 italic">
-                                        No ingredients found
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setNewIngredientName(ingredient.name);
-                                          setActiveIngredientIndex(index);
-                                          setIsIngredientModalOpen(true);
-                                        }}
-                                        onMouseEnter={() => setSelectedSuggestionIndex(0)}
-                                        className={`w-full text-left px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium border-t
-                                          ${selectedSuggestionIndex === 0 ? 'bg-blue-50' : ''}`}
-                                      >
-                                        + Create "{ingredient.name}"
-                                      </button>
+                            
+                            {'type' in item && item.type === 'divider' ? (
+                              // Render divider
+                              <div className="flex-1 flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={item.label}
+                                  onChange={(e) => {
+                                    const newIngredients = [...recipe.ingredients];
+                                    (newIngredients[index] as IngredientDivider).label = e.target.value;
+                                    setRecipe({ ...recipe, ingredients: newIngredients });
+                                  }}
+                                  className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2 bg-gray-50 font-medium"
+                                  placeholder="Section name..."
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const newIngredients = recipe.ingredients.filter((_, i) => i !== index);
+                                    setRecipe({ ...recipe, ingredients: newIngredients });
+                                  }}
+                                  className="p-2 text-red-600 hover:bg-red-100 rounded-full"
+                                >
+                                  <TrashIcon className="h-5 w-5" />
+                                </button>
+                              </div>
+                            ) : (
+                              // Existing ingredient rendering code
+                              <>
+                                <div className="flex-1 relative ingredient-field">
+                                  <input
+                                    id={`ingredient-${index}`}
+                                    type="text"
+                                    value={item.name || ''}
+                                    onChange={(e) => {
+                                      handleIngredientChange(index, 'name', e.target.value);
+                                      setSelectedSuggestionIndex(0); // Reset selection on type
+                                    }}
+                                    onFocus={() => {
+                                      setActiveIngredient({ index, field: 'name' });
+                                      setSelectedSuggestionIndex(0);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      const filteredIngredients = availableIngredients.filter(ing => 
+                                        ing.name.toLowerCase().includes(item.name.toLowerCase())
+                                      );
+                                      handleIngredientKeyDown(e, index, filteredIngredients);
+                                    }}
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+                                    placeholder="Start typing ingredient name..."
+                                  />
+                                  {activeIngredient.index === index && 
+                                   activeIngredient.field === 'name' && 
+                                   item.name && (
+                                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                                      {availableIngredients
+                                        .filter(ing => 
+                                          ing.name.toLowerCase().includes(item.name.toLowerCase())
+                                        )
+                                        .map((ing, suggestionIndex) => (
+                                          <button
+                                            key={ing.id}
+                                            type="button"
+                                            className={`w-full text-left px-4 py-2 ${
+                                              selectedSuggestionIndex === suggestionIndex 
+                                                ? 'bg-blue-50 text-blue-700' 
+                                                : 'hover:bg-gray-100'
+                                            }`}
+                                            onClick={() => {
+                                              handleIngredientSelect(index, ing);
+                                              document.querySelector(`#amount-${index}`)?.focus();
+                                            }}
+                                            onMouseEnter={() => setSelectedSuggestionIndex(suggestionIndex)}
+                                          >
+                                            <span className="font-medium">{ing.name}</span>
+                                            <span className="text-sm text-gray-500 ml-2">({ing.category})</span>
+                                          </button>
+                                        ))}
+                                      {availableIngredients.filter(ing => 
+                                        ing.name.toLowerCase().includes(item.name.toLowerCase())
+                                      ).length === 0 && (
+                                        <div>
+                                          <div className="px-4 py-2 text-gray-500 italic">
+                                            No ingredients found
+                                          </div>
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              setNewIngredientName(item.name);
+                                              setActiveIngredientIndex(index);
+                                              setIsIngredientModalOpen(true);
+                                            }}
+                                            onMouseEnter={() => setSelectedSuggestionIndex(0)}
+                                            className={`w-full text-left px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium border-t
+                                              ${selectedSuggestionIndex === 0 ? 'bg-blue-50' : ''}`}
+                                          >
+                                            + Create "{item.name}"
+                                          </button>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                 </div>
-                              )}
-                            </div>
-                            <input
-                              id={`amount-${index}`}
-                              type="number"
-                              value={ingredient.amount || ''}
-                              onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
-                              onFocus={() => setActiveIngredient({ index, field: 'amount' })}
-                              onKeyDown={(e) => handleIngredientKeyDown(e, index, [])}
-                              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 mx-2"
-                              placeholder="Amount"
-                              step="0.01"
-                            />
-                            <div className="relative ingredient-field w-32 mx-2">
-                              <select
-                                value={ingredient.unit || ''}
-                                onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
-                                onFocus={() => setActiveIngredient({ index, field: 'unit' })}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
-                              >
-                                <option value="">Select unit</option>
-                                {AVAILABLE_UNITS.map(unit => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleIngredientChange(index, 'confirmed', !ingredient.confirmed)}
-                              className={`p-2 rounded-full ${ingredient.confirmed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'} hover:bg-opacity-80`}
-                            >
-                              <CheckIcon className="h-5 w-5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => removeIngredient(index)}
-                              className="p-2 text-red-600 hover:bg-red-100 rounded-full"
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </button>
+                                <input
+                                  id={`amount-${index}`}
+                                  type="number"
+                                  value={item.amount || ''}
+                                  onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
+                                  onFocus={() => setActiveIngredient({ index, field: 'amount' })}
+                                  onKeyDown={(e) => handleIngredientKeyDown(e, index, [])}
+                                  className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 mx-2"
+                                  placeholder="Amount"
+                                  step="0.01"
+                                />
+                                <div className="relative ingredient-field w-32 mx-2">
+                                  <select
+                                    value={item.unit || ''}
+                                    onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
+                                    onFocus={() => setActiveIngredient({ index, field: 'unit' })}
+                                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
+                                  >
+                                    <option value="">Select unit</option>
+                                    {AVAILABLE_UNITS.map(unit => (
+                                      <option key={unit} value={unit}>
+                                        {unit}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleIngredientChange(index, 'confirmed', !item.confirmed)}
+                                  className={`p-2 rounded-full ${item.confirmed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'} hover:bg-opacity-80`}
+                                >
+                                  <CheckIcon className="h-5 w-5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => removeIngredient(index)}
+                                  className="p-2 text-red-600 hover:bg-red-100 rounded-full"
+                                >
+                                  <TrashIcon className="h-5 w-5" />
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
                       </Draggable>

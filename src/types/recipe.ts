@@ -2,11 +2,7 @@ export interface Recipe {
   id: string;
   title: string;
   description: string;
-  ingredients: {
-    ingredientId: string;
-    amount: number;
-    unit: string;
-  }[];
+  ingredients: (EditorIngredient | IngredientDivider)[];
   steps: { text: string }[];
   cookTime?: number;
   prepTime?: number;
@@ -38,4 +34,10 @@ export interface Ingredient {
   id: string;
   name: string;
   defaultUnit: string;
+}
+
+export interface IngredientDivider {
+  id: string;
+  type: 'divider';
+  label: string;
 } 
