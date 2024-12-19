@@ -498,7 +498,7 @@ const RecipeEditor: FC = () => {
     steps: [],
     tags: [],
     showTagsPanel: false,
-    authorId: '', // You'll need to get this from your auth context
+    authorId: '',
     createdAt: new Date(),
     updatedAt: new Date()
   });
@@ -515,6 +515,15 @@ const RecipeEditor: FC = () => {
   const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
   const [newIngredientName, setNewIngredientName] = useState('');
   const [activeIngredientIndex, setActiveIngredientIndex] = useState<number | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const { user } = useAuth();
+  const [testItems, setTestItems] = useState<TestItem[]>([
+    { id: '1', content: 'Item 1' },
+    { id: '2', content: 'Item 2' },
+    { id: '3', content: 'Item 3' },
+  ]);
+  const ingredientsContainerRef = useRef<HTMLDivElement>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -695,21 +704,19 @@ const RecipeEditor: FC = () => {
   };
 
   const addIngredient = (): void => {
-    const newIndex = recipe.ingredients.length;
-    setRecipe({
-      ...recipe,
-      ingredients: [...(recipe.ingredients || []), { 
-        id: generateId(),
-        name: '', 
-        amount: '', 
-        unit: '',
-        ingredientId: '',
-        confirmed: false
-      }]
-    });
-    setTimeout(() => {
-      document.querySelector(`#ingredient-${newIndex}`)?.focus();
-    }, 0);
+    const newIngredient = {
+      id: generateId(),
+      name: '',
+      amount: '',
+      unit: '',
+      ingredientId: '',
+      confirmed: false
+    };
+    
+    setRecipe(prev => ({
+      ...prev,
+      ingredients: [...prev.ingredients, newIngredient]
+    }));
   };
 
   const removeIngredient = (index: number): void => {
@@ -717,14 +724,30 @@ const RecipeEditor: FC = () => {
     setRecipe({ ...recipe, ingredients: newIngredients });
   };
 
-  const handleDragEnd = (result: DropResult): void => {
-    if (!result.destination) return;
+  const handleIngredientDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
     
-    const items = Array.from(recipe.ingredients);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    
-    setRecipe({ ...recipe, ingredients: items });
+    if (!over) return;
+
+    if (active.id !== over.id) {
+      const oldIndex = recipe.ingredients.findIndex(ing => ing.id === active.id);
+      const newIndex = recipe.ingredients.findIndex(ing => ing.id === over.id);
+
+      console.log('Moving ingredient:', {
+        from: oldIndex,
+        to: newIndex,
+        activeId: active.id,
+        overId: over.id
+      });
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newIngredients = arrayMove(recipe.ingredients, oldIndex, newIndex);
+        setRecipe(prev => ({
+          ...prev,
+          ingredients: newIngredients
+        }));
+      }
+    }
   };
 
   const handleIngredientKeyDown = (e: React.KeyboardEvent, index: number, filteredIngredients: Ingredient[]): void => {
@@ -824,6 +847,195 @@ const RecipeEditor: FC = () => {
       throw error;
     }
   };
+
+  const handleMediaUpload = async (file: File) => {
+    try {
+      const downloadUrl = await uploadMedia(
+        file,
+        `recipes/${recipe.id || 'new'}/media`,
+        ({ progress, error }) => {
+          if (error) {
+            toast.error('Upload failed');
+            return;
+          }
+          setUploadProgress(progress);
+        }
+      );
+
+      // Update recipe with new media URL
+      setRecipe(prev => ({
+        ...prev,
+        image: downloadUrl
+      }));
+
+      toast.success('Media uploaded successfully');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload media');
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Only allow images
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Check if user is authenticated
+    if (!user) {
+      toast.error('You must be logged in to upload images');
+      return;
+    }
+
+    try {
+      // Create a unique filename
+      const fileExtension = file.name.split('.').pop();
+      const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+      
+      const storageRef = ref(
+        storage, 
+        `recipes/${recipe.id || 'new'}/${uniqueFileName}`
+      );
+      
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on('state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.error('Upload error:', error);
+          toast.error('Failed to upload image');
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setRecipe(prev => ({
+              ...prev,
+              image: downloadURL
+            }));
+            setUploadProgress(0);
+            toast.success('Image uploaded successfully');
+          } catch (error) {
+            console.error('Error getting download URL:', error);
+            toast.error('Failed to complete image upload');
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload image');
+    }
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    
+    if (!imageFile) {
+      toast.error('Please drop an image file');
+      return;
+    }
+
+    await handleImageUpload({ target: { files: [imageFile] } } as any);
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3,
+        delay: 0,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleTestDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over || active.id === over.id) return;
+
+    setTestItems((items) => {
+      const oldIndex = items.findIndex(item => item.id === active.id);
+      const newIndex = items.findIndex(item => item.id === over.id);
+      
+      return arrayMove(items, oldIndex, newIndex);
+    });
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    if (active.id !== over.id) {
+      const oldIndex = recipe.ingredients.findIndex(ing => ing.id === active.id);
+      const newIndex = recipe.ingredients.findIndex(ing => ing.id === over.id);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newIngredients = [...recipe.ingredients];
+        const [movedItem] = newIngredients.splice(oldIndex, 1);
+        newIngredients.splice(newIndex, 0, movedItem);
+
+        setRecipe(prev => ({
+          ...prev,
+          ingredients: newIngredients
+        }));
+      }
+    }
+  };
+
+  const handleDragMove = (event: DragMoveEvent) => {
+    console.log('Drag moving:', event);
+  };
+
+  useEffect(() => {
+    console.log('Recipe ingredients updated:', 
+      recipe.ingredients.map((ing, idx) => ({
+        index: idx,
+        id: ing.id,
+        tempId: `temp-${ing.id}`,
+        name: ing.name
+      }))
+    );
+  }, [recipe.ingredients]);
+
+  useEffect(() => {
+    console.log('Current ingredients:', recipe.ingredients.map(ing => ({
+      id: ing.id,
+      name: ing.name
+    })));
+  }, [recipe.ingredients]);
 
   return (
     <AdminLayout>
@@ -948,155 +1160,83 @@ const RecipeEditor: FC = () => {
 
           {/* Ingredients */}
           <div className="mt-6">
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="ingredients">
-                {(provided) => (
-                  <div 
-                    {...provided.droppableProps} 
-                    ref={provided.innerRef}
-                    className="space-y-4"
-                  >
-                    {recipe.ingredients?.map((ingredient, index) => (
-                      <Draggable 
-                        key={ingredient.id}
-                        draggableId={ingredient.id}
-                        index={index}
-                      >
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`flex gap-2 items-center ${snapshot.isDragging ? 'dragging' : ''}`}
-                          >
-                            <div
-                              {...provided.dragHandleProps}
-                              className="cursor-move p-2 hover:bg-gray-100 rounded"
-                            >
-                              <Bars3Icon className="h-5 w-5 text-gray-500" />
-                            </div>
-                            <div className="flex-1 relative ingredient-field">
-                              <input
-                                id={`ingredient-${index}`}
-                                type="text"
-                                value={ingredient.name || ''}
-                                onChange={(e) => {
-                                  handleIngredientChange(index, 'name', e.target.value);
-                                  setSelectedSuggestionIndex(0); // Reset selection on type
-                                }}
-                                onFocus={() => {
-                                  setActiveIngredient({ index, field: 'name' });
-                                  setSelectedSuggestionIndex(0);
-                                }}
-                                onKeyDown={(e) => {
-                                  const filteredIngredients = availableIngredients.filter(ing => 
-                                    ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
-                                  );
-                                  handleIngredientKeyDown(e, index, filteredIngredients);
-                                }}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
-                                placeholder="Start typing ingredient name..."
-                              />
-                              {activeIngredient.index === index && 
-                               activeIngredient.field === 'name' && 
-                               ingredient.name && (
-                                <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
-                                  {availableIngredients
-                                    .filter(ing => 
-                                      ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
-                                    )
-                                    .map((ing, suggestionIndex) => (
-                                      <button
-                                        key={ing.id}
-                                        type="button"
-                                        className={`w-full text-left px-4 py-2 ${
-                                          selectedSuggestionIndex === suggestionIndex 
-                                            ? 'bg-blue-50 text-blue-700' 
-                                            : 'hover:bg-gray-100'
-                                        }`}
-                                        onClick={() => {
-                                          handleIngredientSelect(index, ing);
-                                          document.querySelector(`#amount-${index}`)?.focus();
-                                        }}
-                                        onMouseEnter={() => setSelectedSuggestionIndex(suggestionIndex)}
-                                      >
-                                        <span className="font-medium">{ing.name}</span>
-                                        <span className="text-sm text-gray-500 ml-2">({ing.category})</span>
-                                      </button>
-                                    ))}
-                                  {availableIngredients.filter(ing => 
-                                    ing.name.toLowerCase().includes(ingredient.name.toLowerCase())
-                                  ).length === 0 && (
-                                    <div>
-                                      <div className="px-4 py-2 text-gray-500 italic">
-                                        No ingredients found
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setNewIngredientName(ingredient.name);
-                                          setActiveIngredientIndex(index);
-                                          setIsIngredientModalOpen(true);
-                                        }}
-                                        onMouseEnter={() => setSelectedSuggestionIndex(0)}
-                                        className={`w-full text-left px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium border-t
-                                          ${selectedSuggestionIndex === 0 ? 'bg-blue-50' : ''}`}
-                                      >
-                                        + Create "{ingredient.name}"
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                            <input
-                              id={`amount-${index}`}
-                              type="number"
-                              value={ingredient.amount || ''}
-                              onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
-                              onFocus={() => setActiveIngredient({ index, field: 'amount' })}
-                              onKeyDown={(e) => handleIngredientKeyDown(e, index, [])}
-                              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 mx-2"
-                              placeholder="Amount"
-                              step="0.01"
-                            />
-                            <div className="relative ingredient-field w-32 mx-2">
-                              <select
-                                value={ingredient.unit || ''}
-                                onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
-                                onFocus={() => setActiveIngredient({ index, field: 'unit' })}
-                                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
-                              >
-                                <option value="">Select unit</option>
-                                {AVAILABLE_UNITS.map(unit => (
-                                  <option key={unit} value={unit}>
-                                    {unit}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleIngredientChange(index, 'confirmed', !ingredient.confirmed)}
-                              className={`p-2 rounded-full ${ingredient.confirmed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'} hover:bg-opacity-80`}
-                            >
-                              <CheckIcon className="h-5 w-5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => removeIngredient(index)}
-                              className="p-2 text-red-600 hover:bg-red-100 rounded-full"
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </button>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Ingredients</h2>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={recipe.ingredients.map(ing => ing.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-4">
+                  {recipe.ingredients.map((ingredient, index) => (
+                    <SortableIngredient
+                      key={ingredient.id}
+                      ingredient={ingredient}
+                      index={index}
+                      onNameChange={handleIngredientChange}
+                      onAmountChange={handleIngredientChange}
+                      onUnitChange={handleIngredientChange}
+                      onConfirmChange={handleIngredientChange}
+                      onRemove={removeIngredient}
+                      activeIngredient={activeIngredient}
+                      setActiveIngredient={setActiveIngredient}
+                      selectedSuggestionIndex={selectedSuggestionIndex}
+                      availableIngredients={availableIngredients}
+                      handleIngredientSelect={handleIngredientSelect}
+                      handleIngredientKeyDown={handleIngredientKeyDown}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+              
+              {/* Add DragOverlay for better visual feedback */}
+              <DragOverlay>
+                {activeId ? (
+                  <div className="bg-white p-4 rounded-lg shadow-lg border-2 border-blue-500">
+                    {recipe.ingredients.find(ing => ing.id === activeId)?.name}
                   </div>
-                )}
-              </Droppable>
-            </DragDropContext>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+
+            {/* Add Ingredient button */}
+            <button
+              type="button"
+              onClick={addIngredient}
+              className="mt-4 px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 border border-gray-300 flex items-center gap-2"
+            >
+              <PlusIcon className="h-5 w-5" />
+              Add Ingredient
+            </button>
+          </div>
+
+          {/* Test list with its own DndContext */}
+          <div className="mt-6 border-t pt-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Test Sortable List</h2>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleTestDragEnd}
+            >
+              <SortableContext
+                items={testItems.map(item => item.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div>
+                  {testItems.map((item) => (
+                    <SortableTestItem
+                      key={item.id}
+                      id={item.id}
+                      content={item.content}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           </div>
 
           {/* Steps */}
@@ -1150,18 +1290,20 @@ const RecipeEditor: FC = () => {
             </div>
           </div>
         </form>
+
+        <StickyFooter 
+          onSave={handleSave}
+          onClose={handleSaveAndClose}
+          saving={saving}
+        />
+        
+        <AddIngredientModal
+          isOpen={isIngredientModalOpen}
+          onClose={() => setIsIngredientModalOpen(false)}
+          onAdd={handleCreateIngredient}
+          initialName={newIngredientName}
+        />
       </div>
-      <StickyFooter 
-        onSave={handleSave}
-        onClose={handleSaveAndClose}
-        saving={saving}
-      />
-      <AddIngredientModal
-        isOpen={isIngredientModalOpen}
-        onClose={() => setIsIngredientModalOpen(false)}
-        onAdd={handleCreateIngredient}
-        initialName={newIngredientName}
-      />
     </AdminLayout>
   );
 };
