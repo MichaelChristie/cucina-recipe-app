@@ -91,7 +91,7 @@ struct MediaLoadingState {
     var image: UIImage?
     var player: AVPlayer?
     var isLoading = false
-    var timeObserver: Any?
+    var timeObserver: (AVPlayer, Any)? // Track which player the observer belongs to
     var observations: [NSKeyValueObservation]?
 }
 
@@ -121,7 +121,11 @@ struct InspirationView: View {
                                     RecipeCard(
                                         recipe: recipe,
                                         isVisible: visibleRecipeID == recipe.uniqueId,
-                                        mediaCache: mediaCache
+                                        mediaCache: mediaCache,
+                                        onRecipeSelect: { selectedRecipe in
+                                            self.selectedRecipe = selectedRecipe
+                                            self.showingRecipeDetail = true
+                                        }
                                     )
                                     .frame(width: geometry.size.width, height: geometry.size.height)
                                     .onAppear {
@@ -133,10 +137,6 @@ struct InspirationView: View {
                                         if visibleRecipeID == recipe.uniqueId {
                                             visibleRecipeID = nil
                                         }
-                                    }
-                                    .onTapGesture {
-                                        selectedRecipe = recipe
-                                        showingRecipeDetail = true
                                     }
                                 }
                             }
@@ -258,10 +258,13 @@ struct RecipeCard: View {
     let recipe: Recipe
     let isVisible: Bool
     let mediaCache: MediaCache
+    let onRecipeSelect: (Recipe) -> Void
     @State private var isLiked = false
     @State private var isSaved = false
     @State private var mediaState = MediaLoadingState()
     @State private var playerReady = false
+    @State private var isAudioEnabled = false
+    @State private var showAudioIcon = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -332,48 +335,89 @@ struct RecipeCard: View {
                 .frame(height: geometry.size.height * 0.7)
                 .frame(maxHeight: .infinity, alignment: .bottom)
                 
-                // Side Icons - Centered vertically
-                VStack(spacing: 24) {
-                    // Push icons to vertical center
-                    Spacer()
+                // Content Areas with Different Tap Behaviors
+                ZStack(alignment: .trailing) {
+                    // Audio Control Area (Left side)
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            isAudioEnabled.toggle()
+                            if let player = mediaState.player {
+                                player.isMuted = !isAudioEnabled
+                            }
+                            showAudioIcon = true
+                            withAnimation {
+                                showAudioIcon = true
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                withAnimation {
+                                    showAudioIcon = false
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: geometry.size.height * 0.7)
                     
-                    // Like Button
-                    Button(action: {
-                        isLiked.toggle()
-                    }) {
-                        Image(systemName: isLiked ? "heart.fill" : "heart")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                            .foregroundColor(isLiked ? .red : .white)
+                    // Side Icons Column
+                    VStack(spacing: 24) {
+                        Spacer()
+                        
+                        // Like Button
+                        Button(action: {
+                            isLiked.toggle()
+                        }) {
+                            Image(systemName: isLiked ? "heart.fill" : "heart")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(isLiked ? .red : .white)
+                                .contentShape(Rectangle().size(width: 44, height: 44))
+                        }
+                        
+                        // Share Button
+                        Button(action: {
+                            // Share action
+                        }) {
+                            Image(systemName: "paperplane.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(.white)
+                                .contentShape(Rectangle().size(width: 44, height: 44))
+                        }
+                        
+                        // Save Button
+                        Button(action: {
+                            isSaved.toggle()
+                        }) {
+                            Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28, height: 28)
+                                .foregroundColor(isSaved ? .yellow : .white)
+                                .contentShape(Rectangle().size(width: 44, height: 44))
+                        }
+                        
+                        Spacer()
                     }
-                    
-                    // Share Button
-                    Button(action: {
-                        // Share action
-                    }) {
-                        Image(systemName: "paperplane.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                            .foregroundColor(.white)
-                    }
-                    
-                    // Save Button
-                    Button(action: {
-                        isSaved.toggle()
-                    }) {
-                        Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                            .foregroundColor(isSaved ? .yellow : .white)
-                    }
-                    
-                    // Equal spacer to center the icons
-                    Spacer()
+                    .frame(width: 80)
+                    .padding(.trailing, 24)
                 }
-                .padding(.trailing, 24)
+                
+                // Audio Icon Overlay
+                if showAudioIcon {
+                    VStack {
+                        Image(systemName: isAudioEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                            .foregroundColor(.white)
+                            .font(.system(size: 32))
+                            .opacity(0.9)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: geometry.size.height * 0.7)
+                            .background(Color.black.opacity(0.2))
+                        
+                        Spacer()
+                    }
+                }
                 
                 // Content overlay (title, description, tags)
                 VStack(alignment: .leading, spacing: 16) {
@@ -391,6 +435,10 @@ struct RecipeCard: View {
                             .foregroundColor(.white.opacity(0.9))
                             .lineLimit(3)
                             .multilineTextAlignment(.leading)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        onRecipeSelect(recipe)
                     }
                     
                     // Tags
@@ -411,6 +459,10 @@ struct RecipeCard: View {
                 .padding(.bottom, geometry.safeAreaInsets.bottom + 48)
             }
             .onAppear {
+                // Ensure audio starts muted
+                if let player = mediaState.player {
+                    player.isMuted = true
+                }
                 loadMedia()
             }
         }
@@ -440,34 +492,136 @@ struct RecipeCard: View {
             print("🎥 Loading video for recipe: \(recipe.title)")
             print("🎥 Video URL: \(video.url)")
             
+            let config = VideoPlayerConfiguration.default
+            
             if let cachedPlayer = mediaCache.getPlayer(for: video.url) {
                 print("📦 Found cached player")
-                mediaState.player = cachedPlayer
-                
-                // Create fresh player item
-                let playerItem = AVPlayerItem(url: URL(string: video.url)!)
-                print("🔄 Created new player item for cached player")
-                
-                // Configure player
-                cachedPlayer.replaceCurrentItem(with: playerItem)
-                cachedPlayer.isMuted = true
-                
-                // Force playback
-                print("▶️ Attempting immediate playback")
-                cachedPlayer.playImmediately(atRate: 1.0)
-                
+                setupOptimizedPlayer(cachedPlayer, with: config, url: video.url)
             } else {
                 print("🆕 Creating new player")
-                let player = AVPlayer(url: URL(string: video.url)!)
-                player.automaticallyWaitsToMinimizeStalling = false
+                setupNewPlayer(for: video.url, with: config)
+            }
+        }
+    }
+    
+    private func setupOptimizedPlayer(_ player: AVPlayer, with config: VideoPlayerConfiguration, url: String) {
+        // Create and configure asset
+        let asset = AVURLAsset(url: URL(string: url)!)
+        
+        // Load asset asynchronously
+        Task {
+            do {
+                try await asset.load(.isPlayable)
+                
+                // Configure player item with optimized settings
+                let playerItem = AVPlayerItem(asset: asset)
+                playerItem.preferredPeakBitRate = config.quality.bitRate
+                playerItem.preferredForwardBufferDuration = config.bufferDuration
+                
+                // Set preferred video qualities using CGSize
+                playerItem.preferredMaximumResolution = CGSize(
+                    width: CGFloat(16.0/9.0 * config.quality.preferredHeight),
+                    height: CGFloat(config.quality.preferredHeight)
+                )
+                
+                // Configure player
+                player.replaceCurrentItem(with: playerItem)
+                player.automaticallyWaitsToMinimizeStalling = true
                 player.isMuted = true
                 
-                // Force immediate playback attempt
-                player.playImmediately(atRate: 1.0)
+                // Attempt preroll
+                let prerollSuccess = try await player.preroll(atRate: 1.0)
+                if prerollSuccess {
+                    print("✅ Preroll successful")
+                    player.playImmediately(atRate: 1.0)
+                } else {
+                    print("⚠️ Preroll failed, attempting direct playback")
+                    player.play()
+                }
                 
                 mediaState.player = player
-                MediaCache.shared.cache(player: player, for: video.url)
+                MediaCache.shared.cache(player: player, for: url)
+                
+            } catch {
+                print("❌ Asset loading failed: \(error)")
+                // Fallback to direct playback
+                let playerItem = AVPlayerItem(url: URL(string: url)!)
+                player.replaceCurrentItem(with: playerItem)
+                player.play()
             }
+        }
+    }
+    
+    private func setupNewPlayer(for url: String, with config: VideoPlayerConfiguration) {
+        let asset = AVURLAsset(url: URL(string: url)!)
+        let keys = ["playable"]
+        
+        // Create player with optimized settings
+        Task {
+            do {
+                // Load asset
+                try await asset.load(.isPlayable)
+                
+                let playerItem = AVPlayerItem(asset: asset)
+                playerItem.preferredPeakBitRate = config.quality.bitRate
+                playerItem.preferredForwardBufferDuration = config.bufferDuration
+                
+                let player = AVPlayer(playerItem: playerItem)
+                player.automaticallyWaitsToMinimizeStalling = true
+                player.isMuted = true
+                
+                // Add error recovery
+                let statusObservation = player.observe(\.status) { player, _ in
+                    if player.status == .failed {
+                        print("🔄 Player failed, attempting recovery")
+                        let newItem = AVPlayerItem(url: URL(string: url)!)
+                        player.replaceCurrentItem(with: newItem)
+                    }
+                }
+                mediaState.observations = [statusObservation]
+                
+                // Attempt preroll with timeout
+                let prerollSuccess = try await withTimeout(config.preloadTimeout) {
+                    try await player.preroll(atRate: 1.0)
+                }
+                
+                if prerollSuccess {
+                    print("✅ New player preroll successful")
+                    player.playImmediately(atRate: 1.0)
+                } else {
+                    print("⚠️ New player preroll failed, attempting direct playback")
+                    player.play()
+                }
+                
+                mediaState.player = player
+                MediaCache.shared.cache(player: player, for: url)
+                
+            } catch {
+                print("❌ New player setup failed: \(error)")
+                // Fallback to basic player
+                let player = AVPlayer(url: URL(string: url)!)
+                player.play()
+                mediaState.player = player
+                MediaCache.shared.cache(player: player, for: url)
+            }
+        }
+    }
+    
+    // Helper function for timeout
+    func withTimeout<T>(_ timeout: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
+            
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                throw NSError(domain: "Timeout", code: -1)
+            }
+            
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
         }
     }
     
@@ -484,6 +638,9 @@ struct RecipeCard: View {
         let playerItem = AVPlayerItem(url: URL(string: url)!)
         print("🔄 Created new player item")
         
+        // Store strong references
+        mediaState.player = player
+        
         // Configure player
         player.replaceCurrentItem(with: playerItem)
         player.isMuted = true
@@ -496,23 +653,25 @@ struct RecipeCard: View {
                 print("✅ Item ready to play")
                 DispatchQueue.main.async {
                     player.seek(to: .zero)
-                    player.playImmediately(atRate: 1.0)
+                    player.play()
                     print("▶️ Play command issued")
                 }
             }
         }
         
         // Add player status observation
-        let playerObservation = player.observe(\.status) { player, _ in
-            print("🎮 Player status changed to: \(player.status.rawValue)")
+        let playerObservation = player.observe(\.status) { observedPlayer, _ in
+            print("🎮 Player status changed to: \(observedPlayer.status.rawValue)")
         }
         
         // Add timeControlStatus observation
-        let timeControlObservation = player.observe(\.timeControlStatus) { player, _ in
-            print("⏱ Time control status changed to: \(player.timeControlStatus.rawValue)")
-            if player.timeControlStatus != .playing {
+        let timeControlObservation = player.observe(\.timeControlStatus) { observedPlayer, _ in
+            print("⏱ Time control status changed to: \(observedPlayer.timeControlStatus.rawValue)")
+            if observedPlayer.timeControlStatus != .playing {
                 print("⚠️ Player not playing, attempting to restart")
-                player.playImmediately(atRate: 1.0)
+                DispatchQueue.main.async {
+                    observedPlayer.play()
+                }
             }
         }
         
@@ -522,13 +681,14 @@ struct RecipeCard: View {
         // Force initial playback
         print("🔄 Forcing initial playback")
         player.seek(to: .zero)
-        player.playImmediately(atRate: 1.0)
+        player.play()
         
-        // Set up periodic time observer
+        // Set up periodic time observer and store both the player and observer
         let timeObserver = player.addPeriodicTimeObserver(
             forInterval: CMTime(seconds: 0.5, preferredTimescale: 600),
             queue: .main
-        ) { time in
+        ) { [weak player] time in
+            guard let player = player else { return }
             print("⏰ Playback status:")
             print("  Time: \(time.seconds)")
             print("  Rate: \(player.rate)")
@@ -538,20 +698,36 @@ struct RecipeCard: View {
             // If not playing, try to restart
             if player.timeControlStatus != .playing {
                 print("🔄 Attempting to restart playback")
-                player.playImmediately(atRate: 1.0)
+                DispatchQueue.main.async {
+                    player.play()
+                }
             }
         }
-        mediaState.timeObserver = timeObserver
+        mediaState.timeObserver = (player, timeObserver)
     }
     
     private func cleanupVideoPlayback(player: AVPlayer) {
         print("⏹️ VideoPlayer disappeared")
+        
+        // Remove observers first
         mediaState.observations?.forEach { $0.invalidate() }
         mediaState.observations = nil
-        if let timeObserver = mediaState.timeObserver {
-            player.removeTimeObserver(timeObserver)
+        
+        // Remove time observer if it exists and matches the current player
+        if let (observerPlayer, observer) = mediaState.timeObserver {
+            if observerPlayer === player {  // Check if it's the same player instance
+                player.removeTimeObserver(observer)
+                print("🗑️ Removed time observer")
+            }
+            mediaState.timeObserver = nil
         }
+        
+        // Pause and reset player
         player.pause()
+        player.replaceCurrentItem(with: nil)
+        
+        // Clear state
+        mediaState.player = nil
     }
 }
 
@@ -572,9 +748,9 @@ struct InspirationView_Previews: PreviewProvider {
 extension Recipe {
     static var sampleRecipe: Recipe {
         let ingredients = [
-            Ingredient(ingredientId: "1", name: "Spaghetti", amount: 1.0, unit: "pound"),
-            Ingredient(ingredientId: "2", name: "Eggs", amount: 4.0, unit: "large"),
-            Ingredient(ingredientId: "3", name: "Pecorino Romano", amount: 1.0, unit: "cup")
+            RecipeIngredient(amount: 1.0, ingredientId: "1", name: "Spaghetti", unit: "pound", id: nil, label: nil, type: nil),
+            RecipeIngredient(amount: 4.0, ingredientId: "2", name: "Eggs", unit: "large", id: nil, label: nil, type: nil),
+            RecipeIngredient(amount: 1.0, ingredientId: "3", name: "Pecorino Romano", unit: "cup", id: nil, label: nil, type: nil)
         ]
         
         return try! JSONDecoder().decode(Recipe.self, from: """
@@ -610,8 +786,53 @@ extension Recipe {
     RecipeCard(
         recipe: .sampleRecipe,
         isVisible: true,
-        mediaCache: MediaCache.shared
+        mediaCache: MediaCache.shared,
+        onRecipeSelect: { _ in }
     )
     .frame(height: 800)
+}
+
+// Add VideoQuality enum
+enum VideoQuality {
+    case low, medium, high
+    
+    var bitRate: Double {
+        switch self {
+        case .low: return 800_000    // 800Kbps
+        case .medium: return 1_500_000 // 1.5Mbps
+        case .high: return 3_000_000   // 3Mbps
+        }
+    }
+    
+    var preferredHeight: CGFloat {
+        switch self {
+        case .low: return 480    // 480p
+        case .medium: return 720  // 720p
+        case .high: return 1080   // 1080p
+        }
+    }
+}
+
+// Add VideoPlayerConfiguration to manage playback settings
+struct VideoPlayerConfiguration {
+    let quality: VideoQuality
+    let bufferDuration: Double
+    let preloadTimeout: Double
+    
+    static let `default` = VideoPlayerConfiguration(
+        quality: .medium,
+        bufferDuration: 4.0,
+        preloadTimeout: 10.0
+    )
+}
+
+// Add this extension to help with finding parent view
+extension UIView {
+    static func getParentViewController() -> UIViewController? {
+        let scenes = UIApplication.shared.connectedScenes
+        let windowScene = scenes.first as? UIWindowScene
+        let window = windowScene?.windows.first
+        return window?.rootViewController
+    }
 }
  

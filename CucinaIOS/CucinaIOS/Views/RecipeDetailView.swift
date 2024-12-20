@@ -4,11 +4,21 @@ struct RecipeDetailView: View {
     let recipe: Recipe
     @Environment(\.dismiss) private var dismiss
     
+    // Compute the appropriate media URL
+    private var headerImageURL: String? {
+        // Prefer static image over video
+        if let image = recipe.image, !image.isEmpty {
+            return image
+        }
+        // Don't return video URL - we don't want to show video in detail view
+        return nil
+    }
+    
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             ZStack(alignment: .top) {
                 // Image layer
-                RecipeHeaderImage(imageURL: recipe.image)
+                RecipeHeaderImage(imageURL: headerImageURL)
                     .ignoresSafeArea()
                     .frame(maxWidth: .infinity)
                 
@@ -45,7 +55,11 @@ private struct RecipeHeaderImage: View {
     
     var body: some View {
         GeometryReader { geometry in
-            if let imageURL = imageURL, let url = URL(string: imageURL) {
+            if let imageURL = imageURL, 
+               !imageURL.isEmpty,
+               // Make sure we're not trying to load a video URL
+               !imageURL.lowercased().contains("mp4"),
+               let url = URL(string: imageURL) {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .empty:
@@ -100,7 +114,7 @@ private struct RecipeHeaderInfo: View {
 
 // MARK: - Ingredients Component
 private struct RecipeIngredients: View {
-    let ingredients: [Ingredient]
+    let ingredients: [RecipeIngredient]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -108,12 +122,8 @@ private struct RecipeIngredients: View {
                 .font(.title2)
                 .fontWeight(.bold)
             
-            ForEach(ingredients, id: \.ingredientId) { ingredient in
-                HStack {
-                    Text("•")
-                    Text("\(ingredient.amount, specifier: "%.1f") \(ingredient.unit) \(ingredient.name)")
-                }
-                .padding(.vertical, 4)
+            ForEach(Array(ingredients.enumerated()), id: \.offset) { index, ingredient in
+                IngredientRowView(ingredient: ingredient)
             }
         }
         .padding(.top)
@@ -176,11 +186,20 @@ private struct RecipeTags: View {
 // MARK: - Helper Views
 private struct PlaceholderImage: View {
     var body: some View {
-        Image(systemName: "photo.fill")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(height: 300)
-            .background(Color.gray.opacity(0.3))
+        ZStack {
+            Color.gray.opacity(0.3)
+            VStack(spacing: 12) {
+                Image(systemName: "fork.knife.circle.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 60, height: 60)
+                    .foregroundColor(.gray)
+                Text("No Image Available")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+        }
+        .frame(height: 300)
     }
 }
 
@@ -198,6 +217,29 @@ struct RoundedCorner: Shape {
     func path(in rect: CGRect) -> Path {
         let path = UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
         return Path(path.cgPath)
+    }
+}
+
+// Update the ingredient row view to handle RecipeIngredient
+struct IngredientRowView: View {
+    let ingredient: RecipeIngredient
+    
+    var body: some View {
+        if ingredient.type == "divider" {
+            // Handle divider type
+            Text(ingredient.label ?? "")
+                .font(.headline)
+                .padding(.top, 16)
+        } else {
+            // Handle regular ingredient
+            HStack {
+                Text("\(ingredient.amount?.formatted() ?? "") \(ingredient.unit ?? "")")
+                    .frame(width: 100, alignment: .leading)
+                Text(ingredient.name ?? "")
+                Spacer()
+            }
+            .padding(.vertical, 4)
+        }
     }
 }
 
