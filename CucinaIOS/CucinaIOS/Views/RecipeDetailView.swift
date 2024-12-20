@@ -8,7 +8,7 @@ struct RecipeDetailView: View {
         ScrollView(.vertical, showsIndicators: false) {
             ZStack(alignment: .top) {
                 // Image layer
-                RecipeHeaderImage(imageURL: recipe.imageURL)
+                RecipeHeaderImage(imageURL: recipe.image)
                     .ignoresSafeArea()
                     .frame(maxWidth: .infinity)
                 
@@ -22,7 +22,7 @@ struct RecipeDetailView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         RecipeHeaderInfo(recipe: recipe)
                         RecipeIngredients(ingredients: recipe.ingredients)
-                        RecipeTags(tags: recipe.dietaryTags)
+                        RecipeTags(tags: recipe.tags)
                     }
                     .padding()
                     .background(
@@ -147,10 +147,10 @@ private struct RecipeInstructions: View {
 
 // MARK: - Tags Component
 private struct RecipeTags: View {
-    let tags: [String]
+    let tags: [Int]?
     
     var body: some View {
-        if !tags.isEmpty {
+        if let tags = tags, !tags.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Tags")
                     .font(.title2)
@@ -159,7 +159,7 @@ private struct RecipeTags: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(tags, id: \.self) { tag in
-                            Text(tag)
+                            Text("#\(tag)")
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
                                 .background(Color.gray.opacity(0.2))

@@ -39,16 +39,22 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		70B8724D2D100770004F77A4 /* CucinaIOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = CucinaIOS;
 			sourceTree = "<group>";
 		};
 		70B8725E2D100771004F77A4 /* CucinaIOSTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = CucinaIOSTests;
 			sourceTree = "<group>";
 		};
 		70B872682D100771004F77A4 /* CucinaIOSUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = CucinaIOSUITests;
 			sourceTree = "<group>";
 		};
@@ -90,6 +96,7 @@
 				70B8725E2D100771004F77A4 /* CucinaIOSTests */,
 				70B872682D100771004F77A4 /* CucinaIOSUITests */,
 				70B8724C2D100770004F77A4 /* Products */,
+				AA1860EB791D87111ECD6663 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -101,6 +108,13 @@
 				70B872652D100771004F77A4 /* CucinaIOSUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AA1860EB791D87111ECD6663 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -149,8 +163,6 @@
 				70B8725E2D100771004F77A4 /* CucinaIOSTests */,
 			);
 			name = CucinaIOSTests;
-			packageProductDependencies = (
-			);
 			productName = CucinaIOSTests;
 			productReference = 70B8725B2D100771004F77A4 /* CucinaIOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -172,8 +184,6 @@
 				70B872682D100771004F77A4 /* CucinaIOSUITests */,
 			);
 			name = CucinaIOSUITests;
-			packageProductDependencies = (
-			);
 			productName = CucinaIOSUITests;
 			productReference = 70B872652D100771004F77A4 /* CucinaIOSUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";

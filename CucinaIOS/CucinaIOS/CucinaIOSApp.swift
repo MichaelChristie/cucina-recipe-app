@@ -1,5 +1,6 @@
 import SwiftUI
 import FirebaseCore
+import AVFoundation
 
 
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -74,5 +75,52 @@ struct CucinaIOSApp: App {
 struct CucinaIOSApp_Previews: PreviewProvider {
     static var previews: some View {
         MainTabView()
+    }
+}
+
+class YourViewController: UIViewController {
+    private var player: AVPlayer?
+    private var playerItem: AVPlayerItem?
+    private var statusObservation: NSKeyValueObservation?
+    
+    func prepareAndPlayVideo(with url: URL) {
+        // Clean up existing player and observations
+        statusObservation?.invalidate()
+        player?.pause()
+        
+        // Create new player item and player
+        playerItem = AVPlayerItem(url: url)
+        player = AVPlayer(playerItem: playerItem)
+        
+        // Observe player status using modern KVO
+        statusObservation = player?.observe(\.status, options: [.new]) { [weak self] player, _ in
+            DispatchQueue.main.async {
+                switch player.status {
+                case .readyToPlay:
+                    print("Player is ready to play")
+                    // Only preroll when player is ready
+                    Task {
+                        do {
+                            try await player.preroll(atRate: 1.0)
+                            player.play()
+                        } catch {
+                            print("Preroll failed:", error)
+                        }
+                    }
+                case .failed:
+                    print("Player failed:", player.error ?? "unknown error")
+                case .unknown:
+                    print("Player status is unknown")
+                @unknown default:
+                    break
+                }
+            }
+        }
+    }
+    
+    deinit {
+        statusObservation?.invalidate()
+        player?.pause()
+        player = nil
     }
 }
