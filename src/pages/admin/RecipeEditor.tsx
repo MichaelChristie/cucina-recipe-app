@@ -975,10 +975,17 @@ const RecipeEditor: FC = () => {
     }
   };
 
-  const handleSave = async (e: React.MouseEvent): Promise<void> => {
+  const handleSave = async () => {
     setSaving(true);
-    await handleSubmit(e);
+    await handleSubmit();
     setSaving(false);
+    
+    // Debug: Log the exact data being saved
+    console.log('Recipe being saved:', {
+      ...recipe,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
   };
 
   const handleSaveAndClose = async (e: React.MouseEvent): Promise<void> => {

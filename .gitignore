@@ -50,3 +50,7 @@ config/*.json
 *.xcuserstate
 xcuserdata/
 *.xcuserdatad/
+
+# Credentials
+credentials.json
+**/credentials.json

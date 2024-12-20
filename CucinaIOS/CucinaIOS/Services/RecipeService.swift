@@ -10,34 +10,33 @@ class RecipeService: ObservableObject {
         let recipesRef = db.collection("recipes")
         let querySnapshot = try await recipesRef.getDocuments()
         
-        print("Found \(querySnapshot.documents.count) documents")
+        // Debug: Print first recipe in detail
+        if let firstDoc = querySnapshot.documents.first {
+            print("\n📝 FIREBASE DATA STRUCTURE:")
+            print("=========================")
+            let data = firstDoc.data()
+            for (key, value) in data {
+                print("\(key): \(type(of: value)) = \(value)")
+            }
+            print("\n")
+        }
         
         self.recipes = try querySnapshot.documents.compactMap { document in
-            print("\n🔍 Processing document: \(document.documentID)")
-            print("📄 Raw Data: \(document.data())")
-            
             do {
                 let recipe = try document.data(as: Recipe.self)
-                print("✅ Successfully decoded recipe: \(recipe.title)")
-                print("🖼️ Image URL after decoding: \(recipe.imageURL ?? "No image URL")")
                 return recipe
             } catch {
-                print("❌ Error decoding recipe: \(error)")
-                print("🔎 Available fields in document: \(document.data().keys)")
-                if let imageURL = document.data()["image"] as? String {
-                    print("📸 Image field value: \(imageURL)")
-                }
+                print("❌ Decoding Error for document \(document.documentID):")
+                print("Error: \(error)")
                 
-                // Attempt flexible parsing
-                print("Attempting flexible parsing for recipe")
-                if let title = document.data()["title"] as? String,
-                   let imageURL = document.data()["image"] as? String {
-                    print("Flexible parsing result - Title: \(title), Image: \(imageURL)")
+                // Print the problematic fields
+                let data = document.data()
+                print("📄 Raw Data Fields:")
+                for (key, value) in data {
+                    print("- \(key): \(type(of: value)) = \(value)")
                 }
                 return nil
             }
         }
-        
-        print("\nFinal recipes count: \(recipes.count)")
     }
 } 

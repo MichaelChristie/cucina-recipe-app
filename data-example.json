@@ -1,0 +1,79 @@
+{
+  "calories": "",
+  "category": "",
+  "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  "difficulty": "medium",
+  "id": "DFigCQUP1OUNwIHwPUGe",
+  "image": "https://images.unsplash.com/photo-1701688596783-231b3764ef67?q=80&w=3774&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+  "ingredients": [
+    {
+      "amount": 1,
+      "ingredientId": "6C2tiAR7E1ZDFuJa8w4L",
+      "name": "Chickpeas",
+      "unit": "cup"
+    },
+    {
+      "amount": 1,
+      "ingredientId": "oavNIDkxJhXOSMoOoXRw",
+      "name": "Pita pockets",
+      "unit": "whole"
+    },
+    {
+      "amount": 200,
+      "ingredientId": "kEBpg8uessyhgOYfJaUt",
+      "name": "Lettuce",
+      "unit": "g"
+    },
+    {
+      "amount": 1,
+      "ingredientId": "WfbyESRyeb0xOjdJ0r4T",
+      "name": "Greek Yoghurt",
+      "unit": "cup"
+    }
+  ],
+  "nutrition": {
+    "calories": "510",
+    "carbs": "",
+    "fat": "",
+    "protein": ""
+  },
+  "prepTime": "30",
+  "servings": 6,
+  "steps": [
+    {
+      "confirmed": false,
+      "text": "**Lorem Ipsum Dolor Sit** • A versatile placeholder text. • Commonly used in design and typography. • Helps visualize layout and content flow."
+    },
+    {
+      "confirmed": false,
+      "text": "**Consectetur Adipiscing Elit** • Ideal for web design mockups. • Offers a natural text rhythm. • Enhances focus on aesthetics."
+    },
+    {
+      "confirmed": false,
+      "text": "**Amet Eget Arcu Nec** • Placeholder for modern UI/UX projects. • Mimics natural text patterns. • Keeps attention on layout details."
+    },
+    {
+      "confirmed": false,
+      "text": "**Proin Sodales Mi Vel** • Perfect for mobile-first layouts. • Aligns well with responsive grids. • Ensures clean and readable designs."
+    },
+    {
+      "confirmed": false,
+      "text": "**Donec Ultrices Ligula Et** • A favorite for printed materials. • Balances density and readability. • Works seamlessly in all fonts."
+    },
+    {
+      "confirmed": false,
+      "text": "**Vestibulum Viverra Vulputate Justo** • Fits well in minimalist designs. • Guides visual hierarchy effectively. • Maintains aesthetic harmony."
+    },
+    {
+      "confirmed": false,
+      "text": "**Mauris Pellentesque Sagittis Arcu** • Great for editorial layouts. • Provides a polished visual flow. • Complements elegant typography."
+    }
+  ],
+  "tags": [15, 1, 34, 35, 48],
+  "title": "Pita with Falafels",
+  "video": {
+    "format": "mp4",
+    "size": 31325562,
+    "url": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-videos%2F1734657284905-pizza.MP4?alt=media&token=23333e3f-7757-4338-8adc-36f0bc2fea51"
+  }
+}

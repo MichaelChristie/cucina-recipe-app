@@ -82,12 +82,14 @@ private struct RecipeHeaderInfo: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(recipe.title)
                 .font(.system(size: 34, weight: .regular, design: .serif))
-                 .foregroundColor(Color("PrimaryColor"))
+                .foregroundColor(Color("PrimaryColor"))
             Text(recipe.description)
                 .font(.body)
                 .foregroundColor(.secondary)
             HStack(spacing: 20) {
-                Label("\(recipe.prepTime + recipe.cookTime) min", systemImage: "clock")
+                if let prepTime = recipe.prepTime {
+                    Label("\(prepTime) min", systemImage: "clock")
+                }
                 Spacer()
                 Label("\(recipe.servings) servings", systemImage: "person.2")
             }
@@ -120,7 +122,7 @@ private struct RecipeIngredients: View {
 
 // MARK: - Instructions Component
 private struct RecipeInstructions: View {
-    let steps: [[String: Any]]
+    let steps: [Recipe.Step]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -130,15 +132,13 @@ private struct RecipeInstructions: View {
             
             ForEach(Array(steps.indices), id: \.self) { index in
                 let step = steps[index]
-                if let text = step["text"] as? String {
-                    HStack(alignment: .top, spacing: 12) {
-                        Text("\(index + 1).")
-                            .fontWeight(.bold)
-                        Text(text)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.vertical, 4)
+                HStack(alignment: .top, spacing: 12) {
+                    Text("\(index + 1).")
+                        .fontWeight(.bold)
+                    Text(step.text)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+                .padding(.vertical, 4)
             }
         }
         .padding(.top)

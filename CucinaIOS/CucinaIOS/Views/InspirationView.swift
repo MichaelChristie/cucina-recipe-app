@@ -1,5 +1,13 @@
 import SwiftUI
 import FirebaseFirestore
+import AVKit
+import Combine
+
+struct MediaLoadingState {
+    var image: UIImage?
+    var player: AVPlayer?
+    var isLoading = false
+}
 
 struct InspirationView: View {
     @StateObject private var recipeService = RecipeService()
@@ -7,6 +15,7 @@ struct InspirationView: View {
     @State private var visibleRecipeID: String?
     @State private var selectedRecipe: Recipe?
     @State private var showingRecipeDetail = false
+    @State private var preloadedIndices = Set<Int>()
     
     var body: some View {
         NavigationStack {
@@ -18,11 +27,12 @@ struct InspirationView: View {
                                 .frame(width: geometry.size.width, height: geometry.size.height)
                                 .background(Color.gray.opacity(0.2))
                         } else {
-                            ForEach(recipeService.recipes, id: \.uniqueId) { recipe in
+                            ForEach(Array(recipeService.recipes.enumerated()), id: \.element.uniqueId) { index, recipe in
                                 RecipeCard(recipe: recipe, isVisible: visibleRecipeID == recipe.uniqueId)
                                     .frame(width: geometry.size.width, height: geometry.size.height)
                                     .onAppear {
                                         visibleRecipeID = recipe.uniqueId
+                                        preloadContent(currentIndex: index)
                                     }
                                     .onDisappear {
                                         if visibleRecipeID == recipe.uniqueId {
@@ -55,6 +65,30 @@ struct InspirationView: View {
             .ignoresSafeArea()
         }
     }
+    
+    private func preloadContent(currentIndex: Int) {
+        let preloadRange = 1...2 // Preload next 2 items
+        
+        for offset in preloadRange {
+            let targetIndex = currentIndex + offset
+            guard targetIndex < recipeService.recipes.count,
+                  !preloadedIndices.contains(targetIndex) else { continue }
+            
+            preloadedIndices.insert(targetIndex)
+            let recipe = recipeService.recipes[targetIndex]
+            
+            // Preload video
+            if let video = recipe.video {
+                let asset = AVAsset(url: URL(string: video.url)!)
+                let playerItem = AVPlayerItem(asset: asset)
+                _ = AVPlayer(playerItem: playerItem) // Create player to cache
+            }
+            // Preload image
+            else if let image = recipe.image, let url = URL(string: image) {
+                URLSession.shared.dataTask(with: url) { _, _, _ in }.resume()
+            }
+        }
+    }
 }
 
 struct RecipeCard: View {
@@ -62,48 +96,43 @@ struct RecipeCard: View {
     let isVisible: Bool
     @State private var isLiked = false
     @State private var isSaved = false
+    @State private var mediaState = MediaLoadingState()
     
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .trailing) {
-                // Background Image
-                
-                if isVisible, let imageURL = recipe.imageURL, let url = URL(string: imageURL) {
-                    AsyncImage(url: url, transaction: .init(animation: .easeInOut)) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .background(Color.gray.opacity(0.3))
-                        case .success(let image):
-                            image
-                                .resizable()
+                // Media Content
+                if isVisible {
+                    if let video = recipe.video {
+                        if let player = mediaState.player {
+                            VideoPlayer(player: player)
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: geometry.size.width, height: geometry.size.height + geometry.safeAreaInsets.top)
                                 .offset(y: -geometry.safeAreaInsets.top)
                                 .clipped()
-                        case .failure(_):
-                            Color.black
-                                .overlay(
-                                    Image(systemName: "photo.fill")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 50)
-                                        .foregroundColor(.white.opacity(0.5))
-                                )
-                        @unknown default:
-                            Color.black
+                                .onAppear {
+                                    player.play()
+                                    player.actionAtItemEnd = .none
+                                    NotificationCenter.default.addObserver(
+                                        forName: .AVPlayerItemDidPlayToEndTime,
+                                        object: player.currentItem,
+                                        queue: .main) { _ in
+                                            player.seek(to: .zero)
+                                            player.play()
+                                    }
+                                }
+                                .onDisappear {
+                                    player.pause()
+                                }
+                        }
+                    } else if let image = recipe.image, let url = URL(string: image) {
+                        AsyncImage(url: url) { phase in
+                            // ... existing AsyncImage code ...
                         }
                     }
                 } else {
+                    // Placeholder for non-visible cards
                     Color.black
-                        .overlay(
-                            Image(systemName: "photo.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 50)
-                                .foregroundColor(.white.opacity(0.5))
-                        )
                 }
                 
                 // Gradient overlay
@@ -200,6 +229,22 @@ struct RecipeCard: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, geometry.safeAreaInsets.bottom + 48)
             }
+            .onAppear {
+                loadMedia()
+            }
+        }
+    }
+    
+    private func loadMedia() {
+        guard !mediaState.isLoading else { return }
+        mediaState.isLoading = true
+        
+        if let video = recipe.video {
+            let player = AVPlayer(url: URL(string: video.url)!)
+            player.isMuted = true
+            mediaState.player = player
+        } else if let imageURL = recipe.image {
+            // ... existing image loading code ...
         }
     }
 }
