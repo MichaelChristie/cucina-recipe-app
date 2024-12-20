@@ -33,7 +33,7 @@ import { Tag, Ingredient } from '../../types/admin';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../../firebase/config';
 import { getAuth } from 'firebase/auth';
-import { getFFmpeg, loadFFmpeg } from '../../utils/ffmpeg';
+import { getFFmpeg, loadFFmpeg, writeFileToFFmpeg, readFileFromFFmpeg } from '../../utils/ffmpeg';
 import { formatBytes, formatDuration } from '../../utils/formatters';
 
 // Constants remain the same
@@ -408,12 +408,7 @@ const ImageUpload: FC<ImageUploadProps> = ({ image, onImageChange, className = '
   };
 
   return (
-    <div
-      className={`relative ${className}`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
+    <div className={`relative ${className}`}>
       <input
         type="file"
         ref={fileInputRef}
@@ -423,33 +418,33 @@ const ImageUpload: FC<ImageUploadProps> = ({ image, onImageChange, className = '
       />
       
       {image ? (
-        // Image preview container
-        <div className="relative h-48 rounded-lg overflow-hidden group">
-          <img
-            src={image}
-            alt="Recipe preview"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <div className="flex items-center space-x-2">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2 bg-white rounded-full hover:bg-gray-100"
-                title="Edit image"
-              >
-                <PencilIcon className="h-5 w-5 text-gray-600" />
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="p-2 bg-white rounded-full hover:bg-gray-100"
-                title="Delete image"
-              >
-                <TrashIcon className="h-5 w-5 text-red-600" />
-              </button>
-              {isUploading && <UploadProgress progress={uploadProgress} />}
-            </div>
+        // Image preview container with buttons underneath
+        <div className="space-y-2">
+          <div className="h-48 rounded-lg overflow-hidden">
+            <img
+              src={image}
+              alt="Recipe preview"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="flex items-center justify-end space-x-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 bg-white rounded-full hover:bg-gray-100 border border-gray-200"
+              title="Edit image"
+            >
+              <PencilIcon className="h-5 w-5 text-gray-600" />
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="p-2 bg-white rounded-full hover:bg-gray-100 border border-gray-200"
+              title="Delete image"
+            >
+              <TrashIcon className="h-5 w-5 text-red-600" />
+            </button>
+            {isUploading && <UploadProgress progress={uploadProgress} />}
           </div>
         </div>
       ) : (
@@ -502,15 +497,20 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
+  const [ffmpegLoadingError, setFfmpegLoadingError] = useState<string | null>(null);
 
   useEffect(() => {
     const initFFmpeg = async () => {
       try {
+        console.log('Starting FFmpeg loading...');
         await loadFFmpeg();
+        console.log('FFmpeg loaded successfully');
         setFfmpegLoaded(true);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         console.error('Error loading FFmpeg:', error);
-        toast.error('Failed to load video processing capabilities');
+        setFfmpegLoadingError(errorMessage);
+        toast.error(`Failed to load video processing: ${errorMessage}`);
       }
     };
     initFFmpeg();
@@ -518,45 +518,111 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
 
   const processVideo = async (file: File): Promise<Blob> => {
     if (!ffmpegLoaded) {
-      throw new Error('FFmpeg not loaded');
+      console.error('FFmpeg loading status:', {
+        ffmpegLoaded,
+        ffmpegLoadingError,
+        ffmpegInstance: await getFFmpeg()
+      });
+      throw new Error(`FFmpeg not loaded. Status: ${ffmpegLoadingError || 'unknown error'}`);
     }
 
     setIsProcessing(true);
     try {
-      const ffmpeg = getFFmpeg();
+      console.log('Starting video processing...');
+      const ffmpeg = await getFFmpeg();
       const inputFileName = 'input.mp4';
       const outputFileName = 'output.mp4';
       
-      // Convert File to ArrayBuffer
+      console.log('Writing file to FFmpeg filesystem...');
       const arrayBuffer = await file.arrayBuffer();
+      console.log('Input file size:', arrayBuffer.byteLength);
+      await writeFileToFFmpeg(ffmpeg, inputFileName, arrayBuffer);
       
-      // Write file to FFmpeg virtual filesystem
-      await ffmpeg.writeFile(inputFileName, new Uint8Array(arrayBuffer));
-      
-      // Process video: compress and limit to 720p
-      await ffmpeg.exec([
-        '-i', inputFileName,
-        '-vf', 'scale=-2:min(720,ih)',
-        '-c:v', 'libx264',
-        '-crf', '28',
-        '-preset', 'medium',
-        '-c:a', 'aac',
-        '-b:a', '128k',
-        '-movflags', '+faststart',
-        outputFileName
-      ]);
+      // Log input file information
+      console.log('Running ffprobe...');
+      try {
+        await ffmpeg.exec(['-i', inputFileName]);
+      } catch (probeError) {
+        // FFmpeg writes format information to stderr, which causes an error
+        console.log('Input format info:', probeError.message);
+      }
 
-      // Read the processed file
-      const data = await ffmpeg.readFile(outputFileName);
+      console.log('Processing video with FFmpeg...');
+      
+      // Set up progress handler
+      ffmpeg.on('progress', progress => {
+        console.log('FFmpeg progress:', progress);
+      });
+
+      // Try a simpler conversion first
+      try {
+        await ffmpeg.exec([
+          '-i', inputFileName,
+          '-c:v', 'copy',  // Just copy video stream without re-encoding
+          '-c:a', 'copy',  // Just copy audio stream without re-encoding
+          outputFileName
+        ]);
+      } catch (error) {
+        console.error('Simple conversion failed, trying fallback command:', error);
+        
+        // If simple conversion fails, try the more complex one
+        await ffmpeg.exec([
+          '-i', inputFileName,
+          '-vf', 'scale=-2:min(720,ih)',
+          '-c:v', 'libx264',
+          '-crf', '28',
+          '-preset', 'medium',
+          '-c:a', 'aac',
+          '-b:a', '128k',
+          '-movflags', '+faststart',
+          outputFileName
+        ]);
+      }
+
+      // Try to read the output file directly
+      let data: Uint8Array;
+      try {
+        console.log('Reading processed file...');
+        data = await readFileFromFFmpeg(ffmpeg, outputFileName);
+        console.log('Output file size:', data.length);
+      } catch (readError) {
+        console.error('Error reading output file:', readError);
+        throw new Error('Failed to read processed video file');
+      }
+
+      if (data.length === 0) {
+        throw new Error('FFmpeg produced empty output file');
+      }
+      
       const processedBlob = new Blob([data], { type: 'video/mp4' });
+      console.log('Processed blob size:', processedBlob.size);
 
-      // Clean up
-      await ffmpeg.deleteFile(inputFileName);
-      await ffmpeg.deleteFile(outputFileName);
+      console.log('Cleanup...');
+      try {
+        await ffmpeg.deleteFile(inputFileName);
+        await ffmpeg.deleteFile(outputFileName);
+      } catch (cleanupError) {
+        console.warn('Cleanup warning:', cleanupError);
+      }
+
+      // Verify the blob is valid
+      if (!processedBlob.size) {
+        throw new Error('Generated blob is empty');
+      }
 
       return processedBlob;
+    } catch (error) {
+      console.error('Error in video processing:', {
+        error,
+        message: error.message,
+        stack: error.stack
+      });
+      throw error;
     } finally {
       setIsProcessing(false);
+      // Remove progress handler
+      const ffmpeg = await getFFmpeg();
+      ffmpeg.off('progress');
     }
   };
 
@@ -576,23 +642,55 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
     setUploadProgress(0);
 
     try {
-      // Process video
-      const processedVideo = await processVideo(file);
+      // If FFmpeg isn't loaded, try uploading directly
+      let uploadFile = file;
+      if (ffmpegLoaded) {
+        console.log('Processing video before upload...');
+        uploadFile = await processVideo(file);
+        console.log('Processed video size:', uploadFile.size);
+        
+        if (!uploadFile || uploadFile.size === 0) {
+          throw new Error('Processed video is empty');
+        }
+      } else {
+        console.warn('FFmpeg not loaded, uploading original file');
+        toast('Video processing unavailable, uploading original file', {
+          icon: '⚠️',
+        });
+      }
       
       // Create a unique filename
       const filename = `recipe-videos/${Date.now()}-${file.name}`;
       const storageRef = ref(storage, filename);
 
+      console.log('Starting upload of file:', {
+        size: uploadFile.size,
+        type: uploadFile.type,
+        name: filename
+      });
+
       // Upload the processed video
-      const uploadTask = uploadBytesResumable(storageRef, processedVideo);
+      const uploadTask = uploadBytesResumable(storageRef, uploadFile);
 
       uploadTask.on('state_changed',
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          if (isNaN(progress)) {
+            console.error('Invalid progress value:', {
+              bytesTransferred: snapshot.bytesTransferred,
+              totalBytes: snapshot.totalBytes
+            });
+            return;
+          }
           setUploadProgress(progress);
+          console.log('Upload progress:', progress);
         },
         (error) => {
-          console.error('Upload error:', error);
+          console.error('Upload error:', {
+            code: error.code,
+            message: error.message,
+            serverResponse: error.serverResponse
+          });
           toast.error('Failed to upload video');
           setIsUploading(false);
         },
@@ -603,10 +701,11 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
             // Create video metadata
             const metadata: VideoMetadata = {
               url: downloadURL,
-              size: processedVideo.size,
+              size: uploadFile.size,
               format: 'mp4',
             };
 
+            console.log('Upload completed successfully:', metadata);
             onVideoChange(metadata);
             toast.success('Video uploaded successfully');
           } catch (error) {
@@ -617,7 +716,11 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
         }
       );
     } catch (error) {
-      console.error('Error processing video:', error);
+      console.error('Error in handleVideoUpload:', {
+        error,
+        message: error.message,
+        stack: error.stack
+      });
       toast.error('Failed to process video');
       setIsUploading(false);
     }
@@ -638,25 +741,7 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
   };
 
   return (
-    <div
-      className={`relative ${className}`}
-      onDragOver={(e) => {
-        e.preventDefault();
-        setIsDragging(true);
-      }}
-      onDragLeave={(e) => {
-        e.preventDefault();
-        setIsDragging(false);
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        setIsDragging(false);
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-          handleVideoUpload(files[0]);
-        }
-      }}
-    >
+    <div className={`relative ${className}`}>
       <input
         type="file"
         ref={fileInputRef}
@@ -671,18 +756,25 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
       />
 
       {video?.url ? (
-        <div className="relative rounded-lg overflow-hidden group">
-          <video
-            src={video.url}
-            controls
-            className="w-full h-48 object-cover"
-          />
-          <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <div className="space-y-2">
+          <div className="rounded-lg overflow-hidden">
+            <video
+              src={video.url}
+              controls
+              className="w-full h-48 object-cover"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            {video.size && (
+              <span className="text-sm text-gray-600">
+                {formatBytes(video.size)}
+              </span>
+            )}
             <div className="flex items-center space-x-2">
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-2 bg-white rounded-full hover:bg-gray-100"
+                className="p-2 bg-white rounded-full hover:bg-gray-100 border border-gray-200"
                 title="Replace video"
               >
                 <PencilIcon className="h-5 w-5 text-gray-600" />
@@ -690,18 +782,13 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
               <button
                 type="button"
                 onClick={handleDelete}
-                className="p-2 bg-white rounded-full hover:bg-gray-100"
+                className="p-2 bg-white rounded-full hover:bg-gray-100 border border-gray-200"
                 title="Delete video"
               >
                 <TrashIcon className="h-5 w-5 text-red-600" />
               </button>
             </div>
           </div>
-          {video.size && (
-            <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-sm px-2 py-1">
-              {formatBytes(video.size)}
-            </div>
-          )}
         </div>
       ) : (
         <button
