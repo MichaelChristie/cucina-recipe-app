@@ -24,30 +24,14 @@ const Layout: FC<LayoutProps> = ({ children, showNavbarActions = true }) => {
   ];
 
   return (
-    <>
-      <Navbar showActions={showNavbarActions}>
-        <div className="flex space-x-4">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={`${
-                pathname === item.href
-                  ? 'border-tasty-green text-gray-900'
-                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-              } inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium`}
-            >
-              {item.name}
-            </Link>
-          ))}
-        </div>
-      </Navbar>
-      <div className="min-h-screen bg-tasty-background p-8">
-        <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-tasty-background">
+      <Navbar showActions={showNavbarActions} />
+      <main className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </div>
-      </div>
-    </>
+      </main>
+    </div>
   );
 };
 

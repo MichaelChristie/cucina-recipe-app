@@ -21,8 +21,8 @@ export default function UserMenu({ isOpen, onClose, onLogout }: UserMenuProps) {
 
   return (
     <div
-      className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 
-                 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+      className="origin-top-right absolute right-0 mt-2 w-64 rounded-md shadow-lg py-1 
+                 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-[60]"
     >
       {user ? (
         <>

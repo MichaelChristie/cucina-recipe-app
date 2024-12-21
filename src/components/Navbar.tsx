@@ -1,17 +1,15 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { logOut } from '../services/authService';
+import { Menu, Transition } from '@headlessui/react';
+import { 
+  Bars3Icon,
+  UserCircleIcon,
+  ChevronDownIcon,
+  MagnifyingGlassIcon
+} from '@heroicons/react/24/outline';
 import UserMenu from './UserMenu';
 import toast from 'react-hot-toast';
 import AnimatedLogo from './AnimatedLogo';
-import { 
-  HomeIcon, 
-  BookOpenIcon, 
-  CubeIcon,
-  UserGroupIcon, 
-  TagIcon 
-} from '@heroicons/react/24/outline';
-import SearchBar from './SearchBar';
 import Logo from './Logo';
 
 interface NavItem {
@@ -32,23 +30,33 @@ interface NavbarProps {
   showActions?: boolean;
 }
 
-const adminNavigation: NavItem[] = [
-  { name: 'Dashboard', path: '/admin', icon: HomeIcon },
-  { name: 'Recipes', path: '/admin/recipes', icon: BookOpenIcon },
-  { name: 'Ingredients', path: '/admin/ingredients', icon: CubeIcon },
-  { name: 'Users', path: '/admin/users', icon: UserGroupIcon },
-  { name: 'Tags', path: '/admin/tags', icon: TagIcon },
-];
+// Updated navigation structure
+const adminNavigation = {
+  main: [
+    { name: 'Dashboard', path: '/admin' },
+  ],
+  food: {
+    name: 'Food',
+    items: [
+      { name: 'Recipes', path: '/admin/recipes' },
+      { name: 'Ingredients', path: '/admin/ingredients' },
+      { name: 'Tag Manager', path: '/admin/tags' },
+    ]
+  },
+  users: { name: 'Users', path: '/admin/users' }
+};
 
 export default function Navbar({ onAddClick, children, showActions }: NavbarProps) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const isManageRoute = location.pathname.startsWith('/admin');
 
   const handleLogout = async () => {
     try {
-      setIsMenuOpen(false);
+      setIsMobileMenuOpen(false);
+      setIsUserMenuOpen(false);
       await logOut();
       toast.success('Successfully signed out');
       navigate('/', { replace: true });
@@ -56,14 +64,6 @@ export default function Navbar({ onAddClick, children, showActions }: NavbarProp
       console.error('Error logging out:', error);
       toast.error('Failed to sign out');
     }
-  };
-
-  const handleMenuToggle = () => {
-    setIsMenuOpen(prev => !prev);
-  };
-
-  const handleMenuClose = () => {
-    setIsMenuOpen(false);
   };
 
   const accountMenuItems: MenuItem[] = [
@@ -75,80 +75,219 @@ export default function Navbar({ onAddClick, children, showActions }: NavbarProp
     { label: 'Sign Out', onClick: handleLogout },
   ];
 
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // TODO: Implement search functionality
+  };
+
   return (
-    <>
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-tasty-background/80">
-        <div className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-4">
-          <div className="relative flex justify-between h-16">
-            {/* Logo and Brand */}
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="flex items-center">
-                <Logo />
-                <span className="hidden sm:block ml-2 text-xl font-bold text-gray-800">Cucina</span>
+    <nav className="sticky top-0 z-50 backdrop-blur-md bg-tasty-background/80">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative flex h-16 items-center justify-between">
+          {/* Logo section - aligned with content */}
+          <div className="flex flex-shrink-0 items-center">
+            <Link to="/" className="flex items-center">
+              <Logo />
+              <span className="hidden sm:block ml-2 text-xl font-bold text-gray-800">
+                Cucina
+              </span>
+            </Link>
+          </div>
+
+          {/* Center navigation - desktop */}
+          {isManageRoute && (
+            <div className="hidden md:flex items-center space-x-8">
+              {/* Main Navigation Items */}
+              {adminNavigation.main.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`${
+                    location.pathname === item.path
+                      ? 'text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  } flex items-center px-3 py-2 text-base font-medium`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+
+              {/* Food Dropdown */}
+              <Menu as="div" className="relative">
+                <Menu.Button className="flex items-center text-gray-500 hover:text-gray-700 px-3 py-2 text-base font-medium">
+                  <span>Food</span>
+                  <ChevronDownIcon className="ml-1 h-4 w-4" />
+                </Menu.Button>
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="transform opacity-0 scale-95"
+                  enterTo="transform opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="transform opacity-100 scale-100"
+                  leaveTo="transform opacity-0 scale-95"
+                >
+                  <Menu.Items className="absolute left-0 mt-1 w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                    {adminNavigation.food.items.map((item) => (
+                      <Menu.Item key={item.name}>
+                        {({ active }) => (
+                          <Link
+                            to={item.path}
+                            className={`${
+                              active ? 'bg-gray-100' : ''
+                            } ${
+                              location.pathname === item.path ? 'text-blue-600' : 'text-gray-700'
+                            } block px-4 py-2 text-base`}
+                          >
+                            {item.name}
+                          </Link>
+                        )}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Items>
+                </Transition>
+              </Menu>
+
+              <Link
+                to={adminNavigation.users.path}
+                className={`${
+                  location.pathname === adminNavigation.users.path
+                    ? 'text-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                } flex items-center px-3 py-2 text-base font-medium`}
+              >
+                {adminNavigation.users.name}
               </Link>
             </div>
+          )}
 
-            {/* Search Bar - Only show on home page */}
-            {!isManageRoute && (
-              <div className="flex-1 flex items-center justify-center px-2 lg:ml-6 lg:justify-center">
-                <div className="max-w-lg w-full lg:max-w-xs">
-                  <SearchBar onSearch={() => {
-                    // Add your search logic here
-                  }} />
+          {/* Center section - Search bar for non-admin routes */}
+          {!isManageRoute && (
+            <div className="hidden md:flex flex-1 items-center justify-center px-2 lg:ml-6">
+              <form onSubmit={handleSearch} className="max-w-lg w-full lg:max-w-xs">
+                <label htmlFor="search" className="sr-only">Search recipes</label>
+                <div className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10 w-full">
+                  <MagnifyingGlassIcon className="h-5 w-5 flex-shrink-0 text-tasty-green" aria-hidden="true" />
+                  <input
+                    id="search"
+                    name="search"
+                    className="bg-transparent outline-none placeholder-tasty-green/60 w-full text-tasty-green"
+                    placeholder="Search a recipe"
+                    type="search"
+                  />
                 </div>
+              </form>
+            </div>
+          )}
+
+          {/* Right side menu - aligned with content */}
+          <div className="flex items-center space-x-4">
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-500 hover:bg-gray-100"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <span className="sr-only">Open main menu</span>
+                <Bars3Icon className="h-8 w-8" />
+              </button>
+            </div>
+
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                type="button"
+                className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 
+                         focus:ring-blue-500"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              >
+                <span className="sr-only">Open user menu</span>
+                <UserCircleIcon className="h-8 w-8 text-gray-600" />
+              </button>
+
+              <UserMenu 
+                isOpen={isUserMenuOpen}
+                onClose={() => setIsUserMenuOpen(false)}
+                onLogout={handleLogout}
+                accountMenuItems={accountMenuItems}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile menu - full width but content aligned */}
+      <Transition
+        show={isMobileMenuOpen}
+        enter="transition ease-out duration-100 transform"
+        enterFrom="opacity-0 scale-95"
+        enterTo="opacity-100 scale-100"
+        leave="transition ease-in duration-75 transform"
+        leaveFrom="opacity-100 scale-100"
+        leaveTo="opacity-0 scale-95"
+      >
+        <div className="md:hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {!isManageRoute && (
+              <div className="pt-2 pb-3">
+                <form onSubmit={handleSearch} className="w-full">
+                  <label htmlFor="mobile-search" className="sr-only">Search recipes</label>
+                  <div className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10 w-full">
+                    <MagnifyingGlassIcon className="h-5 w-5 flex-shrink-0 text-tasty-green" aria-hidden="true" />
+                    <input
+                      id="mobile-search"
+                      name="search"
+                      className="bg-transparent outline-none placeholder-tasty-green/60 w-full text-tasty-green"
+                      placeholder="Search a recipe"
+                      type="search"
+                    />
+                  </div>
+                </form>
               </div>
             )}
-
-            {/* Admin tabs - centered */}
-            {isManageRoute && (
-              <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center h-full space-x-8">
-                {adminNavigation.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.path}
-                      className={`${
-                        location.pathname === item.path
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-                    >
-                      <Icon className="h-5 w-5 mr-2" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Account Dropdown - always on right */}
-            <div className="flex items-center ml-auto">
-              <div className="relative">
-                <button
-                  type="button"
-                  className="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 
-                           focus:ring-blue-500"
-                  onClick={handleMenuToggle}
+            
+            <div className="pt-2 pb-3 space-y-1">
+              {/* Main Navigation Items */}
+              {adminNavigation.main.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`${
+                    location.pathname === item.path
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-500 hover:bg-gray-50'
+                  } flex items-center px-4 py-2 text-base font-medium`}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <span className="sr-only">Open user menu</span>
-                  <svg className="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                      d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                </button>
+                  {item.name}
+                </Link>
+              ))}
 
-                <UserMenu 
-                  isOpen={isMenuOpen}
-                  onClose={handleMenuClose}
-                  onLogout={handleLogout}
-                  accountMenuItems={accountMenuItems}
-                />
+              {/* Food Section */}
+              <div className="border-t border-gray-200 pt-2">
+                <div className="px-4 py-2 text-sm font-medium text-gray-500 flex items-center">
+                  <span>Food</span>
+                </div>
+                {adminNavigation.food.items.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className={`${
+                      location.pathname === item.path
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-500 hover:bg-gray-50'
+                    } flex items-center px-8 py-2 text-base font-medium`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
         </div>
-      </nav>
-    </>
+      </Transition>
+    </nav>
   );
 } 

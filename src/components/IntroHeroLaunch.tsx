@@ -3,7 +3,12 @@ import {
   HeartIcon, 
   ChevronDownIcon,
   XMarkIcon,
-  BeakerIcon
+  BeakerIcon,
+  LightBulbIcon,
+  SparklesIcon,
+  GlobeEuropeAfricaIcon,
+  FireIcon,
+  Squares2X2Icon
 } from '@heroicons/react/24/outline';
 import { getTags } from '../services/tagService';
 import { getRecipes } from '../services/recipeService';
@@ -14,7 +19,7 @@ import { Recipe, Tag, Ingredient } from '../types/admin';
 interface Category {
   id: string;
   name: string;
-  emoji: string;
+  icon: React.ForwardRefExoticComponent<any>;
 }
 
 const IntroHeroLaunch: FC = () => {
@@ -47,18 +52,18 @@ const IntroHeroLaunch: FC = () => {
   }, []);
 
   const categories: Category[] = [...new Set(tags.map(tag => tag.category))].map(category => {
-    const emojis: Record<string, string> = {
-      diet: '🌿',
-      meal: '🍽️',
-      cuisine: '🌍',
-      style: '🥘',
-      special: '🎉'
+    const icons: Record<string, React.ForwardRefExoticComponent<any>> = {
+      diet: LightBulbIcon,
+      meal: Squares2X2Icon,
+      cuisine: GlobeEuropeAfricaIcon,
+      style: FireIcon,
+      special: SparklesIcon
     };
     
     return {
       id: category,
       name: category.charAt(0).toUpperCase() + category.slice(1),
-      emoji: emojis[category] || '📌'
+      icon: icons[category] || BeakerIcon
     };
   });
 
@@ -158,7 +163,7 @@ const IntroHeroLaunch: FC = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => setIsSearchFocused(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search ingredients..."
+          placeholder="Filter by ingredients..."
           className="bg-transparent outline-none placeholder-tasty-green/60 w-full"
         />
       </div>
@@ -208,13 +213,13 @@ const IntroHeroLaunch: FC = () => {
         <div className="flex flex-wrap items-start gap-4">
           {/* Category dropdowns wrapper */}
           <div className="flex flex-wrap gap-2 w-full">
-            {categories.map(({ id, name, emoji }) => (
+            {categories.map(({ id, name, icon: Icon }) => (
               <div key={id} className="relative">
                 <button
                   onClick={() => handleCategoryClick(id)}
                   className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10"
                 >
-                  <span>{emoji}</span>
+                  <Icon className="h-5 w-5" />
                   <span>{name}</span>
                   <ChevronDownIcon className={`h-5 w-5 transition-transform ${
                     openCategory === id ? 'rotate-180' : ''
@@ -223,7 +228,7 @@ const IntroHeroLaunch: FC = () => {
                 
                 {openCategory === id && (
                   <div 
-                    className="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg transition-opacity duration-300"
+                    className="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg transition-opacity duration-300"
                   >
                     <div className="p-2 space-y-1">
                       {getTagsByCategory(id).map((tag) => (

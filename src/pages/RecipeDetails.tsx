@@ -163,50 +163,43 @@ export default function RecipeDetails(): JSX.Element {
                 )}
 
                 {/* Quick Info Panel */}
-                <div className="mt-8 p-4">
-                  <div className="flex flex-col gap-4">
+                <div className="mt-8 bg-white rounded-xl shadow-sm">
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    {/* Prep Time */}
                     {recipe.prepTime && (
-                      <div className="flex items-center gap-2">
-                        <ClockIcon className="h-5 w-5 text-gray-700" />
+                      <div className="flex items-center gap-3 p-4">
+                        <div className="p-2.5 bg-sage-50/50 rounded-lg">
+                          <ClockIcon className="h-6 w-6 text-sage-600" />
+                        </div>
                         <div>
-                          <p className="text-sm text-gray-500">Prep Time</p>
-                          <p className="font-medium">{recipe.prepTime}</p>
+                          <p className="text-sm text-gray-500 font-medium">Prep Time</p>
+                          <p className="text-lg font-medium">{recipe.prepTime} min</p>
                         </div>
                       </div>
                     )}
-                    {recipe.cookTime && (
-                      <div className="flex items-center gap-2">
-                        <FireIcon className="h-5 w-5 text-gray-700" />
-                        <div>
-                          <p className="text-sm text-gray-500">Cook Time</p>
-                          <p className="font-medium">{recipe.cookTime}</p>
-                        </div>
-                      </div>
-                    )}
+
+                    {/* Difficulty */}
                     {recipe.difficulty && (
-                      <div className="flex items-center gap-2">
-                        <ChartBarIcon className="h-5 w-5 text-gray-700" />
+                      <div className="flex items-center gap-3 p-4">
+                        <div className="p-2.5 bg-olive-50/50 rounded-lg">
+                          <ChartBarIcon className="h-6 w-6 text-olive-600" />
+                        </div>
                         <div>
-                          <p className="text-sm text-gray-500">Difficulty</p>
-                          <p className="font-medium capitalize">{recipe.difficulty}</p>
+                          <p className="text-sm text-gray-500 font-medium">Difficulty</p>
+                          <p className="text-lg font-medium capitalize">{recipe.difficulty}</p>
                         </div>
                       </div>
                     )}
+
+                    {/* Servings */}
                     {recipe.servings && (
-                      <div className="flex items-center gap-2">
-                        <UserGroupIcon className="h-5 w-5 text-gray-700" />
-                        <div>
-                          <p className="text-sm text-gray-500">Servings</p>
-                          <p className="font-medium">{recipe.servings}</p>
+                      <div className="flex items-center gap-3 p-4">
+                        <div className="p-2.5 bg-khaki-50/50 rounded-lg">
+                          <UserGroupIcon className="h-6 w-6 text-khaki-600" />
                         </div>
-                      </div>
-                    )}
-                    {recipe.calories && (
-                      <div className="flex items-center gap-2">
-                        <BeakerIcon className="h-5 w-5 text-gray-700" />
                         <div>
-                          <p className="text-sm text-gray-500">Calories</p>
-                          <p className="font-medium">{recipe.calories}</p>
+                          <p className="text-sm text-gray-500 font-medium">Servings</p>
+                          <p className="text-lg font-medium">{recipe.servings} {recipe.servings === 1 ? 'serving' : 'servings'}</p>
                         </div>
                       </div>
                     )}

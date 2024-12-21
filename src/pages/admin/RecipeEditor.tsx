@@ -65,6 +65,13 @@ const AVAILABLE_UNITS = [
   'slice', // for bread, etc
 ] as const;
 
+const DIFFICULTY_LEVELS = [
+  'easy',
+  'medium',
+  'hard',
+  'expert'
+] as const;
+
 const AVAILABLE_CATEGORIES = [
   'Baking',
   'Dairy & Eggs',
@@ -926,8 +933,11 @@ const RecipeEditor: FC = () => {
     };
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent): Promise<void> => {
+    if (e) {
+      e.preventDefault();
+    }
+    
     try {
       if (!recipe.title.trim()) {
         toast.error('Title is required');
@@ -979,19 +989,12 @@ const RecipeEditor: FC = () => {
     setSaving(true);
     await handleSubmit();
     setSaving(false);
-    
-    // Debug: Log the exact data being saved
-    console.log('Recipe being saved:', {
-      ...recipe,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
   };
 
-  const handleSaveAndClose = async (e: React.MouseEvent): Promise<void> => {
+  const handleSaveAndClose = async (e: React.MouseEvent) => {
     setSaving(true);
     try {
-      await handleSubmit(e);
+      await handleSubmit(e as unknown as React.FormEvent);
       navigate('/admin/recipes');
     } catch (error) {
       console.error('Error saving recipe:', error);
@@ -1223,37 +1226,112 @@ const RecipeEditor: FC = () => {
             <span className="text-gray-900">{id ? 'Edit Recipe' : 'New Recipe'}</span>
           </nav>
 
-          {/* Image Upload */}
-          <ImageUpload
-            image={recipe.image}
-            onImageChange={(url) => setRecipe({ ...recipe, image: url })}
-            className="mt-6"
-          />
-
-          {/* Video Upload */}
-          <div className="mt-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Video (Optional)</h2>
-            <VideoUpload
-              video={recipe.video}
-              onVideoChange={(video) => setRecipe({ ...recipe, video })}
-              className="mt-2"
-            />
-          </div>
-
           {/* Title */}
-          <div>
-            <label className="text-xl font-bold text-gray-900 mb-4">Title</label>
+          <div className="group relative">
             <input
               type="text"
-              value={recipe.title}
+              value={recipe.title || 'Untitled Recipe'}
               onChange={(e) => setRecipe({ ...recipe, title: e.target.value })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+              className="mt-1 block w-full text-4xl font-bold text-gray-900 border-0 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-500 px-0 py-2 focus:ring-0 bg-transparent placeholder-gray-400 transition-colors duration-200"
               required
+              placeholder="Enter recipe title..."
             />
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <PencilIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="absolute -bottom-6 left-0 text-sm text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              Click to edit title
+            </div>
           </div>
 
-          {/* Tags Selection */}
-          <div className="mt-6">
+          {/* Media Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Image Upload */}
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Image</h2>
+              <ImageUpload
+                image={recipe.image}
+                onImageChange={(url) => setRecipe({ ...recipe, image: url })}
+              />
+            </div>
+
+            {/* Video Upload */}
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Video (Optional)</h2>
+              <VideoUpload
+                video={recipe.video}
+                onVideoChange={(video) => setRecipe({ ...recipe, video })}
+              />
+            </div>
+          </div>
+
+          {/* Recipe Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Prep Time */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Prep Time
+              </label>
+              <input
+                type="text"
+                value={recipe.prepTime || ''}
+                onChange={(e) => setRecipe({ ...recipe, prepTime: e.target.value })}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+                placeholder="e.g. 15 minutes"
+              />
+            </div>
+
+            {/* Cook Time */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cook Time
+              </label>
+              <input
+                type="text"
+                value={recipe.cookTime || ''}
+                onChange={(e) => setRecipe({ ...recipe, cookTime: e.target.value })}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+                placeholder="e.g. 45 minutes"
+              />
+            </div>
+
+            {/* Difficulty */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Difficulty
+              </label>
+              <select
+                value={recipe.difficulty || 'easy'}
+                onChange={(e) => setRecipe({ ...recipe, difficulty: e.target.value })}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+              >
+                {DIFFICULTY_LEVELS.map(level => (
+                  <option key={level} value={level}>
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Servings */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Servings
+              </label>
+              <input
+                type="number"
+                value={recipe.servings || ''}
+                onChange={(e) => setRecipe({ ...recipe, servings: parseInt(e.target.value) || '' })}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-2"
+                placeholder="e.g. 4"
+                min="1"
+              />
+            </div>
+          </div>
+
+          {/* Tags Section */}
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Tags</h2>
             <div className="bg-white rounded-lg shadow-sm">
               <button
                 type="button"
@@ -1261,8 +1339,7 @@ const RecipeEditor: FC = () => {
                 className="w-full px-4 py-3 flex items-center justify-between text-left"
               >
                 <div className="flex items-center gap-3">
-                  <TagIcon className="h-5 w-5 text-gray-500" />
-                  <span className="font-medium">Tags</span>
+
                   <div className="flex flex-wrap gap-1">
                     {recipe.tags?.length > 0 ? (
                       tags
@@ -1540,6 +1617,7 @@ const RecipeEditor: FC = () => {
 
           {/* Steps */}
           <div className="mt-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Instructions</h2>
             <div className="space-y-4">
               {recipe.steps?.map((step, index) => (
                 <div key={index} className="flex gap-4">

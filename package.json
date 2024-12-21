@@ -21,6 +21,7 @@
     "@firebase/app": "^0.10.16",
     "@firebase/firestore": "^4.7.5",
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
+    "@headlessui/react": "^2.2.0",
     "@hello-pangea/dnd": "^17.0.0",
     "@heroicons/react": "^2.2.0",
     "@mdxeditor/editor": "^3.19.3",
