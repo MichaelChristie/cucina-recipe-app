@@ -525,60 +525,44 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
 
   const processVideo = async (file: File): Promise<Blob> => {
     if (!ffmpegLoaded) {
-      console.error('FFmpeg loading status:', {
-        ffmpegLoaded,
-        ffmpegLoadingError,
-        ffmpegInstance: await getFFmpeg()
-      });
-      throw new Error(`FFmpeg not loaded. Status: ${ffmpegLoadingError || 'unknown error'}`);
+      throw new Error('FFmpeg not loaded');
     }
 
     setIsProcessing(true);
+    let ffmpeg;
+    
     try {
-      console.log('Starting video processing...');
-      const ffmpeg = await getFFmpeg();
+      ffmpeg = await getFFmpeg();
       const inputFileName = 'input.mp4';
       const outputFileName = 'output.mp4';
       
-      console.log('Writing file to FFmpeg filesystem...');
+      // Write file to FFmpeg filesystem
       const arrayBuffer = await file.arrayBuffer();
-      console.log('Input file size:', arrayBuffer.byteLength);
       await writeFileToFFmpeg(ffmpeg, inputFileName, arrayBuffer);
-      
-      // Log input file information
-      console.log('Running ffprobe...');
-      try {
-        await ffmpeg.exec(['-i', inputFileName]);
-      } catch (probeError) {
-        // FFmpeg writes format information to stderr, which causes an error
-        console.log('Input format info:', probeError.message);
-      }
 
-      console.log('Processing video with FFmpeg...');
-      
       // Set up progress handler
       ffmpeg.on('progress', progress => {
         console.log('FFmpeg progress:', progress);
       });
 
-      // Try a simpler conversion first
+      // Try simple conversion first
       try {
         await ffmpeg.exec([
           '-i', inputFileName,
-          '-c:v', 'copy',  // Just copy video stream without re-encoding
-          '-c:a', 'copy',  // Just copy audio stream without re-encoding
+          '-c:v', 'copy',
+          '-c:a', 'copy',
           outputFileName
         ]);
       } catch (error) {
-        console.error('Simple conversion failed, trying fallback command:', error);
+        console.warn('Simple conversion failed, trying fallback:', error);
         
-        // If simple conversion fails, try the more complex one
+        // Fallback to more complex conversion
         await ffmpeg.exec([
           '-i', inputFileName,
           '-vf', 'scale=-2:min(720,ih)',
           '-c:v', 'libx264',
-          '-crf', '28',
           '-preset', 'medium',
+          '-crf', '28',
           '-c:a', 'aac',
           '-b:a', '128k',
           '-movflags', '+faststart',
@@ -586,50 +570,29 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
         ]);
       }
 
-      // Try to read the output file directly
-      let data: Uint8Array;
-      try {
-        console.log('Reading processed file...');
-        data = await readFileFromFFmpeg(ffmpeg, outputFileName);
-        console.log('Output file size:', data.length);
-      } catch (readError) {
-        console.error('Error reading output file:', readError);
-        throw new Error('Failed to read processed video file');
-      }
-
-      if (data.length === 0) {
+      // Read the processed file
+      const data = await readFileFromFFmpeg(ffmpeg, outputFileName);
+      
+      if (!data || data.length === 0) {
         throw new Error('FFmpeg produced empty output file');
       }
-      
-      const processedBlob = new Blob([data], { type: 'video/mp4' });
-      console.log('Processed blob size:', processedBlob.size);
 
-      console.log('Cleanup...');
-      try {
-        await ffmpeg.deleteFile(inputFileName);
-        await ffmpeg.deleteFile(outputFileName);
-      } catch (cleanupError) {
-        console.warn('Cleanup warning:', cleanupError);
-      }
-
-      // Verify the blob is valid
-      if (!processedBlob.size) {
-        throw new Error('Generated blob is empty');
-      }
-
-      return processedBlob;
+      return new Blob([data], { type: 'video/mp4' });
     } catch (error) {
-      console.error('Error in video processing:', {
-        error,
-        message: error.message,
-        stack: error.stack
-      });
+      console.error('Video processing error:', error);
       throw error;
     } finally {
       setIsProcessing(false);
-      // Remove progress handler
-      const ffmpeg = await getFFmpeg();
-      ffmpeg.off('progress');
+      
+      // Cleanup
+      if (ffmpeg) {
+        try {
+          ffmpeg.off('progress');
+          await ffmpeg.terminate();
+        } catch (e) {
+          console.warn('Error during FFmpeg cleanup:', e);
+        }
+      }
     }
   };
 
@@ -652,12 +615,30 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
       // If FFmpeg isn't loaded, try uploading directly
       let uploadFile = file;
       if (ffmpegLoaded) {
-        console.log('Processing video before upload...');
-        uploadFile = await processVideo(file);
-        console.log('Processed video size:', uploadFile.size);
-        
-        if (!uploadFile || uploadFile.size === 0) {
-          throw new Error('Processed video is empty');
+        try {
+          console.log('Processing video before upload...');
+          const ffmpeg = await getFFmpeg();
+          
+          // Terminate any existing FFmpeg instances
+          try {
+            ffmpeg.terminate();
+          } catch (e) {
+            console.warn('No FFmpeg instance to terminate:', e);
+          }
+
+          // Create a new FFmpeg instance
+          await loadFFmpeg();
+          
+          uploadFile = await processVideo(file);
+          console.log('Processed video size:', uploadFile.size);
+          
+          if (!uploadFile || uploadFile.size === 0) {
+            throw new Error('Processed video is empty');
+          }
+        } catch (processError) {
+          console.error('Video processing failed, falling back to original file:', processError);
+          toast.warning('Video processing failed, uploading original file');
+          uploadFile = file;
         }
       } else {
         console.warn('FFmpeg not loaded, uploading original file');
@@ -676,28 +657,16 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
         name: filename
       });
 
-      // Upload the processed video
+      // Upload the video
       const uploadTask = uploadBytesResumable(storageRef, uploadFile);
 
       uploadTask.on('state_changed',
         (snapshot) => {
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          if (isNaN(progress)) {
-            console.error('Invalid progress value:', {
-              bytesTransferred: snapshot.bytesTransferred,
-              totalBytes: snapshot.totalBytes
-            });
-            return;
-          }
           setUploadProgress(progress);
-          console.log('Upload progress:', progress);
         },
         (error) => {
-          console.error('Upload error:', {
-            code: error.code,
-            message: error.message,
-            serverResponse: error.serverResponse
-          });
+          console.error('Upload error:', error);
           toast.error('Failed to upload video');
           setIsUploading(false);
         },
@@ -705,30 +674,35 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             
-            // Create video metadata
             const metadata: VideoMetadata = {
               url: downloadURL,
               size: uploadFile.size,
               format: 'mp4',
             };
 
-            console.log('Upload completed successfully:', metadata);
             onVideoChange(metadata);
             toast.success('Video uploaded successfully');
           } catch (error) {
             console.error('Error getting download URL:', error);
             toast.error('Failed to process uploaded video');
+          } finally {
+            setIsUploading(false);
+            
+            // Cleanup FFmpeg
+            if (ffmpegLoaded) {
+              try {
+                const ffmpeg = await getFFmpeg();
+                ffmpeg.terminate();
+              } catch (e) {
+                console.warn('Error terminating FFmpeg:', e);
+              }
+            }
           }
-          setIsUploading(false);
         }
       );
     } catch (error) {
-      console.error('Error in handleVideoUpload:', {
-        error,
-        message: error.message,
-        stack: error.stack
-      });
-      toast.error('Failed to process video');
+      console.error('Error in handleVideoUpload:', error);
+      toast.error('Failed to upload video');
       setIsUploading(false);
     }
   };

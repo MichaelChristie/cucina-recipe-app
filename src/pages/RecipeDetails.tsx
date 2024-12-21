@@ -168,12 +168,25 @@ export default function RecipeDetails(): JSX.Element {
                     {/* Prep Time */}
                     {recipe.prepTime && (
                       <div className="flex items-center gap-3 p-4">
-                        <div className="p-2.5 bg-sage-50/50 rounded-lg">
-                          <ClockIcon className="h-6 w-6 text-sage-600" />
+                        <div className="p-2.5 bg-earthgreen-50 rounded-lg">
+                          <ClockIcon className="h-6 w-6 text-earthgreen-600" />
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Prep Time</p>
                           <p className="text-lg font-medium">{recipe.prepTime} min</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cook Time */}
+                    {recipe.cookTime && (
+                      <div className="flex items-center gap-3 p-4">
+                        <div className="p-2.5 bg-cookred-50 rounded-lg">
+                          <FireIcon className="h-6 w-6 text-cookred-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 font-medium">Cook Time</p>
+                          <p className="text-lg font-medium">{recipe.cookTime} min</p>
                         </div>
                       </div>
                     )}

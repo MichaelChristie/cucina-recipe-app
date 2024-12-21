@@ -12,7 +12,27 @@ export default {
           'background': '#f5f5f5', // Warm beige background
           'white': '#FFFFFF',
           'text': '#1A2421', // Dark text color
-        }
+        },
+        sage: {
+          50: '#f7f8f6',
+          600: '#5c6758',
+        },
+        olive: {
+          50: '#f4f5e9',
+          600: '#5a5c3f',
+        },
+        khaki: {
+          50: '#f9f7f0',
+          600: '#8b7e55',
+        },
+        earthgreen: {
+          50: '#f2f7f2',
+          600: '#2d5a27',
+        },
+        cookred: {
+          50: '#fdf4f4',
+          600: '#a92f2f',
+        },
       },
       fontFamily: {
         'display': ['Freight Display Pro', 'Playfair Display', 'serif'], // For headings
