@@ -294,6 +294,7 @@ struct RecipeCard: View {
                                 .frame(width: geometry.size.width, height: geometry.size.height + geometry.safeAreaInsets.top)
                                 .offset(y: -geometry.safeAreaInsets.top)
                                 .clipped()
+                                .kenBurnsEffect()
                         } else {
                             AsyncImage(url: URL(string: imageUrl)) { phase in
                                 switch phase {
@@ -306,6 +307,7 @@ struct RecipeCard: View {
                                         .frame(width: geometry.size.width, height: geometry.size.height + geometry.safeAreaInsets.top)
                                         .offset(y: -geometry.safeAreaInsets.top)
                                         .clipped()
+                                        .kenBurnsEffect()
                                 case .failure:
                                     Color.gray
                                 @unknown default:
