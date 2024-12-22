@@ -39,22 +39,16 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		70B8724D2D100770004F77A4 /* CucinaIOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = CucinaIOS;
 			sourceTree = "<group>";
 		};
 		70B8725E2D100771004F77A4 /* CucinaIOSTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = CucinaIOSTests;
 			sourceTree = "<group>";
 		};
 		70B872682D100771004F77A4 /* CucinaIOSUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = CucinaIOSUITests;
 			sourceTree = "<group>";
 		};

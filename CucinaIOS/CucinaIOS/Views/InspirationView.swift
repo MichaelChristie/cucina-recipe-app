@@ -507,6 +507,15 @@ struct RecipeCard: View {
     }
     
     private func setupOptimizedPlayer(_ player: AVPlayer, with config: VideoPlayerConfiguration, url: String) {
+        print("🔄 Setting up optimized player")
+        
+        // Only attempt preroll if player is ready
+        guard player.status == .readyToPlay else {
+            print("⚠️ Player not ready for preroll, setting up basic playback")
+            player.play()
+            return
+        }
+        
         // Create and configure asset
         let asset = AVURLAsset(url: URL(string: url)!)
         
@@ -520,24 +529,29 @@ struct RecipeCard: View {
                 playerItem.preferredPeakBitRate = config.quality.bitRate
                 playerItem.preferredForwardBufferDuration = config.bufferDuration
                 
-                // Set preferred video qualities using CGSize
-                playerItem.preferredMaximumResolution = CGSize(
-                    width: CGFloat(16.0/9.0 * config.quality.preferredHeight),
-                    height: CGFloat(config.quality.preferredHeight)
-                )
-                
                 // Configure player
                 player.replaceCurrentItem(with: playerItem)
                 player.automaticallyWaitsToMinimizeStalling = true
                 player.isMuted = true
                 
-                // Attempt preroll
-                let prerollSuccess = try await player.preroll(atRate: 1.0)
-                if prerollSuccess {
+                // Wait for player to be ready before attempting preroll
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    let observation = player.observe(\.status, options: [.new]) { observedPlayer, _ in
+                        if observedPlayer.status == .readyToPlay {
+                            continuation.resume()
+                        } else if observedPlayer.status == .failed {
+                            continuation.resume(throwing: observedPlayer.error ?? NSError(domain: "PlayerError", code: -1))
+                        }
+                    }
+                    mediaState.observations = [observation]
+                }
+                
+                // Now safe to attempt preroll
+                if try await player.preroll(atRate: 1.0) {
                     print("✅ Preroll successful")
                     player.playImmediately(atRate: 1.0)
                 } else {
-                    print("⚠️ Preroll failed, attempting direct playback")
+                    print("⚠️ Preroll failed, falling back to normal playback")
                     player.play()
                 }
                 
@@ -545,10 +559,8 @@ struct RecipeCard: View {
                 MediaCache.shared.cache(player: player, for: url)
                 
             } catch {
-                print("❌ Asset loading failed: \(error)")
-                // Fallback to direct playback
-                let playerItem = AVPlayerItem(url: URL(string: url)!)
-                player.replaceCurrentItem(with: playerItem)
+                print("❌ Player setup failed: \(error)")
+                // Fallback to basic playback
                 player.play()
             }
         }
@@ -654,7 +666,7 @@ struct RecipeCard: View {
             if item.status == .readyToPlay {
                 print("✅ Item ready to play")
                 DispatchQueue.main.async {
-                    player.seek(to: .zero)
+                    // Don't attempt preroll here, just play
                     player.play()
                     print("▶️ Play command issued")
                 }
@@ -666,13 +678,13 @@ struct RecipeCard: View {
             print("🎮 Player status changed to: \(observedPlayer.status.rawValue)")
         }
         
-        // Add timeControlStatus observation
-        let timeControlObservation = player.observe(\.timeControlStatus) { observedPlayer, _ in
+        // Add timeControlStatus observation with weak self to prevent retain cycles
+        let timeControlObservation = player.observe(\.timeControlStatus) { [weak player] observedPlayer, _ in
             print("⏱ Time control status changed to: \(observedPlayer.timeControlStatus.rawValue)")
             if observedPlayer.timeControlStatus != .playing {
                 print("⚠️ Player not playing, attempting to restart")
                 DispatchQueue.main.async {
-                    observedPlayer.play()
+                    player?.play()
                 }
             }
         }
@@ -680,32 +692,14 @@ struct RecipeCard: View {
         // Store observations
         mediaState.observations = [itemObservation, playerObservation, timeControlObservation]
         
-        // Force initial playback
-        print("🔄 Forcing initial playback")
-        player.seek(to: .zero)
-        player.play()
-        
-        // Set up periodic time observer and store both the player and observer
-        let timeObserver = player.addPeriodicTimeObserver(
-            forInterval: CMTime(seconds: 0.5, preferredTimescale: 600),
-            queue: .main
-        ) { [weak player] time in
-            guard let player = player else { return }
-            print("⏰ Playback status:")
-            print("  Time: \(time.seconds)")
-            print("  Rate: \(player.rate)")
-            print("  Playing: \(player.timeControlStatus == .playing)")
-            print("  Item status: \(String(describing: player.currentItem?.status.rawValue))")
-            
-            // If not playing, try to restart
-            if player.timeControlStatus != .playing {
-                print("🔄 Attempting to restart playback")
-                DispatchQueue.main.async {
-                    player.play()
-                }
-            }
+        // Only play if ready, otherwise wait for ready status
+        if player.status == .readyToPlay {
+            print("🔄 Player ready, starting playback")
+            player.seek(to: .zero)
+            player.play()
+        } else {
+            print("⏳ Waiting for player to be ready")
         }
-        mediaState.timeObserver = (player, timeObserver)
     }
     
     private func cleanupVideoPlayback(player: AVPlayer) {
