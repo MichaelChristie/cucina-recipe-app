@@ -19,7 +19,11 @@ const Card: FC<CardProps> = ({ recipe, tags, className }) => {
   };
 
   return (
-    <Link to={`/recipe/${recipe.id}`} className={`group h-full block ${className || ''}`}>
+    <Link 
+      to={`/recipe/${recipe.id}`} 
+      className={`group h-full block ${className || ''}`}
+      data-position={recipe.position}
+    >
       <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden h-full flex flex-col">
         {/* Image */}
         <div className="aspect-video relative overflow-hidden">

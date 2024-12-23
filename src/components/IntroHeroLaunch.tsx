@@ -15,6 +15,7 @@ import { getRecipes } from '../services/recipeService';
 import { getIngredients } from '../services/ingredientService';
 import Card from './Card';
 import { Recipe, Tag, Ingredient } from '../types/admin';
+import { useOrderedRecipes } from '../hooks/useOrderedRecipes';
 
 interface Category {
   id: string;
@@ -25,7 +26,7 @@ interface Category {
 const IntroHeroLaunch: FC = () => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const { recipes, loading: recipesLoading } = useOrderedRecipes();
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
@@ -39,13 +40,11 @@ const IntroHeroLaunch: FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      const [fetchedTags, fetchedRecipes, fetchedIngredients] = await Promise.all([
+      const [fetchedTags, fetchedIngredients] = await Promise.all([
         getTags(),
-        getRecipes(),
         getIngredients()
       ]);
       setTags(fetchedTags);
-      setRecipes(fetchedRecipes as Recipe[]);
       setIngredients(fetchedIngredients);
     };
     loadData();
@@ -358,15 +357,19 @@ const IntroHeroLaunch: FC = () => {
       {/* Recipe cards grid */}
       <div className="pt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 [grid-auto-rows:1fr] max-w-[2000px] w-full mx-auto">
-          {filteredRecipes.map(recipe => (
-            <div key={recipe.id} className="h-full flex flex-col">
-              <Card 
-                recipe={recipe} 
-                tags={tags}
-                className="flex-1"
-              />
-            </div>
-          ))}
+          {recipesLoading ? (
+            <div>Loading recipes...</div>
+          ) : (
+            filteredRecipes.map(recipe => (
+              <div key={recipe.id} className="h-full flex flex-col">
+                <Card 
+                  recipe={recipe} 
+                  tags={tags}
+                  className="flex-1"
+                />
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ export interface Recipe {
   authorId: string;
   createdAt: Date;
   updatedAt: Date;
+  position?: number;
 }
 
 export interface Ingredient {
