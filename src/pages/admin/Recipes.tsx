@@ -1,14 +1,17 @@
 import { FC, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { PencilSquareIcon, TrashIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, TrashIcon, DocumentDuplicateIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/AdminLayout';
 import { Recipe } from '../../types';
-import { getRecipes, addRecipe, deleteRecipe } from '../../services/recipeService';
+import { getRecipes, addRecipe, deleteRecipe, updateRecipe } from '../../services/recipeService';
 import { logOut } from '../../services/authService';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import type { DropResult } from '@hello-pangea/dnd';
 
 interface RecipeWithId extends Recipe {
   id: string;
+  position?: number;
 }
 
 const Recipes: FC = () => {
@@ -22,7 +25,10 @@ const Recipes: FC = () => {
   const loadRecipes = async (): Promise<void> => {
     try {
       const recipesData = await getRecipes();
-      setRecipes(recipesData);
+      const sortedRecipes = recipesData.sort((a, b) => 
+        (a.position || Number.MAX_VALUE) - (b.position || Number.MAX_VALUE)
+      );
+      setRecipes(sortedRecipes);
     } catch (error) {
       console.error('Error fetching recipes:', error);
     }
@@ -79,6 +85,35 @@ const Recipes: FC = () => {
     }
   };
 
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
+
+    const items = Array.from(recipes);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const updatedItems = items.map((recipe, index) => ({
+      ...recipe,
+      position: index + 1
+    }));
+
+    setRecipes(updatedItems);
+
+    try {
+      const batch = await Promise.all(
+        updatedItems.map(recipe => 
+          updateRecipe(recipe.id, { position: recipe.position })
+        )
+      );
+      
+      toast.success('Recipe order updated successfully');
+    } catch (error) {
+      console.error('Error updating recipe positions:', error);
+      toast.error('Failed to update recipe order');
+      await loadRecipes();
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="bg-white shadow-sm rounded-lg p-6">
@@ -92,62 +127,95 @@ const Recipes: FC = () => {
           </button>
         </div>
 
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {recipes.map((recipe) => (
-                <tr 
-                  key={recipe.id}
-                  className="hover:bg-gray-50 transition-colors duration-150"
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-900">{recipe.title}</td>
-                  <td className="px-6 py-4 text-gray-600 max-w-md">
-                    <p className="truncate">{recipe.description}</p>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex gap-3">
-                      <button 
-                        onClick={() => navigate(`/admin/recipes/edit/${recipe.id}`)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Edit recipe"
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="recipes">
+            {(provided) => (
+              <div 
+                {...provided.droppableProps} 
+                ref={provided.innerRef}
+                className="bg-white shadow-sm rounded-lg overflow-hidden"
+              >
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="w-10"></th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {recipes.map((recipe, index) => (
+                      <Draggable 
+                        key={recipe.id} 
+                        draggableId={recipe.id} 
+                        index={index}
                       >
-                        <PencilSquareIcon className="h-5 w-5" />
-                      </button>
-                      <button 
-                        onClick={() => handleExport(recipe)}
-                        className="text-gray-600 hover:text-gray-900"
-                        title="Export recipe JSON"
-                      >
-                        <DocumentDuplicateIcon className="h-5 w-5" />
-                      </button>
-                      <button 
-                        onClick={() => handleDuplicate(recipe)}
-                        className="text-green-600 hover:text-green-900"
-                        title="Duplicate recipe"
-                      >
-                        <DocumentDuplicateIcon className="h-5 w-5" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(recipe.id)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete recipe"
-                      >
-                        <TrashIcon className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        {(provided, snapshot) => (
+                          <tr
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`${
+                              snapshot.isDragging ? 'bg-blue-50' : 'hover:bg-gray-50'
+                            } transition-colors duration-150`}
+                          >
+                            <td className="pl-4">
+                              <div
+                                {...provided.dragHandleProps}
+                                className="cursor-move p-2 hover:bg-gray-100 rounded inline-block"
+                              >
+                                <Bars3Icon className="h-5 w-5 text-gray-500" />
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-gray-900">
+                              {recipe.title}
+                            </td>
+                            <td className="px-6 py-4 text-gray-600 max-w-md">
+                              <p className="truncate">{recipe.description}</p>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex gap-3">
+                                <button 
+                                  onClick={() => navigate(`/admin/recipes/edit/${recipe.id}`)}
+                                  className="text-blue-600 hover:text-blue-900"
+                                  title="Edit recipe"
+                                >
+                                  <PencilSquareIcon className="h-5 w-5" />
+                                </button>
+                                <button 
+                                  onClick={() => handleExport(recipe)}
+                                  className="text-gray-600 hover:text-gray-900"
+                                  title="Export recipe JSON"
+                                >
+                                  <DocumentDuplicateIcon className="h-5 w-5" />
+                                </button>
+                                <button 
+                                  onClick={() => handleDuplicate(recipe)}
+                                  className="text-green-600 hover:text-green-900"
+                                  title="Duplicate recipe"
+                                >
+                                  <DocumentDuplicateIcon className="h-5 w-5" />
+                                </button>
+                                <button 
+                                  onClick={() => handleDelete(recipe.id)}
+                                  className="text-red-600 hover:text-red-900"
+                                  title="Delete recipe"
+                                >
+                                  <TrashIcon className="h-5 w-5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
       </div>
     </AdminLayout>
   );

@@ -2,7 +2,7 @@ import Foundation
 import FirebaseFirestore
 
 struct Recipe: Identifiable, Codable {
-    @DocumentID var id: String?
+    var id: String?
     let title: String
     let description: String
     let ingredients: [RecipeIngredient]
@@ -17,6 +17,7 @@ struct Recipe: Identifiable, Codable {
     let tags: [Int]
     let video: VideoMetadata?
     let showTagsPanel: Bool?
+    var position: Int?
     
     // Computed properties
     var uniqueId: String { id ?? UUID().uuidString }
@@ -39,6 +40,25 @@ struct Recipe: Identifiable, Codable {
         let url: String
         let size: Int
         let format: String
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case description
+        case ingredients
+        case steps
+        case cookTime
+        case prepTime
+        case servings
+        case difficulty
+        case category
+        case nutrition
+        case image
+        case tags
+        case video
+        case showTagsPanel
+        case position
     }
 }
 
