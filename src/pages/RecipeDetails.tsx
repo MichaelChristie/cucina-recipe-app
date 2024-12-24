@@ -10,6 +10,8 @@ import {
   BeakerIcon,
   FireIcon,
   UserGroupIcon,
+  MinusCircleIcon,
+  PlusCircleIcon,
 } from "@heroicons/react/24/outline";
 import UnitToggle from "../components/UnitToggle";
 import { useUnitPreference } from "../context/UnitPreferenceContext";
@@ -242,63 +244,105 @@ export default function RecipeDetails(): JSX.Element {
 
       {/* Recipe Content Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-16">
-        {/* Ingredients and Instructions Container */}
-        <div className="mt-16 sm:grid sm:grid-cols-3 sm:gap-12">
-          {/* Ingredients */}
-          <div className="prose max-w-none mb-12 sm:mb-0 sm:col-span-1">
+        <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Ingredients Column */}
+          <div className="lg:col-span-1">
             <h2 className="font-display text-2xl font-semibold mb-6">Ingredients</h2>
-            <div className="mb-6">
-              <UnitToggle />
+            
+            {/* Unit Toggle */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium text-gray-600">Measurement Units</span>
+                <UnitToggle />
+              </div>
             </div>
 
-            <ul className="space-y-4">
+            {/* Servings Adjuster (optional) */}
+            {recipe.servings && (
+              <div className="mb-8">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-600">Servings</span>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      className="p-1 rounded-full hover:bg-gray-200"
+                      onClick={() => {/* implement serving adjustment */}}
+                    >
+                      <MinusCircleIcon className="w-6 h-6 text-gray-500" />
+                    </button>
+                    <span className="text-sm font-medium">{recipe.servings}</span>
+                    <button 
+                      className="p-1 rounded-full hover:bg-gray-200"
+                      onClick={() => {/* implement serving adjustment */}}
+                    >
+                      <PlusCircleIcon className="w-6 h-6 text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Ingredients List */}
+            <div className="space-y-6">
               {recipe.ingredients?.map((item, index) => {
                 if ('type' in item && item.type === 'divider') {
                   return (
-                    <li key={item.id} className="list-none">
-                      <div className="flex items-center gap-2 mt-6 mb-2">
-                        <span className="font-bold text-gray-900">{item.label}</span>
-                        <div className="flex-1 h-px bg-gray-400 ml-1"></div>
+                    <div key={`section-${index}`} className="pt-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">{item.label}</span>
+                        <div className="flex-1 h-px bg-gray-200"></div>
                       </div>
-                    </li>
+                    </div>
                   );
                 }
 
-                const ingredientDetails = getIngredientById(item.ingredientId);
-                if (!ingredientDetails) return null;
+                const ingredient = getIngredientById(item.ingredientId);
+                if (!ingredient) return null;
 
                 return (
-                  <li key={item.id || index} className="text-gray-700 list-none">
+                  <div key={`ingredient-${index}`} className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-tasty-green/40"></div>
                     <Ingredient
                       amount={item.amount}
                       unit={item.unit}
-                      name={ingredientDetails.name}
-                      defaultUnit={ingredientDetails.defaultUnit}
+                      name={ingredient.name}
+                      defaultUnit={ingredient.defaultUnit}
                     />
-                  </li>
+                  </div>
                 );
               })}
-            </ul>
+            </div>
           </div>
 
-          {/* Method (formerly Instructions) */}
-          <div className="prose max-w-none sm:col-span-2">
+          {/* Method Column */}
+          <div className="lg:col-span-2">
             <h2 className="font-display text-2xl font-semibold mb-6">Method</h2>
-            <ol className="space-y-10">
+            <div className="space-y-8">
               {recipe.steps?.map((step, index) => (
-                <li key={index} className="flex items-start gap-6 text-gray-700">
-                  <span className="flex items-center justify-center font-display text-2xl text-gray-900 
-                                 bg-white rounded-full w-10 h-10 shadow-sm border border-gray-100 flex-shrink-0">
-                    {index + 1}
-                  </span>
-                  <div className="mt-1 prose prose-sm max-w-none"
-                       dangerouslySetInnerHTML={{
-                         __html: marked(typeof step === 'object' ? step.text : step)
-                       }}
-                  />
-                </li>
+                <div key={`step-${index}`} className="flex gap-6">
+                  <div className="flex-shrink-0">
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-tasty-green/10 text-tasty-green font-medium">
+                      {index + 1}
+                    </span>
+                  </div>
+                  <div className="flex-1 pt-1">
+                    <div className="prose prose-gray prose-sm">
+                      {typeof step === 'object' ? (
+                        <>
+                          <div dangerouslySetInnerHTML={{ __html: marked(step.text) }} />
+                          {step.note && (
+                            <div className="mt-2 text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+                              <strong>Note:</strong> {step.note}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div dangerouslySetInnerHTML={{ __html: marked(step) }} />
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))}
-            </ol>
+            </div>
           </div>
         </div>
       </div>

@@ -75,20 +75,15 @@ export default function Navbar({ onAddClick, children, showActions }: NavbarProp
     { label: 'Sign Out', onClick: handleLogout },
   ];
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // TODO: Implement search functionality
-  };
-
   return (
-    <nav className="sticky top-0 z-50 backdrop-blur-md bg-tasty-background/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-black/5 backdrop-blur-sm shadow-sm relative z-50">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="relative flex h-16 items-center justify-between">
-          {/* Logo section - aligned with content */}
+          {/* Logo section */}
           <div className="flex flex-shrink-0 items-center">
             <Link to="/" className="flex items-center">
               <Logo />
-              <span className="hidden sm:block ml-2 text-xl font-bold text-gray-800">
+              <span className="hidden sm:block ml-2 text-xl font-bold text-white">
                 Cucina
               </span>
             </Link>
@@ -161,32 +156,13 @@ export default function Navbar({ onAddClick, children, showActions }: NavbarProp
             </div>
           )}
 
-          {/* Center section - Search bar for non-admin routes */}
-          {!isManageRoute && (
-            <div className="hidden md:flex flex-1 items-center justify-center px-2 lg:ml-6">
-              <form onSubmit={handleSearch} className="max-w-lg w-full lg:max-w-xs">
-                <label htmlFor="search" className="sr-only">Search recipes</label>
-                <div className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10 w-full">
-                  <MagnifyingGlassIcon className="h-5 w-5 flex-shrink-0 text-tasty-green" aria-hidden="true" />
-                  <input
-                    id="search"
-                    name="search"
-                    className="bg-transparent outline-none placeholder-tasty-green/60 w-full text-tasty-green"
-                    placeholder="Search a recipe"
-                    type="search"
-                  />
-                </div>
-              </form>
-            </div>
-          )}
-
           {/* Right side menu - aligned with content */}
           <div className="flex items-center space-x-4">
             {/* Mobile menu button */}
             <div className="md:hidden">
               <button
                 type="button"
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-500 hover:bg-gray-100"
+                className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white/80 hover:bg-white/10"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
                 <span className="sr-only">Open main menu</span>
@@ -203,7 +179,7 @@ export default function Navbar({ onAddClick, children, showActions }: NavbarProp
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               >
                 <span className="sr-only">Open user menu</span>
-                <UserCircleIcon className="h-8 w-8 text-gray-600" />
+                <UserCircleIcon className="h-8 w-8 text-white" />
               </button>
 
               <UserMenu 
@@ -228,25 +204,7 @@ export default function Navbar({ onAddClick, children, showActions }: NavbarProp
         leaveTo="opacity-0 scale-95"
       >
         <div className="md:hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {!isManageRoute && (
-              <div className="pt-2 pb-3">
-                <form onSubmit={handleSearch} className="w-full">
-                  <label htmlFor="mobile-search" className="sr-only">Search recipes</label>
-                  <div className="flex items-center gap-2 px-4 py-2 border border-tasty-green rounded-lg text-tasty-green hover:bg-tasty-green/10 w-full">
-                    <MagnifyingGlassIcon className="h-5 w-5 flex-shrink-0 text-tasty-green" aria-hidden="true" />
-                    <input
-                      id="mobile-search"
-                      name="search"
-                      className="bg-transparent outline-none placeholder-tasty-green/60 w-full text-tasty-green"
-                      placeholder="Search a recipe"
-                      type="search"
-                    />
-                  </div>
-                </form>
-              </div>
-            )}
-            
+          <div className="px-4 sm:px-6 lg:px-8">
             <div className="pt-2 pb-3 space-y-1">
               {/* Main Navigation Items */}
               {adminNavigation.main.map((item) => (

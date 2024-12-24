@@ -1,35 +1,30 @@
-import React from 'react';
+import { Switch } from '@headlessui/react';
 import { useUnitPreference } from '../context/UnitPreferenceContext';
 
-const UnitToggle: React.FC = () => {
+export default function UnitToggle() {
   const { unitSystem, toggleUnitSystem } = useUnitPreference();
+  const isMetric = unitSystem === 'metric';
 
   return (
-    <div className="inline-flex rounded-lg border border-gray-200">
-      <button
-        type="button"
-        className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
-          unitSystem === 'metric'
-            ? 'bg-tasty-green text-white'
-            : 'bg-white text-gray-500 hover:text-gray-700'
-        }`}
-        onClick={() => unitSystem !== 'metric' && toggleUnitSystem()}
-      >
-        Metric
-      </button>
-      <button
-        type="button"
-        className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
-          unitSystem === 'imperial'
-            ? 'bg-tasty-green text-white'
-            : 'bg-white text-gray-500 hover:text-gray-700'
-        }`}
-        onClick={() => unitSystem !== 'imperial' && toggleUnitSystem()}
-      >
-        Imperial
-      </button>
-    </div>
+    <Switch.Group>
+      <div className="flex items-center">
+        <Switch
+          checked={isMetric}
+          onChange={toggleUnitSystem}
+          className={`${
+            isMetric ? 'bg-tasty-green' : 'bg-gray-200'
+          } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none`}
+        >
+          <span
+            className={`${
+              isMetric ? 'translate-x-6' : 'translate-x-1'
+            } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+          />
+        </Switch>
+        <Switch.Label className="ml-2 text-sm text-gray-600">
+          {isMetric ? 'Metric' : 'Imperial'}
+        </Switch.Label>
+      </div>
+    </Switch.Group>
   );
-};
-
-export default UnitToggle; 
+} 

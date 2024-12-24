@@ -2,14 +2,16 @@ import { FC } from 'react';
 import { Link } from 'react-router-dom';
 import { MdAccessTime, MdPeople } from 'react-icons/md';
 import { Recipe, Tag } from '../types/recipe';
+import { getPriorityTags } from '../utils/tagUtils';
 
 interface CardProps {
   recipe: Recipe;
   tags: Tag[];
   className?: string;
+  onTagClick?: (tagId: string, category: string) => void;
 }
 
-const Card: FC<CardProps> = ({ recipe, tags, className }) => {
+const Card: FC<CardProps> = ({ recipe, tags, className, onTagClick }) => {
   // Helper function to get image URL
   const getImageUrl = (recipe: Recipe): string => {
     if (typeof recipe.image === 'object' && recipe.image?.url) return recipe.image.url;
@@ -45,36 +47,26 @@ const Card: FC<CardProps> = ({ recipe, tags, className }) => {
             {recipe.title}
           </h3>
           
-          {/* Description - truncated to 2 lines */}
-          <p className="text-gray-600 mb-3 line-clamp-2 text-sm">
+          <p className="text-gray-600 mb-3 line-clamp-2 text-sm flex-1">
             {recipe.description}
           </p>
           
-          {/* Meta information */}
-          <div className="flex items-center gap-4 text-sm text-gray-600 mb-auto">
-            <div className="flex items-center gap-1">
-              <MdAccessTime className="text-tasty-green" />
-              <span>{recipe.cookingTime} min</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <MdPeople className="text-tasty-green" />
-              <span>{recipe.servings} servings</span>
-            </div>
-          </div>
-
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mt-3">
-            {recipe.tags?.slice(0, 3).map(tagId => {
-              const tag = tags?.find(t => t.id === tagId);
-              return tag ? (
-                <span
-                  key={tag.id}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-tasty-green/10 text-tasty-green text-sm"
-                >
-                  {tag.emoji} {tag.name}
-                </span>
-              ) : null;
-            })}
+          {/* Priority Tags */}
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+            {getPriorityTags(recipe.tags || [], tags).map(tag => (
+              <button
+                key={tag.id}
+                onClick={(e) => {
+                  e.preventDefault(); // Prevent Link navigation
+                  if (onTagClick) {
+                    onTagClick(tag.id, tag.category);
+                  }
+                }}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-tasty-green/10 text-tasty-green hover:bg-tasty-green/20 transition-colors"
+              >
+                {tag.emoji} {tag.name}
+              </button>
+            ))}
           </div>
         </div>
       </div>
