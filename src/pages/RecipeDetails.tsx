@@ -32,6 +32,8 @@ export default function RecipeDetails(): JSX.Element {
       try {
         if (!id) return;
         const data = await getRecipeById(id);
+        console.log('Recipe data in component:', data);
+        console.log('Ingredients structure:', data.ingredients);
         setRecipe(data);
       } catch (error) {
         console.error("Error fetching recipe:", error);
@@ -271,6 +273,10 @@ export default function RecipeDetails(): JSX.Element {
             {/* Ingredients List */}
             <div className="space-y-6">
               {recipe.ingredients?.map((item, index) => {
+                // Debug log to see what we're getting
+                console.log('Processing ingredient:', item);
+
+                // Handle section dividers if they exist
                 if ('type' in item && item.type === 'divider') {
                   return (
                     <div key={`section-${index}`} className="pt-4">
@@ -282,17 +288,15 @@ export default function RecipeDetails(): JSX.Element {
                   );
                 }
 
-                const ingredient = getIngredientById(item.ingredientId);
-                if (!ingredient) return null;
-
+                // For regular ingredients
                 return (
                   <div key={`ingredient-${index}`} className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-tasty-green/40"></div>
                     <Ingredient
                       amount={item.amount}
                       unit={item.unit}
-                      name={ingredient.name}
-                      defaultUnit={ingredient.defaultUnit}
+                      name={item.name}
+                      defaultUnit={item.defaultUnit}
                     />
                   </div>
                 );
@@ -315,14 +319,21 @@ export default function RecipeDetails(): JSX.Element {
                   </div>
                   <div className="flex-1 pt-1">
                     <div className="prose prose-gray prose-sm">
-                      {step?.description && (
-                        <div 
-                          className="prose prose-gray prose-sm"
-                          dangerouslySetInnerHTML={{ 
-                            __html: marked(step.description) 
-                          }} 
-                        />
-                      )}
+                      {(() => {
+                        // Get the step content, checking multiple possible fields
+                        const stepContent = typeof step === 'string' 
+                          ? step 
+                          : step.description || step.markdown || step.content || step.text || '';
+                          
+                        return (
+                          <div 
+                            className="prose prose-gray prose-sm"
+                            dangerouslySetInnerHTML={{ 
+                              __html: marked(stepContent) 
+                            }} 
+                          />
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

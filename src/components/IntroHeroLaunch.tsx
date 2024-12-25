@@ -172,8 +172,10 @@ const FeaturedCarousel: FC<FeaturedCarouselProps> = ({
         ))}
       </div>
 
+      {/* Spacer to push content down */}
+      <div className="flex-grow"></div>
       {/* Container for all content */}
-      <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-0 flex flex-col justify-end">
         {/* Content - Top right aligned with grid */}
         <div className="absolute top-20 right-0 z-10 w-[300px]">
           {featuredRecipes.map((recipe, index) => (

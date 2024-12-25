@@ -22,6 +22,7 @@ export interface Recipe {
   createdAt?: Date;
   updatedAt?: Date;
   featured?: boolean;
+  shortDescription?: string;
 }
 
 export interface RecipeStep {

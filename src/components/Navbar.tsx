@@ -6,7 +6,8 @@ import {
   UserCircleIcon,
   ChevronDownIcon,
   MagnifyingGlassIcon,
-  XMarkIcon
+  XMarkIcon,
+  CogIcon
 } from '@heroicons/react/24/outline';
 import UserMenu from './UserMenu';
 import toast from 'react-hot-toast';
@@ -44,7 +45,8 @@ const adminNavigation = {
       { name: 'Tag Manager', path: '/admin/tags' },
     ]
   },
-  users: { name: 'Users', path: '/admin/users' }
+  users: { name: 'Users', path: '/admin/users' },
+  utils: { name: 'Utility', path: '/admin/utils' }
 };
 
 export default function Navbar({ onAddClick, children, showActions }: NavbarProps) {
@@ -176,6 +178,21 @@ export default function Navbar({ onAddClick, children, showActions }: NavbarProp
                   }`}
                 >
                   Users
+                </Link>
+
+                {/* Utility nav item */}
+                <Link
+                  to="/admin/utils"
+                  className={`text-sm font-medium ${
+                    location.pathname === '/admin/utils'
+                      ? 'text-tasty-green'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <span className="flex items-center">
+                    <CogIcon className="h-4 w-4 mr-1" />
+                    Utility
+                  </span>
                 </Link>
               </div>
             )}

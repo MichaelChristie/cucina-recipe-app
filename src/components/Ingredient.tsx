@@ -12,10 +12,10 @@ interface IngredientProps {
 export default function Ingredient({ amount, unit, name, defaultUnit }: IngredientProps) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-gray-900">
-        {amount} {unit}
+      <span className="font-medium">
+        {amount} {unit || defaultUnit}
       </span>
-      <span className="text-gray-700">{name}</span>
+      <span>{name}</span>
     </div>
   );
 } 

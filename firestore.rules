@@ -1,15 +1,21 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;  // WARNING: Only for development!
-    }
-
-    match /ingredients/{ingredient} {
+    match /recipes/{recipeId} {
       allow read: if true;
-      allow write: if request.auth != null && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow write: if request.auth != null;
+      
+      // Ensure ingredients and steps arrays are not empty when updating
+      allow update: if request.auth != null 
+        && (!('ingredients' in request.resource.data) 
+            || request.resource.data.ingredients.size() > 0)
+        && (!('steps' in request.resource.data) 
+            || request.resource.data.steps.size() > 0);
+    }
+    
+    match /backups/{backupId} {
+      allow read, write: if request.auth != null 
+        && request.auth.token.admin == true;
     }
   }
 }
@@ -18,6 +24,19 @@ service firebase.storage {
   match /b/{bucket}/o {
     match /recipe-images/{imageId} {
       allow read: if true;
+      allow write: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    match /recipe-videos/{videoId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null 
+                   && request.resource.size < 100 * 1024 * 1024; // 100MB limit
+      allow delete: if request.auth != null;
+    }
+    
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
       allow write: if request.auth != null;
       allow delete: if request.auth != null;
     }

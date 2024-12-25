@@ -55,5 +55,11 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // line-clamp is now included in tailwind core, no need for plugin
+  ],
+  // Enable line-clamp directly
+  corePlugins: {
+    lineClamp: true,
+  }
 } 

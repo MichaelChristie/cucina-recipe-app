@@ -15,6 +15,7 @@ import { UnitPreferenceProvider } from './context/UnitPreferenceContext';
 // import { UnitPreferenceProvider } from './contexts/UnitPreferenceContext';
 import TagManager from './pages/admin/TagManager';
 import IngredientManager from './pages/admin/IngredientManager';
+import { AdminUtils } from './pages/AdminUtils';
 
 const App: FC = () => {
   return (
@@ -83,6 +84,14 @@ const App: FC = () => {
                 <IngredientManager />
               </ProtectedRoute>
             } 
+          />
+          <Route 
+            path="/admin/utils" 
+            element={
+              <ProtectedRoute>
+                <AdminUtils />
+              </ProtectedRoute>
+            }
           />
         </Routes>
       </UnitPreferenceProvider>

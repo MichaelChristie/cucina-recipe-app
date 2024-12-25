@@ -3,53 +3,34 @@ import { toBlobURL } from '@ffmpeg/util';
 
 let ffmpeg: FFmpeg | null = null;
 
-export const getFFmpeg = async () => {
-  if (!ffmpeg) {
-    ffmpeg = new FFmpeg();
-    
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd';
-    await ffmpeg.load({
-      coreURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.js`,
-        'text/javascript',
-      ),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        'application/wasm',
-      ),
-    });
-  }
-  return ffmpeg;
-};
+export const getFFmpeg = () => ffmpeg;
 
 export const loadFFmpeg = async () => {
-  return await getFFmpeg();
-};
+  if (ffmpeg) return ffmpeg;
 
-// Helper function to write file to FFmpeg
-export const writeFileToFFmpeg = async (
-  ffmpeg: FFmpeg,
-  fileName: string,
-  data: ArrayBuffer
-) => {
+  ffmpeg = new FFmpeg();
+
+  // Load FFmpeg with the correct paths to core files
   try {
-    const uint8Array = new Uint8Array(data);
-    await ffmpeg.writeFile(fileName, uint8Array);
+    await ffmpeg.load({
+      coreURL: await toBlobURL('/ffmpeg/ffmpeg-core.js', 'text/javascript'),
+      wasmURL: await toBlobURL('/ffmpeg/ffmpeg-core.wasm', 'application/wasm'),
+    });
+    
+    console.log('FFmpeg loaded successfully');
+    return ffmpeg;
   } catch (error) {
-    console.error('Error writing file to FFmpeg:', error);
+    console.error('Error loading FFmpeg:', error);
     throw error;
   }
 };
 
-// Helper function to read file from FFmpeg
-export const readFileFromFFmpeg = async (
-  ffmpeg: FFmpeg,
-  fileName: string
-): Promise<Uint8Array> => {
-  try {
-    return await ffmpeg.readFile(fileName);
-  } catch (error) {
-    console.error('Error reading file from FFmpeg:', error);
-    throw error;
-  }
+export const writeFileToFFmpeg = async (fileName: string, data: Uint8Array) => {
+  if (!ffmpeg) throw new Error('FFmpeg not loaded');
+  await ffmpeg.writeFile(fileName, data);
+};
+
+export const readFileFromFFmpeg = async (fileName: string) => {
+  if (!ffmpeg) throw new Error('FFmpeg not loaded');
+  return await ffmpeg.readFile(fileName);
 };

@@ -2,12 +2,15 @@ import { FC, useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
-import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeService';
+import { getRecipeById, updateRecipe, addRecipe, deleteRecipe } from '../../services/recipeService';
 import AdminLayout from '../../components/AdminLayout';
 import { 
   ChevronLeftIcon, TagIcon, 
-  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon, PencilIcon, PlusCircleIcon, EyeIcon
+  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, 
+  ChevronRightIcon, PencilIcon, PlusCircleIcon, 
+  EyeIcon 
 } from '@heroicons/react/24/outline';
+import { Switch } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
 import { 
   MDXEditor, 
@@ -35,6 +38,7 @@ import { storage } from '../../firebase/config';
 import { getAuth } from 'firebase/auth';
 import { getFFmpeg, loadFFmpeg, writeFileToFFmpeg, readFileFromFFmpeg } from '../../utils/ffmpeg';
 import { formatBytes, formatDuration } from '../../utils/formatters';
+import { deleteVideo } from '../../services/videoService';
 
 // Constants remain the same
 const UNITS = {
@@ -120,13 +124,56 @@ const editorStyles = {
 const generateId = (): string => `_${Math.random().toString(36).substr(2, 9)}`;
 
 // Component type definitions
-const StickyFooter: FC<StickyFooterProps> = ({ onSave, onClose, saving, recipeId }) => {
+interface StickyFooterProps {
+  onSave: () => void;
+  onClose: () => void;
+  onDelete?: () => void;
+  saving: boolean;
+  recipeId?: string;
+}
+
+const StickyFooter: FC<StickyFooterProps> = ({ onSave, onClose, onDelete, saving, recipeId }) => {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const navigate = useNavigate();
   
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-end items-center py-4">
+        <div className="flex justify-between items-center py-4">
+          {/* Delete button - only show if we have a recipeId */}
+          {recipeId && (
+            <div>
+              {showDeleteConfirm ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-red-600">Are you sure?</span>
+                  <button
+                    type="button"
+                    onClick={() => onDelete?.()}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  >
+                    Confirm Delete
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-4 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors border border-red-200"
+                >
+                  Delete Recipe
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Existing buttons */}
           <div className="flex items-center space-x-4">
             {recipeId && (
               <button
@@ -870,14 +917,31 @@ const RecipeEditor: FC = () => {
             throw new Error('No data received');
           }
           
+          // Map ingredients with IDs
           const ingredientsWithIds = data.ingredients?.map(ing => ({
             ...ing,
             id: ing.id || generateId()
           })) || [];
 
+          // Map steps to editor format
+          const formattedSteps = data.steps?.map((step, index) => {
+            // Handle different step data structures
+            const stepDescription = typeof step === 'string' 
+              ? step 
+              : step.description || step.markdown || step.content || step.text || '';
+
+            return {
+              step: index + 1,
+              description: stepDescription
+            };
+          }) || [{ step: 1, description: '' }];
+
+          console.log('Formatted steps for editor:', formattedSteps);
+
           setRecipe({
             ...data,
             ingredients: ingredientsWithIds,
+            steps: formattedSteps,
             tags: data.tags || []
           });
         } catch (error) {
@@ -999,9 +1063,12 @@ const RecipeEditor: FC = () => {
     if (field === 'description') {
       updatedSteps[index] = {
         step: index + 1,
-        description: value
+        description: value,
+        ...(typeof updatedSteps[index] === 'object' ? updatedSteps[index] : {})
       };
     }
+    
+    console.log('Updated step:', updatedSteps[index]);
     setRecipe({ ...recipe, steps: updatedSteps });
   };
 
@@ -1196,6 +1263,42 @@ const RecipeEditor: FC = () => {
     }));
   };
 
+  const handleDelete = async () => {
+    if (!id) return;
+    
+    try {
+      setLoading(true);
+      await deleteRecipe(id);
+      toast.success('Recipe deleted successfully');
+      navigate('/admin/recipes');
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      toast.error('Failed to delete recipe');
+    }
+  };
+
+  const handleVideoDelete = async () => {
+    if (!recipe.video) return;
+    
+    try {
+      setLoading(true);
+      await deleteVideo(recipe.video);
+      setRecipe(prev => ({ ...prev, video: '' }));
+      toast.success('Video deleted successfully');
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      if (error.code === 'storage/object-not-found') {
+        // If the video is already gone, just update the UI
+        setRecipe(prev => ({ ...prev, video: '' }));
+        toast.success('Video removed');
+      } else {
+        toast.error('Failed to delete video');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="pb-24">
@@ -1236,24 +1339,48 @@ const RecipeEditor: FC = () => {
             </div>
           </div>
 
+          {/* Add the short description textarea here */}
+          <div className="group relative mb-12">
+            <textarea
+              value={recipe.description || ''}
+              onChange={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+                setRecipe({ ...recipe, description: e.target.value });
+              }}
+              className="mt-1 block w-full text-lg text-gray-700 border-0 border-b-2 border-transparent hover:border-gray-200 focus:border-blue-500 px-0 py-2 focus:ring-0 bg-transparent placeholder-gray-400 transition-colors duration-200 resize-none overflow-hidden min-h-[3rem]"
+              placeholder="Add a short description of your recipe..."
+              onFocus={(e) => {
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+            />
+            <div className="absolute right-0 top-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <PencilIcon className="h-5 w-5 text-gray-400" />
+            </div>
+            <div className="absolute -bottom-6 left-0 text-sm text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              Brief description that appears in recipe cards and search results
+            </div>
+            <div className="absolute bottom-[-2rem] left-0 right-0 border-b border-gray-200" />
+          </div>
 
-
-
-
-          {/* Featured Toggle */}
-          <div className="mt-4 flex items-center gap-2">
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={recipe.featured || false}
-                onChange={(e) => setRecipe({ ...recipe, featured: e.target.checked })}
-                className="sr-only peer"
+          {/* Featured Toggle - now with more spacing */}
+          <div className="mt-16 flex items-center gap-2">
+            <Switch
+              checked={recipe.featured || false}
+              onChange={(checked) => setRecipe({ ...recipe, featured: checked })}
+              className={`${
+                recipe.featured ? 'bg-blue-600' : 'bg-gray-200'
+              } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+            >
+              <span className="sr-only">Featured Recipe</span>
+              <span
+                className={`${
+                  recipe.featured ? 'translate-x-6' : 'translate-x-1'
+                } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              <span className="ml-3 text-sm font-medium text-gray-900 flex items-center gap-1">
-                Featured Recipe
-              </span>
-            </label>
+            </Switch>
+            <span className="text-sm font-medium text-gray-700">Featured Recipe</span>
           </div>
 
           {/* Media Row */}
@@ -1675,6 +1802,7 @@ const RecipeEditor: FC = () => {
       <StickyFooter 
         onSave={handleSave}
         onClose={handleSaveAndClose}
+        onDelete={handleDelete}
         saving={saving}
         recipeId={id}
       />

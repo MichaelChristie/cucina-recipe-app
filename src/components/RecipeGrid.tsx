@@ -8,6 +8,7 @@ interface RecipeGridProps {
 
 const RecipeGrid: FC<RecipeGridProps> = ({ tags }) => {
   const { recipes, loading, error } = useOrderedRecipes();
+  const maxTagsToShow = 3; // Limit to 3 tags per card
 
   if (loading) {
     return <div>Loading recipes...</div>;
@@ -25,6 +26,7 @@ const RecipeGrid: FC<RecipeGridProps> = ({ tags }) => {
             key={recipe.id}
             recipe={recipe}
             tags={tags}
+            maxTags={maxTagsToShow}
           />
         ))}
       </div>
