@@ -18,14 +18,16 @@ const RecipeGrid: FC<RecipeGridProps> = ({ tags }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {recipes.map((recipe) => (
-        <Card
-          key={recipe.id}
-          recipe={recipe}
-          tags={tags}
-        />
-      ))}
+    <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {recipes.map((recipe) => (
+          <Card
+            key={recipe.id}
+            recipe={recipe}
+            tags={tags}
+          />
+        ))}
+      </div>
     </div>
   );
 };

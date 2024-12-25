@@ -11,7 +11,8 @@ import {
   Squares2X2Icon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  ArrowUpRightIcon
 } from '@heroicons/react/24/outline';
 import { getTags } from '../services/tagService';
 import { getRecipes } from '../services/recipeService';
@@ -42,6 +43,7 @@ interface FeaturedCarouselProps {
   ingredients: Ingredient[];
   selectedIngredients: string[];
   setSelectedIngredients: (ingredients: string[]) => void;
+  getIngredientById: (ingredientId: string) => Ingredient | undefined;
 }
 
 const FeaturedCarousel: FC<FeaturedCarouselProps> = ({ 
@@ -57,7 +59,8 @@ const FeaturedCarousel: FC<FeaturedCarouselProps> = ({
   getTagById,
   ingredients,
   selectedIngredients,
-  setSelectedIngredients
+  setSelectedIngredients,
+  getIngredientById
 }) => {
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
@@ -165,9 +168,6 @@ const FeaturedCarousel: FC<FeaturedCarouselProps> = ({
               alt={recipe.title}
               className="w-full h-full object-cover"
             />
-            <div 
-              className="absolute inset-0 bg-gradient-to-b from-black/80 to-transparent" 
-            />
           </div>
         ))}
       </div>
@@ -175,7 +175,7 @@ const FeaturedCarousel: FC<FeaturedCarouselProps> = ({
       {/* Container for all content */}
       <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Content - Top right aligned with grid */}
-        <div className="absolute top-20 right-0 z-10 w-[600px]">
+        <div className="absolute top-20 right-0 z-10 w-[300px]">
           {featuredRecipes.map((recipe, index) => (
             <div
               key={recipe.id}
@@ -183,38 +183,41 @@ const FeaturedCarousel: FC<FeaturedCarouselProps> = ({
                 index === currentIndex ? 'opacity-100' : 'opacity-0 absolute inset-0'
               }`}
             >
-              <div className="bg-black/10 backdrop-blur-sm rounded-xl w-full p-2">
-                <div className="border border-dashed border-white/40 rounded-lg p-6 [border-dash-length:16px]">
-                  <h2 className="font-display text-3xl font-medium text-white mb-4 drop-shadow-lg">
+              <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl">
+                <div className="p-6">
+                  <h2 className="font-display text-xl font-medium text-gray-900 mb-4">
                     {recipe.title}
                   </h2>
                   
-                  <p className="text-white/90 mb-6 line-clamp-2 drop-shadow">
-                    {recipe.description}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    {/* Primary Tag */}
+                    {recipe.tags && recipe.tags.length > 0 && (
+                      <div className="flex items-center">
+                        {(() => {
+                          const primaryTag = tags.find(tag => tag.id === recipe.tags[0]);
+                          if (primaryTag) {
+                            return (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm 
+                                             bg-tasty-green/10 text-tasty-green">
+                                <span>{primaryTag.emoji}</span>
+                                <span>{primaryTag.name}</span>
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                    )}
 
-                  <div className="flex mb-6">
+                    {/* Arrow Button */}
                     <button
                       onClick={() => navigate(`/recipe/${recipe.id}`)}
-                      className="px-8 py-2 bg-white hover:bg-white/90 rounded-lg text-tasty-green font-medium transition-colors"
+                      className="inline-flex items-center justify-center w-8 h-8 rounded-full 
+                                 bg-tasty-green/10 text-tasty-green hover:bg-tasty-green/20 transition-colors"
                     >
-                      View Recipe
+                      <ArrowUpRightIcon className="h-4 w-4" />
+                      <span className="sr-only">View Recipe</span>
                     </button>
-                  </div>
-                  
-                  <div className="flex flex-wrap items-center gap-2">
-                    {getPriorityTags(recipe.tags, tags).map(tag => (
-                      <button
-                        key={tag.id}
-                        onClick={() => {
-                          setSelectedTags(prev => [...prev, tag.id]);
-                          setOpenCategory(null);
-                        }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors shadow-sm"
-                      >
-                        {tag.emoji} {tag.name}
-                      </button>
-                    ))}
                   </div>
                 </div>
               </div>
@@ -233,161 +236,108 @@ const FeaturedCarousel: FC<FeaturedCarouselProps> = ({
 
               {/* Category buttons and search - reorganized for better stacking */}
               <div className="flex flex-col gap-4 w-full">
-                {/* Categories - buttons in a row that wrap */}
-                <div className="flex flex-wrap items-center gap-2">
-                  {categories.map(({ id, name, icon: Icon }) => (
-                    <div key={id} className="relative">
-                      <button
-                        onClick={() => setOpenCategory(openCategory === id ? null : id)}
-                        className="flex items-center gap-2 px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/10"
-                      >
-                        <Icon className="h-5 w-5" />
-                        <span>{name}</span>
-                        <ChevronDownIcon className={`h-5 w-5 transition-transform ${
-                          openCategory === id ? 'rotate-180' : ''
-                        }`} />
-                      </button>
-                      
-                      {openCategory === id && (
-                        <div className="absolute z-20 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg">
-                          <div className="p-2 space-y-1">
-                            {getTagsByCategory(id).map((tag) => (
-                              <label
-                                key={tag.id}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={selectedTags.includes(tag.id)}
-                                  onChange={() => {
-                                    setSelectedTags(prev =>
-                                      prev.includes(tag.id)
-                                        ? prev.filter(tagId => tagId !== tag.id)
-                                        : [...prev, tag.id]
-                                    );
-                                    setOpenCategory(null);
-                                  }}
-                                  className="rounded border-gray-300 text-tasty-green focus:ring-tasty-green"
-                                />
-                                <span className="flex items-center gap-1 text-gray-700">
-                                  <span>{tag.emoji}</span>
-                                  <span>{tag.name}</span>
-                                </span>
-                              </label>
-                            ))}
+                {/* Categories and Ingredient Search Container */}
+                <div className="flex flex-col lg:flex-row gap-4">
+                  {/* Categories - buttons in a row that wrap */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {categories.map(({ id, name, icon: Icon }) => (
+                      <div key={id} className="relative">
+                        <button
+                          onClick={() => setOpenCategory(openCategory === id ? null : id)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white 
+                            ${openCategory === id 
+                              ? 'bg-white/20 border-white/30' 
+                              : 'hover:bg-white/10 border-white/20'
+                            } border transition-colors`}
+                        >
+                          <Icon className="h-5 w-5" />
+                          <span>{name}</span>
+                          <ChevronDownIcon className="h-4 w-4" />
+                        </button>
+                        
+                        {openCategory === id && (
+                          <div className="absolute z-20 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg">
+                            <div className="p-2 space-y-1">
+                              {getTagsByCategory(id).map((tag) => (
+                                <label
+                                  key={tag.id}
+                                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedTags.includes(tag.id)}
+                                    onChange={() => {
+                                      setSelectedTags(prev =>
+                                        prev.includes(tag.id)
+                                          ? prev.filter(tagId => tagId !== tag.id)
+                                          : [...prev, tag.id]
+                                      );
+                                      setOpenCategory(null);
+                                    }}
+                                    className="rounded border-gray-300 text-tasty-green focus:ring-tasty-green"
+                                  />
+                                  <span className="flex items-center gap-1 text-gray-700">
+                                    <span>{tag.emoji}</span>
+                                    <span>{tag.name}</span>
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Search inputs on their own line */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Ingredients Search */}
-                  <div className="relative flex-1" ref={searchRef}>
-                    <div className="flex items-center gap-2 px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/10 w-full">
-                      <BeakerIcon className="h-5 w-5 flex-shrink-0" />
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onFocus={() => setIsSearchFocused(true)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Filter by ingredients..."
-                        className="bg-transparent outline-none placeholder-white/60 w-full text-white"
-                      />
-                    </div>
-
-                    {/* Dropdown remains white for better readability */}
-                    {isSearchFocused && filteredIngredients.length > 0 && (
-                      <div className="absolute z-20 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                        {filteredIngredients.map((ingredient, index) => (
-                          <button
-                            key={ingredient.id}
-                            onClick={() => {
-                              setSelectedIngredients(prev => [...prev, ingredient.id]);
-                              setSearchTerm('');
-                              inputRef.current?.focus();
-                              setIsSearchFocused(true);
-                              setHighlightedIndex(-1);
-                            }}
-                            onMouseEnter={() => setHighlightedIndex(index)}
-                            className={`w-full text-left px-4 py-2 flex items-center justify-between ${
-                              highlightedIndex === index 
-                                ? 'bg-tasty-green/10 text-tasty-green'
-                                : 'hover:bg-gray-50'
-                            }`}
-                          >
-                            <span>{ingredient.name}</span>
-                            <span className="text-sm text-gray-500">
-                              ({ingredient.category})
-                            </span>
-                          </button>
-                        ))}
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
 
-                  {/* Recipe Search */}
-                  <form onSubmit={handleSearch} className="flex-1">
-                    <div className="flex items-center gap-2 px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/10 w-full">
-                      <MagnifyingGlassIcon className="h-5 w-5 flex-shrink-0" />
-                      <input
-                        type="search"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search recipes..."
-                        className="bg-transparent outline-none placeholder-white/60 w-full text-white"
-                      />
-                    </div>
-                  </form>
+                  {/* Ingredient Search - Full width on desktop */}
+                  <div className="lg:flex-1">
+                    {renderIngredientSearch()}
+                  </div>
                 </div>
-              </div>
 
-              {/* Selected tags - Moved below filters */}
-              {selectedTags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {selectedTags.map(tagId => {
-                    const tag = getTagById(tagId);
-                    if (!tag) return null;
-                    
-                    return (
-                      <div
-                        key={tag.id}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-white/10 text-white border border-white/20 rounded-full text-sm"
-                      >
-                        <span className="flex items-center gap-1">
+                {/* Selected Tags and Ingredients Display */}
+                {(selectedTags.length > 0 || selectedIngredients.length > 0) && (
+                  <div className="flex flex-wrap gap-2">
+                    {/* Selected Tags */}
+                    {selectedTags.map(tagId => {
+                      const tag = getTagById(tagId);
+                      if (!tag) return null;
+                      
+                      return (
+                        <button
+                          key={tag.id}
+                          onClick={() => setSelectedTags(prev => prev.filter(id => id !== tag.id))}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm 
+                                   bg-white/10 text-white hover:bg-white/20 transition-colors group"
+                        >
                           <span>{tag.emoji}</span>
                           <span>{tag.name}</span>
-                        </span>
-                        <button
-                          onClick={() => {
-                            setSelectedTags(prev => 
-                              prev.filter(id => id !== tag.id)
-                            );
-                          }}
-                          className="p-0.5 hover:bg-white/10 rounded-full"
-                        >
-                          <XMarkIcon className="h-4 w-4 text-white" />
+                          <XMarkIcon className="h-4 w-4 text-white/60 group-hover:text-white/80" />
                         </button>
-                      </div>
-                    );
-                  })}
-                  
-                  {/* Clear all button */}
-                  {selectedTags.length > 1 && (
-                    <button
-                      onClick={() => setSelectedTags([])}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm text-white/90 hover:text-white hover:bg-white/10 border border-white/20 rounded-full"
-                    >
-                      <XMarkIcon className="h-4 w-4" />
-                      <span>Clear all</span>
-                    </button>
-                  )}
-                </div>
-              )}
+                      );
+                    })}
+
+                    {/* Selected Ingredients */}
+                    {selectedIngredients.map(ingredientId => {
+                      const ingredient = getIngredientById(ingredientId);
+                      if (!ingredient) return null;
+                      
+                      return (
+                        <button
+                          key={ingredient.id}
+                          onClick={() => setSelectedIngredients(prev => prev.filter(id => id !== ingredient.id))}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm 
+                                   bg-white/10 text-white hover:bg-white/20 transition-colors group"
+                        >
+                          <BeakerIcon className="h-4 w-4 text-white/60" />
+                          <span>{ingredient.name}</span>
+                          <XMarkIcon className="h-4 w-4 text-white/60 group-hover:text-white/80" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -542,73 +492,51 @@ const IntroHeroLaunch: FC = () => {
     }
   }, [searchTerm, ingredients, selectedIngredients]);
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>): void => {
-    e.preventDefault();
-    // TODO: Implement search functionality
-  };
-
   const renderIngredientSearch = () => (
-    <>
-      {/* Ingredients Search */}
-      <div className="relative flex-1" ref={searchRef}>
-        <div className="flex items-center gap-2 px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/10 w-full">
-          <BeakerIcon className="h-5 w-5 flex-shrink-0" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={() => setIsSearchFocused(true)}
-            onKeyDown={handleKeyDown}
-            placeholder="Filter by ingredients..."
-            className="bg-transparent outline-none placeholder-white/60 w-full text-white"
-          />
-        </div>
-
-        {/* Dropdown remains white for better readability */}
-        {isSearchFocused && filteredIngredients.length > 0 && (
-          <div className="absolute z-20 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-            {filteredIngredients.map((ingredient, index) => (
-              <button
-                key={ingredient.id}
-                onClick={() => {
-                  setSelectedIngredients(prev => [...prev, ingredient.id]);
-                  setSearchTerm('');
-                  inputRef.current?.focus();
-                  setIsSearchFocused(true);
-                  setHighlightedIndex(-1);
-                }}
-                onMouseEnter={() => setHighlightedIndex(index)}
-                className={`w-full text-left px-4 py-2 flex items-center justify-between ${
-                  highlightedIndex === index 
-                    ? 'bg-tasty-green/10 text-tasty-green'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                <span>{ingredient.name}</span>
-                <span className="text-sm text-gray-500">
-                  ({ingredient.category})
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
+    <div className="relative flex-1" ref={searchRef}>
+      <div className="flex items-center gap-2 px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/10 w-full">
+        <BeakerIcon className="h-5 w-5 flex-shrink-0" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onFocus={() => setIsSearchFocused(true)}
+          onKeyDown={handleKeyDown}
+          placeholder="Filter by ingredients..."
+          className="bg-transparent outline-none placeholder-white/60 w-full text-white"
+        />
       </div>
 
-      {/* Recipe Search */}
-      <form onSubmit={handleSearch} className="flex-1">
-        <div className="flex items-center gap-2 px-4 py-2 border border-white/20 rounded-lg text-white hover:bg-white/10 w-full">
-          <MagnifyingGlassIcon className="h-5 w-5 flex-shrink-0" />
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search recipes..."
-            className="bg-transparent outline-none placeholder-white/60 w-full text-white"
-          />
+      {/* Dropdown remains white for better readability */}
+      {isSearchFocused && filteredIngredients.length > 0 && (
+        <div className="absolute z-20 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {filteredIngredients.map((ingredient, index) => (
+            <button
+              key={ingredient.id}
+              onClick={() => {
+                setSelectedIngredients(prev => [...prev, ingredient.id]);
+                setSearchTerm('');
+                inputRef.current?.focus();
+                setIsSearchFocused(true);
+                setHighlightedIndex(-1);
+              }}
+              onMouseEnter={() => setHighlightedIndex(index)}
+              className={`w-full text-left px-4 py-2 flex items-center justify-between ${
+                highlightedIndex === index 
+                  ? 'bg-tasty-green/10 text-tasty-green'
+                  : 'hover:bg-gray-50'
+              }`}
+            >
+              <span>{ingredient.name}</span>
+              <span className="text-sm text-gray-500">
+                ({ingredient.category})
+              </span>
+            </button>
+          ))}
         </div>
-      </form>
-    </>
+      )}
+    </div>
   );
 
   const getIngredientById = (ingredientId: string): Ingredient | undefined => {
@@ -631,8 +559,9 @@ const IntroHeroLaunch: FC = () => {
         ingredients={ingredients}
         selectedIngredients={selectedIngredients}
         setSelectedIngredients={setSelectedIngredients}
+        getIngredientById={getIngredientById}
       />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32">
+      <div className="w-full px-4 sm:px-6 lg:px-8 pt-32">
         {/* Recipe cards grid */}
         <div className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 [grid-auto-rows:1fr] max-w-[2000px] w-full mx-auto">

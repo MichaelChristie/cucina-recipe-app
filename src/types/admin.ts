@@ -40,20 +40,50 @@ export interface User {
 }
 
 export interface Recipe {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  imageCaption?: string;
+  prepTime?: number;
+  cookTime?: number;
+  servings?: number;
+  difficulty?: string;
+  tags: string[];
+  ingredients: Array<{
+    ingredientId: string;
+    amount: number;
+    unit: string;
+  } | {
+    type: 'divider';
+    label: string;
+  }>;
+  steps: Array<{
+    description: string;
+  }>;
+}
+
+interface EditorRecipe {
   id?: string;
   title: string;
   description: string;
-  ingredients: IngredientInRecipe[];
-  steps: RecipeStep[];
-  cookingTime: number;
+  ingredients: Array<{
+    id: string;
+    name: string;
+    amount: number | string;
+    unit: string;
+    ingredientId: string;
+    confirmed?: boolean;
+  }>;
+  steps: Array<{
+    step: number;
+    description: string;
+  }>;
+  cookTime?: number;
   prepTime?: number;
-  servings: number;
+  servings?: number;
   difficulty?: string;
-  calories?: number;
-  imageUrl?: string;
+  tags?: string[];
+  image?: string;
   imageCaption?: string;
-  tags: string[];
-  authorId: string;
-  createdAt: Timestamp | Date;
-  updatedAt: Timestamp | Date;
 } 

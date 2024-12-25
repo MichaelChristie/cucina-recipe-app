@@ -2,7 +2,7 @@
   "name": "my-react-app",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -11,11 +11,12 @@
     "preview": "vite preview",
     "import-recipes": "node scripts/importRecipes.js",
     "import-ingredients": "node scripts/importIngredients.js",
-    "install": "echo 'This runs with npm run install'"
+    "install": "echo 'This runs with npm run install'",
+    "update-recipes": "NODE_ENV=development ts-node -r dotenv/config --project scripts/tsconfig.json scripts/addIngredientsAndSteps.ts"
   },
   "dependencies": {
-    "@ffmpeg/ffmpeg": "^0.12.7",
     "@ffmpeg/core": "^0.12.4",
+    "@ffmpeg/ffmpeg": "^0.12.7",
     "@ffmpeg/util": "^0.12.1",
     "@firebase/app": "^0.10.16",
     "@firebase/firestore": "^4.7.5",
@@ -26,7 +27,6 @@
     "@mdxeditor/editor": "^3.19.3",
     "csv-parse": "^5.6.0",
     "firebase": "^11.0.2",
-    "firebase-admin": "^13.0.1",
     "marked": "^15.0.3",
     "react": "^18.3.1",
     "react-beautiful-dnd": "^13.1.1",
@@ -44,13 +44,16 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.x",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^9.15.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
+    "firebase-admin": "^13.0.2",
     "globals": "^15.12.0",
     "postcss": "^8.4.x",
     "tailwindcss": "^3.x.x",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
     "vite": "^6.0.1"
   }

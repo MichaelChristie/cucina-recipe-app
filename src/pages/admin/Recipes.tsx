@@ -1,7 +1,7 @@
 import { FC, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { PencilSquareIcon, TrashIcon, DocumentDuplicateIcon, Bars3Icon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, TrashIcon, DocumentDuplicateIcon, Bars3Icon, PencilIcon, StarIcon, EyeIcon } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/AdminLayout';
 import { Recipe } from '../../types';
 import { getRecipes, addRecipe, deleteRecipe, updateRecipe } from '../../services/recipeService';
@@ -168,7 +168,12 @@ const Recipes: FC = () => {
                               </div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                              {recipe.title}
+                              <button 
+                                onClick={() => navigate(`/admin/recipes/${recipe.id}/edit`)}
+                                className="font-medium text-gray-900 hover:text-blue-600 text-left"
+                              >
+                                {recipe.title}
+                              </button>
                             </td>
                             <td className="px-6 py-4 text-gray-600 max-w-md">
                               <p className="truncate">{recipe.description}</p>
@@ -176,18 +181,18 @@ const Recipes: FC = () => {
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex gap-3">
                                 <button 
-                                  onClick={() => navigate(`/admin/recipes/edit/${recipe.id}`)}
+                                  onClick={() => window.open(`/recipe/${recipe.id}`, '_blank')}
+                                  className="text-gray-600 hover:text-gray-900"
+                                  title="Preview recipe"
+                                >
+                                  <EyeIcon className="h-5 w-5" />
+                                </button>
+                                <button 
+                                  onClick={() => navigate(`/admin/recipes/${recipe.id}/edit`)}
                                   className="text-blue-600 hover:text-blue-900"
                                   title="Edit recipe"
                                 >
-                                  <PencilSquareIcon className="h-5 w-5" />
-                                </button>
-                                <button 
-                                  onClick={() => handleExport(recipe)}
-                                  className="text-gray-600 hover:text-gray-900"
-                                  title="Export recipe JSON"
-                                >
-                                  <DocumentDuplicateIcon className="h-5 w-5" />
+                                  <PencilIcon className="h-5 w-5" />
                                 </button>
                                 <button 
                                   onClick={() => handleDuplicate(recipe)}

@@ -1,0 +1,315 @@
+{
+  "timestamp": "2024-12-24T04-23-48-652Z",
+  "recipes": [
+    {
+      "id": "4evoQ989KmqGW667iK6c",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "prepTime": "30",
+      "category": "",
+      "difficulty": "hard",
+      "servings": "",
+      "calories": "",
+      "title": "Sweet Berry Pie",
+      "image": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-images%2F1734567458196-triple-berry-pie8.jpg?alt=media&token=e6175c30-88c7-4425-b8f6-739203607ff8",
+      "nutrition": {
+        "calories": ""
+      },
+      "ingredients": [],
+      "steps": [],
+      "tags": [],
+      "position": 6
+    },
+    {
+      "id": "CGnzBepCOxV4Zq3XND0Z",
+      "title": "Paella",
+      "image": "https://plus.unsplash.com/premium_photo-1719522017304-e56503664ffd?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "description": "Transport your taste buds to the sun-soaked coasts of Spain with this vibrant paella recipe. Bursting with the rich flavours of saffron, fresh seafood, tender chicken, and smoky chorizo, this dish is a feast for the senses. Perfect for sharing, paella is more than a meal—it’s an experience that brings people together around the table.",
+      "steps": [],
+      "calories": "",
+      "video": {
+        "url": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-videos%2F1734655460749-pizza.MP4?alt=media&token=f798383b-fee4-4f47-b9ad-60deb7549728",
+        "size": 31325562,
+        "format": "mp4"
+      },
+      "cookTime": "45",
+      "prepTime": "15",
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "ingredients": [],
+      "tags": [],
+      "position": 14
+    },
+    {
+      "id": "DFigCQUP1OUNwIHwPUGe",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "prepTime": "30",
+      "difficulty": "medium",
+      "image": "https://images.unsplash.com/photo-1701688596783-231b3764ef67?q=80&w=3774&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "category": "",
+      "title": "Pita with Falafels",
+      "calories": "",
+      "video": {
+        "url": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-videos%2F1734657284905-pizza.MP4?alt=media&token=23333e3f-7757-4338-8adc-36f0bc2fea51",
+        "size": 31325562,
+        "format": "mp4"
+      },
+      "cookTime": "45",
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "ingredients": [],
+      "steps": [],
+      "tags": [],
+      "position": 3
+    },
+    {
+      "id": "GNU3nmFUVx5GpFyw7xPF",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "prepTime": "30",
+      "image": "https://plus.unsplash.com/premium_photo-1692193554212-6a27903ab9c4?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "title": "American Pancakes",
+      "category": "",
+      "cookTime": "5",
+      "difficulty": "easy",
+      "servings": "",
+      "calories": "",
+      "nutrition": {
+        "calories": ""
+      },
+      "ingredients": [],
+      "steps": [],
+      "position": 1,
+      "featured": true,
+      "showTagsPanel": true,
+      "tags": [
+        33,
+        13,
+        54
+      ]
+    },
+    {
+      "id": "Irf6ZIpb4OhepFl0ePK6",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "prepTime": "30",
+      "difficulty": "hard",
+      "category": "Italiano",
+      "image": "https://plus.unsplash.com/premium_photo-1694670234085-4f38b261ce5b?q=80&w=3439&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "title": "Quick 'n Tasty Vegetarian Noodles",
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "ingredients": [],
+      "calories": "",
+      "steps": [],
+      "tags": [],
+      "position": 5
+    },
+    {
+      "id": "Zphw6jXsgVpUiCqW2kFo",
+      "title": "Chili Pumkin Soup",
+      "image": "https://images.unsplash.com/photo-1679844795701-4c7864627456?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "difficulty": "easy",
+      "cookTime": "10",
+      "prepTime": "10",
+      "category": "Yankee",
+      "createdAt": {
+        "_seconds": 1733380019,
+        "_nanoseconds": 218000000
+      },
+      "updatedAt": {
+        "_seconds": 1733380019,
+        "_nanoseconds": 218000000
+      },
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "ingredients": [],
+      "calories": "",
+      "steps": [],
+      "tags": [],
+      "position": 4
+    },
+    {
+      "id": "cAbvYMoDA8FqxPME4miJ",
+      "image": "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8Zm9vZHxlbnwwfHwwfHx8MA%3D%3D",
+      "cookTime": "15",
+      "description": "Elevate your salad game with this vibrant Super Salad paired with warm, crispy pita. Packed with fresh greens, colorful veggies, protein-rich toppings, and a zesty dressing, this wholesome dish is as satisfying as it is nourishing. Whether it’s a quick lunch or a light dinner, this salad is a flavorful celebration of health and simplicity.",
+      "category": "",
+      "title": "Super Salad with Pita",
+      "prepTime": "10",
+      "ingredients": [],
+      "steps": [],
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "calories": "",
+      "tags": [],
+      "position": 2
+    },
+    {
+      "id": "dNXw1Trh82DtDrsKbT8s",
+      "image": "https://images.unsplash.com/photo-1484980972926-edee96e0960d?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "cookTime": "5",
+      "prepTime": "15",
+      "description": "Transform your hummus into a show-stopping centerpiece with the addition of a fresh herb purée. Creamy, nutty, and bursting with the bright, earthy flavors of herbs, this twist on a classic dip is as visually stunning as it is delicious. Perfect with warm pita, crunchy veggies, or as a spread, it’s a flavorful way to elevate any snack or meal.",
+      "title": "Humous with Herb Puree",
+      "nutrition": {
+        "calories": ""
+      },
+      "steps": [],
+      "servings": "",
+      "ingredients": [],
+      "calories": "",
+      "position": 7,
+      "featured": true,
+      "showTagsPanel": true,
+      "tags": [
+        26,
+        14,
+        1
+      ]
+    },
+    {
+      "id": "nCifmtG4WI5ypBEl7Pfe",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "prepTime": "30",
+      "difficulty": "hard",
+      "category": "Italiano",
+      "image": "https://plus.unsplash.com/premium_photo-1692193554212-6a27903ab9c4?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "title": "Pancakes Americano",
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "ingredients": [],
+      "calories": "",
+      "position": 8,
+      "steps": [],
+      "tags": []
+    },
+    {
+      "id": "ql1Wkmmk62svCYySN4GY",
+      "description": "Master the art of pizza-making with this foolproof pizza dough recipe! Perfectly soft and chewy with just the right amount of crisp, this dough is your ticket to crafting homemade pizzas that rival your favorite pizzeria. Whether you prefer classic margherita or bold gourmet toppings, this versatile base is ready to bring your culinary creations to life.",
+      "prepTime": "20mins",
+      "cookTime": "3mins",
+      "difficulty": "easy",
+      "servings": "",
+      "calories": "",
+      "category": "Naughty",
+      "showTagsPanel": true,
+      "image": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-images%2F1734573738713-45ABD5D0-780D-4E0B-9BA6-0A6A432BFD44.JPG?alt=media&token=3ec5e1f3-a6e4-4229-906c-ab59e2b652cb",
+      "ingredients": [],
+      "title": "Focaccia Barese",
+      "video": {
+        "url": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-videos%2F1734581017183-pizza.MP4?alt=media&token=4366e026-e324-444c-ab91-399f520e2c93",
+        "size": 0,
+        "format": "mp4"
+      },
+      "nutrition": {
+        "calories": ""
+      },
+      "position": 9,
+      "steps": [],
+      "tags": []
+    },
+    {
+      "id": "qmy0p2f22sAAf9OV9IBQ",
+      "difficulty": "easy",
+      "image": "https://images.unsplash.com/photo-1541809570-cce873416d94?q=80&w=3174&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "nutrition": {
+        "calories": ""
+      },
+      "cookTime": "",
+      "description": "Overnight oats are a quick, delicious, and nutrient-packed breakfast you prepare the night before. Simply mix oats, milk, and your favorite toppings like fruits, nuts, or spices, then let it chill in the fridge. By morning, you’ll have a creamy, ready-to-eat meal that’s perfect for busy mornings or a healthy grab-and-go option!",
+      "category": "",
+      "title": "Simple Overnight oats",
+      "prepTime": "",
+      "servings": "",
+      "ingredients": [],
+      "calories": "",
+      "position": 10,
+      "steps": [],
+      "tags": []
+    },
+    {
+      "id": "ul2AsVySFwNLFNmWiIWY",
+      "difficulty": "easy",
+      "image": "https://images.unsplash.com/photo-1547584370-2cc98b8b8dc8?q=80&w=3871&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "cookTime": "10",
+      "prepTime": "10",
+      "category": "American",
+      "title": "Ohio Smash Burger",
+      "description": "This masterpiece starts with fresh, hand-pressed ground beef, smashed to crispy perfection on a blazing-hot griddle, creating that signature caramelized crust you crave. Topped with a melty blanket of American cheese, tangy pickles, and sweet and juicy grilled onions.",
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "ingredients": [],
+      "calories": "",
+      "position": 11,
+      "steps": [],
+      "tags": []
+    },
+    {
+      "id": "yCxkX6ztM0Db300ibpfJ",
+      "title": "Ravioli",
+      "image": "https://images.unsplash.com/photo-1636475735446-bfc801fa6f2c?q=80&w=3570&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "createdAt": {
+        "_seconds": 1733380994,
+        "_nanoseconds": 637000000
+      },
+      "updatedAt": {
+        "_seconds": 1733380994,
+        "_nanoseconds": 637000000
+      },
+      "difficulty": "hard",
+      "cookTime": "5",
+      "prepTime": "30",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "category": "",
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "ingredients": [],
+      "calories": "",
+      "position": 12,
+      "steps": [],
+      "tags": []
+    },
+    {
+      "id": "zj9ZvQwzgic6jOa4mjoP",
+      "difficulty": "easy",
+      "category": "Naughty",
+      "cookTime": "3mins",
+      "prepTime": "20mins",
+      "title": "Pizza Dough",
+      "description": "Master the art of pizza-making with this foolproof pizza dough recipe! Perfectly soft and chewy with just the right amount of crisp, this dough is your ticket to crafting homemade pizzas that rival your favorite pizzeria. Whether you prefer classic margherita or bold gourmet toppings, this versatile base is ready to bring your culinary creations to life.",
+      "showTagsPanel": true,
+      "image": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-images%2F1734573275024-IMG_4256.jpg?alt=media&token=3d0bf68f-caf9-4360-9405-851010381d7b",
+      "servings": "",
+      "calories": "",
+      "video": {
+        "url": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-videos%2F1734642142051-pizza.MP4?alt=media&token=c4d99088-b4ef-4b1b-a604-5ae698403167",
+        "size": 31305573,
+        "format": "mp4"
+      },
+      "nutrition": {
+        "calories": ""
+      },
+      "ingredients": [],
+      "position": 13,
+      "steps": [],
+      "tags": []
+    }
+  ]
+}

@@ -6,7 +6,7 @@ import { getRecipeById, updateRecipe, addRecipe } from '../../services/recipeSer
 import AdminLayout from '../../components/AdminLayout';
 import { 
   ChevronLeftIcon, TagIcon, 
-  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon, PencilIcon, PlusCircleIcon, StarIcon
+  Bars3Icon, PlusIcon, TrashIcon, CheckIcon, ChevronRightIcon, PencilIcon, PlusCircleIcon, EyeIcon
 } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
 import { 
@@ -120,12 +120,24 @@ const editorStyles = {
 const generateId = (): string => `_${Math.random().toString(36).substr(2, 9)}`;
 
 // Component type definitions
-const StickyFooter: FC<StickyFooterProps> = ({ onSave, onClose, saving }) => {
+const StickyFooter: FC<StickyFooterProps> = ({ onSave, onClose, saving, recipeId }) => {
+  const navigate = useNavigate();
+  
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-end items-center py-4">
           <div className="flex items-center space-x-4">
+            {recipeId && (
+              <button
+                type="button"
+                onClick={() => window.open(`/recipe/${recipeId}`, '_blank')}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <EyeIcon className="h-5 w-5 mr-2" />
+                Preview
+              </button>
+            )}
             <button
               type="button"
               onClick={onClose}
@@ -826,7 +838,7 @@ const RecipeEditor: FC = () => {
       fat: ''
     },
     ingredients: [],
-    steps: [],
+    steps: [{ step: 1, description: '' }],
     tags: [],
     showTagsPanel: false,
     authorId: '', // You'll need to get this from your auth context
@@ -978,26 +990,31 @@ const RecipeEditor: FC = () => {
     }
   };
 
-  const handleStepChange = (index: number, field: string, value: string): void => {
-    const newSteps = [...recipe.steps];
-    if (typeof newSteps[index] === 'string') {
-      newSteps[index] = { text: newSteps[index], confirmed: false };
+  const handleStepChange = (index: number, field: string, value: string) => {
+    const updatedSteps = [...(recipe.steps || [])];
+    if (!updatedSteps[index]) {
+      updatedSteps[index] = { step: index + 1, description: '' };
     }
-    newSteps[index] = { 
-      ...newSteps[index], 
-      [field]: value 
-    };
+    
+    if (field === 'description') {
+      updatedSteps[index] = {
+        step: index + 1,
+        description: value
+      };
+    }
+    setRecipe({ ...recipe, steps: updatedSteps });
+  };
+
+  const addStep = () => {
+    const newSteps = [...(recipe.steps || [])];
+    newSteps.push({
+      step: newSteps.length + 1,
+      description: ''
+    });
     setRecipe({ ...recipe, steps: newSteps });
   };
 
-  const addStep = (): void => {
-    setRecipe({ 
-      ...recipe, 
-      steps: [...recipe.steps, { text: '', confirmed: false }] 
-    });
-  };
-
-  const removeStep = (index: number): void => {
+  const removeStep = (index: number) => {
     const newSteps = recipe.steps.filter((_, i) => i !== index);
     setRecipe({ ...recipe, steps: newSteps });
   };
@@ -1035,7 +1052,7 @@ const RecipeEditor: FC = () => {
     setActiveIngredient({ index: null, field: null });
   };
 
-  const addIngredient = (): void => {
+  const addIngredient = () => {
     const newIndex = recipe.ingredients.length;
     setRecipe({
       ...recipe,
@@ -1053,7 +1070,7 @@ const RecipeEditor: FC = () => {
     }, 0);
   };
 
-  const removeIngredient = (index: number): void => {
+  const removeIngredient = (index: number) => {
     const newIngredients = recipe.ingredients.filter((_, i) => i !== index);
     setRecipe({ ...recipe, ingredients: newIngredients });
   };
@@ -1202,7 +1219,7 @@ const RecipeEditor: FC = () => {
           </nav>
 
           {/* Title */}
-          <div className="group relative">
+          <div className="group relative mb-40">
             <input
               type="text"
               value={recipe.title || 'Untitled Recipe'}
@@ -1219,6 +1236,10 @@ const RecipeEditor: FC = () => {
             </div>
           </div>
 
+
+
+
+
           {/* Featured Toggle */}
           <div className="mt-4 flex items-center gap-2">
             <label className="relative inline-flex items-center cursor-pointer">
@@ -1230,7 +1251,6 @@ const RecipeEditor: FC = () => {
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               <span className="ml-3 text-sm font-medium text-gray-900 flex items-center gap-1">
-                <StarIcon className="h-5 w-5" />
                 Featured Recipe
               </span>
             </label>
@@ -1261,9 +1281,7 @@ const RecipeEditor: FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Prep Time */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prep Time
-              </label>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Prep Time</h2>
               <input
                 type="text"
                 value={recipe.prepTime || ''}
@@ -1275,9 +1293,7 @@ const RecipeEditor: FC = () => {
 
             {/* Cook Time */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Cook Time
-              </label>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Cook Time</h2>
               <input
                 type="text"
                 value={recipe.cookTime || ''}
@@ -1289,9 +1305,7 @@ const RecipeEditor: FC = () => {
 
             {/* Difficulty */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Difficulty
-              </label>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Difficulty</h2>
               <select
                 value={recipe.difficulty || 'easy'}
                 onChange={(e) => setRecipe({ ...recipe, difficulty: e.target.value })}
@@ -1307,9 +1321,7 @@ const RecipeEditor: FC = () => {
 
             {/* Servings */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Servings
-              </label>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Servings</h2>
               <input
                 type="number"
                 value={recipe.servings || ''}
@@ -1615,8 +1627,8 @@ const RecipeEditor: FC = () => {
                 <div key={index} className="flex gap-4">
                   <div className="flex-1">
                     <MDXEditor
-                      markdown={step.text || ''}
-                      onChange={(content) => handleStepChange(index, 'text', content)}
+                      markdown={step.description || ''}
+                      onChange={(content) => handleStepChange(index, 'description', content)}
                       plugins={[
                         toolbarPlugin({
                           toolbarContents: () => (
@@ -1664,6 +1676,7 @@ const RecipeEditor: FC = () => {
         onSave={handleSave}
         onClose={handleSaveAndClose}
         saving={saving}
+        recipeId={id}
       />
       <AddIngredientModal
         isOpen={isIngredientModalOpen}

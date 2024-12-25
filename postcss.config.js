@@ -1,7 +1,6 @@
- // Using ES module syntax
-export default {
+module.exports = {
   plugins: {
     tailwindcss: {},
-    autoprefixer: {},
+    autoprefixer: {}
   }
 }

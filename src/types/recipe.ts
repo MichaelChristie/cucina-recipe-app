@@ -6,15 +6,27 @@ export interface Recipe {
   imageCaption?: string;
   prepTime?: number;
   cookTime?: number;
-  difficulty?: 'easy' | 'medium' | 'hard';
+  difficulty?: string;
   servings?: number;
   tags?: string[];
-  ingredients: (RecipeIngredient | IngredientDivider)[];
-  steps: (string | RecipeStep)[];
+  ingredients?: Array<{
+    ingredientId: string;
+    amount: number;
+    unit: string;
+  } | {
+    type: 'divider';
+    label: string;
+  }>;
+  steps?: RecipeStep[];
   position?: number;
   createdAt?: Date;
   updatedAt?: Date;
   featured?: boolean;
+}
+
+export interface RecipeStep {
+  step: number;
+  description: string;
 }
 
 export interface RecipeIngredient {
@@ -27,9 +39,4 @@ export interface RecipeIngredient {
 export interface IngredientDivider {
   type: 'divider';
   label: string;
-}
-
-export interface RecipeStep {
-  text: string;
-  note?: string;
 } 

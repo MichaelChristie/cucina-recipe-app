@@ -13,6 +13,7 @@ export default {
           'white': '#FFFFFF',
           'text': '#1A2421', // Dark text color
         },
+        'tasty-background': '#F8F7F4', // or whatever your background color value is
         sage: {
           50: '#f7f8f6',
           600: '#5c6758',

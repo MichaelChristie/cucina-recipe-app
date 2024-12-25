@@ -68,7 +68,7 @@ const App: FC = () => {
             } 
           />
           <Route 
-            path="/admin/recipes/edit/:id" 
+            path="/admin/recipes/:id/edit" 
             element={
               <ProtectedRoute>
                 <RecipeEditor />
