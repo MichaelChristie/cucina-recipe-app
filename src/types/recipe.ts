@@ -17,7 +17,7 @@ export interface Recipe {
     type: 'divider';
     label: string;
   }>;
-  steps?: RecipeStep[];
+  steps?: Step[];
   position?: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -25,9 +25,9 @@ export interface Recipe {
   shortDescription?: string;
 }
 
-export interface RecipeStep {
-  step: number;
-  description: string;
+export interface Step {
+  order: number;
+  instruction: string;
 }
 
 export interface RecipeIngredient {

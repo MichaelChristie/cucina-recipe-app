@@ -7,8 +7,10 @@ import {
   UserGroupIcon,
   ChevronLeftIcon,
   MinusCircleIcon, 
-  PlusCircleIcon 
+  PlusCircleIcon,
+  HeartIcon
 } from '@heroicons/react/24/outline';
+import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 import { marked } from 'marked';
 import Layout from '../components/Layout';
 import { Recipe, IngredientType, Tag } from '../types/admin';
@@ -18,14 +20,21 @@ import { getIngredients } from '../services/ingredientService';
 import { getCategoryFromTags } from '../utils/tagUtils';
 import Ingredient from '../components/Ingredient';
 import UnitToggle from '../components/UnitToggle';
+import { auth } from '../config/firebase';
 
-export default function RecipeDetails(): JSX.Element {
+interface RecipeDetailsProps {
+  isFavorite?: boolean;
+  onToggleFavorite?: (recipeId: string) => void;
+}
+
+export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: RecipeDetailsProps): JSX.Element {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [allIngredients, setAllIngredients] = useState<IngredientType[]>([]);
+  const isAuthenticated = auth.currentUser !== null;
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -63,6 +72,14 @@ export default function RecipeDetails(): JSX.Element {
 
   const getIngredientById = (ingredientId: string): IngredientType | undefined => {
     return allIngredients.find(ing => ing.id === ingredientId);
+  };
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onToggleFavorite && isAuthenticated && recipe) {
+      onToggleFavorite(recipe.id);
+    }
   };
 
   if (loading) {
@@ -105,62 +122,87 @@ export default function RecipeDetails(): JSX.Element {
       </div>
 
       {/* Hero Section */}
-      <div className="lg:grid lg:grid-cols-2">
+      <div className="lg:grid lg:grid-cols-[1fr,50vw]">
         {/* Left Content Side */}
         <div className="relative">
           {/* Content Area */}
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:pl-24 xl:pl-64 py-12">
-            {/* Category Link */}
-            <div className="flex items-center justify-start">
-              <div className="text-base">
-                <span className="font-display font-bold uppercase tracking-wider">
-                  {getCategoryFromTags(recipe.tags || [], allTags)}
-                </span>
+          <div className="max-w-3xl ml-auto px-4 sm:px-6 lg:pl-24 xl:px-48 py-12">
+            {/* Title and Favorite Section */}
+            <div className="flex items-center justify-between mt-6 mb-4">
+              <h1 className="font-display text-3xl md:text-4xl xl:text-5xl leading-tight text-tasty-green">
+                {recipe.title}
+              </h1>
+              
+              {/* Favorite Button - Repositioned */}
+              <div 
+                onClick={handleFavoriteClick}
+                className="cursor-pointer"
+              >
+                <button
+                  type="button"
+                  className={`${!isAuthenticated ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  disabled={!isAuthenticated}
+                  title={!isAuthenticated ? "Login to save favorites" : undefined}
+                >
+                  {isFavorite ? (
+                    <HeartSolid 
+                      className="w-8 h-8 text-cookred-600
+                                 transform transition-all duration-300
+                                 hover:scale-110" 
+                    />
+                  ) : (
+                    <HeartIcon 
+                      className="w-8 h-8 text-gray-900
+                                 hover:text-cookred-600 transform transition-all duration-300
+                                 hover:scale-110" 
+                    />
+                  )}
+                </button>
               </div>
             </div>
-
-            {/* Title */}
-            <h1 className="mt-6 mb-4 font-display text-3xl md:text-4xl xl:text-5xl 
-                         leading-tight text-tasty-green">
-              {recipe.title}
-            </h1>
 
             {/* Description */}
             <div className="prose max-w-none mt-6">
               <p className="text-gray-700">{recipe.description}</p>
             </div>
 
-            {/* Tags and Quick Info Panel */}
-            <div className="mt-8 bg-tasty-green rounded-2xl shadow-xl p-8">
-              {/* Tags */}
-              {recipe.tags?.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {allTags
-                    .filter(tag => recipe.tags.includes(tag.id))
-                    .map(tag => (
-                      <span
-                        key={tag.id}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm 
-                                 bg-white/10 text-white border border-white/20"
-                      >
-                        <span>{tag.emoji}</span>
-                        <span>{tag.name}</span>
-                      </span>
-                    ))}
-                </div>
-              )}
+            {/* Tags Section - Moved outside and above the green panel */}
+            {recipe.tags?.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-6 mb-8">
+                {recipe.tags
+                  .map(tagId => {
+                    // Handle both cases where tagId might be an object or a string
+                    if (typeof tagId === 'object' && tagId !== null) {
+                      return tagId; // It's already a tag object
+                    }
+                    return allTags.find(t => String(t.id) === String(tagId));
+                  })
+                  .filter((tag): tag is Tag => tag !== null && tag !== undefined)
+                  .map(tag => (
+                    <span
+                      key={tag.id}
+                      className="inline-flex items-center shrink-0 px-2 py-1 rounded-full 
+                               text-xs font-medium bg-olive-50 text-olive-600"
+                    >
+                      {tag.emoji && <span className="mr-1">{tag.emoji}</span>}
+                      {tag.name}
+                    </span>
+                  ))}
+              </div>
+            )}
 
+            {/* Tags and Quick Info Panel */}
               {/* Quick Info Panel */}
-              <div className="flex flex-col divide-y divide-white/10">
+              <div className="flex flex-col divide-y divide-gray-200">
                 {/* Prep Time */}
                 {recipe.prepTime && (
                   <div className="flex items-center gap-3 p-4">
-                    <div className="p-2.5 bg-earthgreen-50/40 rounded-lg backdrop-blur-sm">
+                    <div className="p-2.5 bg-earthgreen-50 rounded-lg">
                       <ClockIcon className="h-6 w-6 text-earthgreen-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/60 font-medium">Prep Time</p>
-                      <p className="text-lg font-medium text-white">{recipe.prepTime} min</p>
+                      <p className="text-sm text-gray-600 font-medium">Prep Time</p>
+                      <p className="text-lg font-medium text-gray-900">{recipe.prepTime} min</p>
                     </div>
                   </div>
                 )}
@@ -168,12 +210,12 @@ export default function RecipeDetails(): JSX.Element {
                 {/* Cook Time */}
                 {recipe.cookTime && (
                   <div className="flex items-center gap-3 p-4">
-                    <div className="p-2.5 bg-cookred-50/40 rounded-lg backdrop-blur-sm">
+                    <div className="p-2.5 bg-cookred-50 rounded-lg">
                       <FireIcon className="h-6 w-6 text-cookred-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/60 font-medium">Cook Time</p>
-                      <p className="text-lg font-medium text-white">{recipe.cookTime} min</p>
+                      <p className="text-sm text-gray-600 font-medium">Cook Time</p>
+                      <p className="text-lg font-medium text-gray-900">{recipe.cookTime} min</p>
                     </div>
                   </div>
                 )}
@@ -181,12 +223,12 @@ export default function RecipeDetails(): JSX.Element {
                 {/* Difficulty */}
                 {recipe.difficulty && (
                   <div className="flex items-center gap-3 p-4">
-                    <div className="p-2.5 bg-olive-50/40 rounded-lg backdrop-blur-sm">
+                    <div className="p-2.5 bg-olive-50 rounded-lg">
                       <ChartBarIcon className="h-6 w-6 text-olive-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/60 font-medium">Difficulty</p>
-                      <p className="text-lg font-medium text-white capitalize">{recipe.difficulty}</p>
+                      <p className="text-sm text-gray-600 font-medium">Difficulty</p>
+                      <p className="text-lg font-medium text-gray-900 capitalize">{recipe.difficulty}</p>
                     </div>
                   </div>
                 )}
@@ -194,24 +236,23 @@ export default function RecipeDetails(): JSX.Element {
                 {/* Servings */}
                 {recipe.servings && (
                   <div className="flex items-center gap-3 p-4">
-                    <div className="p-2.5 bg-khaki-50/40 rounded-lg backdrop-blur-sm">
+                    <div className="p-2.5 bg-khaki-50 rounded-lg">
                       <UserGroupIcon className="h-6 w-6 text-khaki-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-white/60 font-medium">Servings</p>
-                      <p className="text-lg font-medium text-white">
+                      <p className="text-sm text-gray-600 font-medium">Servings</p>
+                      <p className="text-lg font-medium text-gray-900">
                         {recipe.servings} {recipe.servings === 1 ? 'serving' : 'servings'}
                       </p>
                     </div>
                   </div>
                 )}
               </div>
-            </div>
           </div>
         </div>
 
-        {/* Right Image Side - Full height, no padding */}
-        <div className="relative lg:sticky lg:top-0 w-full lg:w-auto h-[600px] hidden lg:block">
+        {/* Right Image Side */}
+        <div className="relative w-full h-screen hidden lg:block">
           <img
             src={recipe.image}
             alt={recipe.title}
@@ -313,28 +354,18 @@ export default function RecipeDetails(): JSX.Element {
               {recipe.steps?.map((step, index) => (
                 <div key={`step-${index}`} className="flex gap-6">
                   <div className="flex-shrink-0">
-                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-tasty-green/10 text-tasty-green font-medium">
-                      {index + 1}
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full 
+                                  bg-tasty-green/10 text-tasty-green font-medium">
+                      {step.order}
                     </span>
                   </div>
                   <div className="flex-1 pt-1">
-                    <div className="prose prose-gray prose-sm">
-                      {(() => {
-                        // Get the step content, checking multiple possible fields
-                        const stepContent = typeof step === 'string' 
-                          ? step 
-                          : step.description || step.markdown || step.content || step.text || '';
-                          
-                        return (
-                          <div 
-                            className="prose prose-gray prose-sm"
-                            dangerouslySetInnerHTML={{ 
-                              __html: marked(stepContent) 
-                            }} 
-                          />
-                        );
-                      })()}
-                    </div>
+                    <div 
+                      className="prose prose-gray prose-sm"
+                      dangerouslySetInnerHTML={{ 
+                        __html: marked(step.instruction || '') 
+                      }} 
+                    />
                   </div>
                 </div>
               ))}

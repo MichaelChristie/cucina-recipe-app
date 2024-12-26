@@ -1364,6 +1364,10 @@ const RecipeEditor: FC = () => {
             <div className="absolute bottom-[-2rem] left-0 right-0 border-b border-gray-200" />
           </div>
 
+          <div className="mt-16">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">&nbsp;</h2>
+          </div>
+
           {/* Featured Toggle - now with more spacing */}
           <div className="mt-16 flex items-center gap-2">
             <Switch

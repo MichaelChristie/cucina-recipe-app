@@ -13,9 +13,19 @@ service cloud.firestore {
             || request.resource.data.steps.size() > 0);
     }
     
+    match /ingredients/{ingredientId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
     match /backups/{backupId} {
       allow read, write: if request.auth != null 
         && request.auth.token.admin == true;
+    }
+    
+    // User data including favorites
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
@@ -39,6 +49,9 @@ service firebase.storage {
       allow read: if request.auth != null;
       allow write: if request.auth != null;
       allow delete: if request.auth != null;
+    }
+    match /users/{userId}/favorites/{favoriteId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
