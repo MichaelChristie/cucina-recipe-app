@@ -17,6 +17,7 @@ import { favoriteService } from './services/favoriteService';
 import TagManager from './pages/admin/TagManager';
 import IngredientManager from './pages/admin/IngredientManager';
 import { AdminUtils } from './pages/AdminUtils';
+import Test from './pages/Test';
 
 // Create a wrapper component for RecipeDetails
 const RecipeDetailsWrapper: FC = () => {
@@ -132,6 +133,7 @@ const App: FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="/test" element={<Test />} />
         </Routes>
       </UnitPreferenceProvider>
     </AuthProvider>

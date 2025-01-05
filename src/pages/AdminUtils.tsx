@@ -142,6 +142,24 @@ export const AdminUtils = () => {
 
       // Update each recipe
       for (const recipe of recipes) {
+        // Generate random ingredients if missing
+        const selectedIngredients = recipe.ingredients?.length ? recipe.ingredients : ingredients
+          .sort(() => Math.random() - 0.5)
+          .slice(0, Math.floor(Math.random() * 5) + 4) // 4-8 ingredients
+          .map(ingredient => ({
+            id: ingredient.id,
+            name: ingredient.name,
+            amount: Number((ingredient.defaultAmount * (0.5 + Math.random())).toFixed(2)),
+            unit: ingredient.defaultUnit
+          }));
+
+        // Generate random steps if missing
+        const steps = recipe.steps?.length ? recipe.steps : Array.from({ length: Math.floor(Math.random() * 5) + 4 }, // 4-8 steps
+          (_, index) => ({
+            order: index + 1,
+            instruction: getRandomInstruction()
+          }));
+
         // Get existing recipe tags
         const existingTags = recipe.tags || [];
         const existingTagObjects = existingTags.map(tagId => 

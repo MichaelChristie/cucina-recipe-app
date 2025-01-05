@@ -93,7 +93,7 @@ const IngredientSearch: FC<Props> = ({
     <div className={`mt-4 relative ${className}`}>
       <div className="relative">
         <div className="min-h-[42px] w-full flex flex-wrap items-center gap-2 p-2 
-                       bg-white border border-gray-300 rounded-lg 
+                        rounded-lg 
                        focus-within:ring-1 focus-within:ring-forest-800/30 
                        focus-within:border-forest-800/50 transition-all duration-200">
           {selectedIngredients.map((ingredient) => (

@@ -885,7 +885,7 @@ const RecipeEditor: FC = () => {
       fat: ''
     },
     ingredients: [],
-    steps: [{ step: 1, description: '' }],
+    steps: [{ order: 1, instruction: '' }],
     tags: [],
     showTagsPanel: false,
     authorId: '', // You'll need to get this from your auth context
@@ -926,17 +926,19 @@ const RecipeEditor: FC = () => {
           // Map steps to editor format
           const formattedSteps = data.steps?.map((step, index) => {
             // Handle different step data structures
-            const stepDescription = typeof step === 'string' 
-              ? step 
-              : step.description || step.markdown || step.content || step.text || '';
-
+            if (typeof step === 'object' && step !== null) {
+              return {
+                order: step.order || index + 1,
+                instruction: step.instruction || ''
+              };
+            }
             return {
-              step: index + 1,
-              description: stepDescription
+              order: index + 1,
+              instruction: typeof step === 'string' ? step : ''
             };
-          }) || [{ step: 1, description: '' }];
+          }) || [{ order: 1, instruction: '' }];
 
-          console.log('Formatted steps for editor:', formattedSteps);
+          console.log('Loaded steps:', formattedSteps);
 
           setRecipe({
             ...data,
@@ -1004,6 +1006,12 @@ const RecipeEditor: FC = () => {
         return;
       }
 
+      // Format steps to ensure they have the correct properties
+      const formattedSteps = recipe.steps.map((step, index) => ({
+        order: index + 1,
+        instruction: step.instruction || '',
+      }));
+
       const cleanRecipe = {
         ...recipe,
         tags: recipe.tags || [],
@@ -1019,7 +1027,7 @@ const RecipeEditor: FC = () => {
             unit: item.unit
           };
         }) || [],
-        steps: recipe.steps || []
+        steps: formattedSteps
       };
 
       if (id) {
@@ -1055,35 +1063,58 @@ const RecipeEditor: FC = () => {
   };
 
   const handleStepChange = (index: number, field: string, value: string) => {
+    console.log('Step change:', { index, field, value }); // Debug log
+    
     const updatedSteps = [...(recipe.steps || [])];
     if (!updatedSteps[index]) {
-      updatedSteps[index] = { step: index + 1, description: '' };
+      updatedSteps[index] = { order: index + 1, instruction: '' };
     }
     
-    if (field === 'description') {
-      updatedSteps[index] = {
-        step: index + 1,
-        description: value,
-        ...(typeof updatedSteps[index] === 'object' ? updatedSteps[index] : {})
+    // Create a new step object without spreading the old one to avoid any potential issues
+    updatedSteps[index] = {
+      order: index + 1,
+      instruction: value
+    };
+    
+    console.log('Updated step:', updatedSteps[index]); // Debug log
+    setRecipe(prevRecipe => {
+      const newRecipe = {
+        ...prevRecipe,
+        steps: updatedSteps.map((step, i) => ({
+          order: i + 1,
+          instruction: step.instruction || ''
+        }))
       };
-    }
-    
-    console.log('Updated step:', updatedSteps[index]);
-    setRecipe({ ...recipe, steps: updatedSteps });
+      console.log('New recipe state:', newRecipe); // Debug log
+      return newRecipe;
+    });
   };
 
   const addStep = () => {
-    const newSteps = [...(recipe.steps || [])];
-    newSteps.push({
-      step: newSteps.length + 1,
-      description: ''
+    console.log('Adding new step'); // Debug log
+    setRecipe(prevRecipe => {
+      const newSteps = [...(prevRecipe.steps || [])];
+      const newStep = {
+        order: newSteps.length + 1,
+        instruction: ''
+      };
+      newSteps.push(newStep);
+      console.log('New step added:', newStep); // Debug log
+      console.log('Updated recipe with new step:', { ...prevRecipe, steps: newSteps }); // Debug log
+      return { ...prevRecipe, steps: newSteps };
     });
-    setRecipe({ ...recipe, steps: newSteps });
   };
 
   const removeStep = (index: number) => {
-    const newSteps = recipe.steps.filter((_, i) => i !== index);
-    setRecipe({ ...recipe, steps: newSteps });
+    setRecipe(prevRecipe => {
+      const newSteps = prevRecipe.steps
+        .filter((_, i) => i !== index)
+        .map((step, i) => ({
+          order: i + 1,
+          instruction: step.instruction || ''
+        }));
+      return { ...prevRecipe, steps: newSteps };
+    });
   };
 
   const handleIngredientChange = (index: number, field: keyof EditorIngredient, value: string | number | boolean): void => {
@@ -1756,10 +1787,16 @@ const RecipeEditor: FC = () => {
             <div className="space-y-4">
               {recipe.steps?.map((step, index) => (
                 <div key={index} className="flex gap-4">
+                  <div className="flex-shrink-0 pt-2">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-medium">
+                      {index + 1}
+                    </span>
+                  </div>
                   <div className="flex-1">
                     <MDXEditor
-                      markdown={step.description || ''}
-                      onChange={(content) => handleStepChange(index, 'description', content)}
+                      key={`step-${index}-${step.instruction}`}
+                      markdown={step.instruction}
+                      onChange={(content) => handleStepChange(index, 'instruction', content)}
                       plugins={[
                         toolbarPlugin({
                           toolbarContents: () => (
@@ -1780,12 +1817,14 @@ const RecipeEditor: FC = () => {
                         linkPlugin(),
                         imagePlugin()
                       ]}
+                      contentEditableClassName="prose prose-sm max-w-none"
+                      placeholder="Enter step instructions..."
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => removeStep(index)}
-                    className="p-2 text-red-600 hover:bg-red-100 rounded-full"
+                    className="p-2 text-red-600 hover:bg-red-100 rounded-full flex-shrink-0"
                   >
                     <TrashIcon className="h-5 w-5" />
                   </button>

@@ -8,7 +8,8 @@ import {
   ChevronLeftIcon,
   MinusCircleIcon, 
   PlusCircleIcon,
-  HeartIcon
+  HeartIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 import { marked } from 'marked';
@@ -35,6 +36,7 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [allIngredients, setAllIngredients] = useState<IngredientType[]>([]);
   const isAuthenticated = auth.currentUser !== null;
+  const [servings, setServings] = useState<number>(0);
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -44,6 +46,7 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
         console.log('Recipe data in component:', data);
         console.log('Ingredients structure:', data.ingredients);
         setRecipe(data);
+        setServings(data.servings || 1);
       } catch (error) {
         console.error("Error fetching recipe:", error);
       } finally {
@@ -80,6 +83,13 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
     if (onToggleFavorite && isAuthenticated && recipe) {
       onToggleFavorite(recipe.id);
     }
+  };
+
+  const adjustServings = (increment: boolean) => {
+    setServings(prev => {
+      const newValue = increment ? prev + 1 : prev - 1;
+      return Math.max(1, newValue); // Prevent going below 1
+    });
   };
 
   if (loading) {
@@ -175,7 +185,7 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
                     if (typeof tagId === 'object' && tagId !== null) {
                       return tagId; // It's already a tag object
                     }
-                    return allTags.find(t => String(t.id) === String(tagId));
+                    return allTags.find(t => t.id === tagId);
                   })
                   .filter((tag): tag is Tag => tag !== null && tag !== undefined)
                   .map(tag => (
@@ -280,44 +290,39 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
         {/* Left Column - Ingredients */}
         <div className="lg:pl-24 xl:pl-64 px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto py-16">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <h2 className="font-display text-2xl font-semibold">Ingredients</h2>
+            <div className="flex flex-col gap-4 mb-6">
+              <h2 className="font-display text-2xl font-semibold">Ingredients</h2>
+              <div className="flex items-center gap-6">
                 <UnitToggle />
-              </div>
-            </div>
-            
-            {/* Servings Adjuster */}
-            {recipe.servings && (
-              <div className="mb-8">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-600">Servings</span>
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600">Serves</span>
+                  <div className="flex items-center">
                     <button 
-                      className="p-1 rounded-full hover:bg-gray-200"
-                      onClick={() => {/* implement serving adjustment */}}
+                      onClick={() => adjustServings(false)}
+                      className="p-1 rounded-full hover:bg-gray-100"
+                      aria-label="Decrease servings"
                     >
-                      <MinusCircleIcon className="w-6 h-6 text-gray-500" />
+                      <MinusCircleIcon className="w-5 h-5 text-gray-500" />
                     </button>
-                    <span className="text-sm font-medium">{recipe.servings}</span>
+                    <span className="mx-2 text-sm font-medium min-w-[1.5rem] text-center">{servings}</span>
                     <button 
-                      className="p-1 rounded-full hover:bg-gray-200"
-                      onClick={() => {/* implement serving adjustment */}}
+                      onClick={() => adjustServings(true)}
+                      className="p-1 rounded-full hover:bg-gray-100"
+                      aria-label="Increase servings"
                     >
-                      <PlusCircleIcon className="w-6 h-6 text-gray-500" />
+                      <PlusCircleIcon className="w-5 h-5 text-gray-500" />
                     </button>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Ingredients List */}
-            <div className="space-y-6">
-              {recipe.ingredients?.map((item, index) => {
-                // Debug log to see what we're getting
-                console.log('Processing ingredient:', item);
-
-                // Handle section dividers if they exist
+            {/* Ingredients List with reduced spacing */}
+            <div className="space-y-2">
+              {recipe?.ingredients?.map((item, index) => {
+                // Calculate adjusted amounts based on servings
+                const adjustedAmount = item.amount * (servings / (recipe.servings || 1));
+                
                 if ('type' in item && item.type === 'divider') {
                   return (
                     <div key={`section-${index}`} className="pt-4">
@@ -329,12 +334,10 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
                   );
                 }
 
-                // For regular ingredients
                 return (
                   <div key={`ingredient-${index}`} className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-tasty-green/40"></div>
                     <Ingredient
-                      amount={item.amount}
+                      amount={adjustedAmount}
                       unit={item.unit}
                       name={item.name}
                       defaultUnit={item.defaultUnit}
@@ -356,14 +359,14 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
                   <div className="flex-shrink-0">
                     <span className="flex items-center justify-center w-8 h-8 rounded-full 
                                   bg-tasty-green/10 text-tasty-green font-medium">
-                      {step.order}
+                      {step.order || step.step || index + 1}
                     </span>
                   </div>
                   <div className="flex-1 pt-1">
                     <div 
                       className="prose prose-gray prose-sm"
                       dangerouslySetInnerHTML={{ 
-                        __html: marked(step.instruction || '') 
+                        __html: marked(step.instruction || step.description || '') 
                       }} 
                     />
                   </div>
@@ -372,6 +375,21 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Large spacing and Edit Button - only shown for authenticated users */}
+      <div className="mt-32 mb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {isAuthenticated && (
+          <button
+            onClick={() => window.open(`/admin/recipes/${id}/edit`, '_blank')}
+            className="w-full bg-white hover:bg-gray-50 text-gray-900 font-medium py-4 px-6 rounded-lg 
+                     border-2 border-gray-200 shadow-sm transition-all duration-200 
+                     flex items-center justify-center gap-2"
+          >
+            <PencilIcon className="h-5 w-5" />
+            Edit Recipe
+          </button>
+        )}
       </div>
     </Layout>
   );

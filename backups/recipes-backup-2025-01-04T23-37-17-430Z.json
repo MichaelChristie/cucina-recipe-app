@@ -1,0 +1,1250 @@
+{
+  "timestamp": "2025-01-04T23-37-17-430Z",
+  "recipes": [
+    {
+      "id": "4evoQ989KmqGW667iK6c",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "prepTime": "30",
+      "category": "",
+      "difficulty": "hard",
+      "calories": "",
+      "title": "Sweet Berry Pie",
+      "image": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-images%2F1734567458196-triple-berry-pie8.jpg?alt=media&token=e6175c30-88c7-4425-b8f6-739203607ff8",
+      "nutrition": {
+        "calories": ""
+      },
+      "showTagsPanel": true,
+      "cookTime": "25",
+      "servings": "",
+      "tags": [],
+      "ingredients": [
+        {
+          "id": "1",
+          "unit": "cups",
+          "name": "All-purpose flour",
+          "amount": 2
+        },
+        {
+          "id": "2",
+          "amount": 1,
+          "unit": "cup",
+          "name": "Sugar"
+        },
+        {
+          "unit": "g",
+          "id": "3",
+          "amount": 200,
+          "name": "Butter"
+        },
+        {
+          "unit": "pieces",
+          "name": "Eggs",
+          "amount": 2,
+          "id": "4"
+        },
+        {
+          "name": "Milk",
+          "amount": 1,
+          "id": "5",
+          "unit": "cup"
+        }
+      ],
+      "position": 8,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ]
+    },
+    {
+      "id": "8ZdNWK01g3LAkv3ah3Sh",
+      "title": "Pork Ribs",
+      "image": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-images%2F1735164120783-delicious-bbq-ribs-grilling-smoky-fire-with-fresh-herbs-vibrant-vegetables_93995-70599.jpg?alt=media&token=5f2ae40c-5d81-4a54-a241-7877fc90eca6",
+      "prepTime": "20",
+      "cookTime": "3 hours",
+      "difficulty": "hard",
+      "calories": "",
+      "nutrition": {
+        "calories": ""
+      },
+      "description": "Get ready to savor the ultimate BBQ indulgence! These tender, juicy ribs are slow-cooked to perfection, coated in a luscious smoky barbecue glaze that balances sweet, tangy, and a hint of spice. With every bite, you’ll experience a rich, caramelized crust that gives way to melt-in-your-mouth meat. Perfect for backyard cookouts, family feasts, or whenever you’re craving bold, finger-licking flavor. Serve with a side of coleslaw and cornbread for the full BBQ experience. Fire up the grill and let the smoky magic begin!",
+      "showTagsPanel": true,
+      "featured": true,
+      "servings": 8,
+      "ingredients": [
+        {
+          "unit": "ml",
+          "amount": 1,
+          "name": "Sriracha sauce",
+          "defaultUnit": "ml",
+          "ingredientId": "YWi4LvAWwkxabLkx5Ffa",
+          "id": "YWi4LvAWwkxabLkx5Ffa"
+        },
+        {
+          "ingredientId": "PaMtnPJMsRmBdHuVchJt",
+          "name": "Balsamic vinegar",
+          "id": "PaMtnPJMsRmBdHuVchJt",
+          "defaultUnit": "ml",
+          "unit": "ml",
+          "amount": 1
+        },
+        {
+          "ingredientId": "IrDLhjCYuNQif5KuGwbi",
+          "amount": 2,
+          "name": "Sweet potatoes",
+          "defaultUnit": "whole",
+          "id": "IrDLhjCYuNQif5KuGwbi",
+          "unit": "whole"
+        },
+        {
+          "amount": 3,
+          "name": "Pear",
+          "id": "59drz893VxPkjU7YN4jS",
+          "defaultUnit": "whole",
+          "ingredientId": "59drz893VxPkjU7YN4jS",
+          "unit": "whole"
+        },
+        {
+          "name": "Banana",
+          "unit": "whole",
+          "defaultUnit": "whole",
+          "amount": 1,
+          "id": "KRtlYW65MIEZVoYjVYOG",
+          "ingredientId": "KRtlYW65MIEZVoYjVYOG"
+        },
+        {
+          "amount": 4,
+          "ingredientId": "LRjAHKqXvMWmvhKVOPBE",
+          "name": "Shrimp",
+          "unit": "g",
+          "defaultUnit": "g",
+          "id": "LRjAHKqXvMWmvhKVOPBE"
+        },
+        {
+          "defaultUnit": "ml",
+          "amount": 2,
+          "id": "G5vKt8PVq9MEaB3zvaM9",
+          "unit": "ml",
+          "name": "Stock",
+          "ingredientId": "G5vKt8PVq9MEaB3zvaM9"
+        },
+        {
+          "defaultUnit": "g",
+          "amount": 3,
+          "ingredientId": "GQ1tfhkNBjULDaVFKO8c",
+          "name": "Brown rice",
+          "id": "GQ1tfhkNBjULDaVFKO8c",
+          "unit": "g"
+        }
+      ],
+      "position": 1,
+      "category": "other",
+      "steps": [
+        {
+          "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "markdown": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "order": 1,
+          "id": "step-1"
+        },
+        {
+          "order": 2,
+          "text": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui.",
+          "id": "step-2",
+          "description": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui.",
+          "content": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui.",
+          "markdown": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui."
+        },
+        {
+          "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+          "id": "step-3",
+          "order": 3,
+          "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+          "markdown": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum."
+        },
+        {
+          "description": "Et harum quidem rerum facilis est et expedita distinctio. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "markdown": "Et harum quidem rerum facilis est et expedita distinctio. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "text": "Et harum quidem rerum facilis est et expedita distinctio. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "id": "step-4",
+          "order": 4,
+          "content": "Et harum quidem rerum facilis est et expedita distinctio. Itaque earum rerum hic tenetur a sapiente delectus, ut aut."
+        },
+        {
+          "content": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. Temporibus autem quibusdam et aut officiis debitis aut rerum.",
+          "order": 5,
+          "description": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. Temporibus autem quibusdam et aut officiis debitis aut rerum.",
+          "markdown": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. Temporibus autem quibusdam et aut officiis debitis aut rerum.",
+          "id": "step-5",
+          "text": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. Temporibus autem quibusdam et aut officiis debitis aut rerum."
+        },
+        {
+          "text": "Similique sunt in culpa qui officia deserunt mollitia animi. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+          "id": "step-6",
+          "order": 6,
+          "content": "Similique sunt in culpa qui officia deserunt mollitia animi. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+          "markdown": "Similique sunt in culpa qui officia deserunt mollitia animi. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+          "description": "Similique sunt in culpa qui officia deserunt mollitia animi. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum."
+        },
+        {
+          "id": "step-7",
+          "order": 7,
+          "content": "Nam libero tempore, cum soluta nobis est eligendi optio cumque. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "markdown": "Nam libero tempore, cum soluta nobis est eligendi optio cumque. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "text": "Nam libero tempore, cum soluta nobis est eligendi optio cumque. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "description": "Nam libero tempore, cum soluta nobis est eligendi optio cumque. Itaque earum rerum hic tenetur a sapiente delectus, ut aut."
+        },
+        {
+          "markdown": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+          "id": "step-8",
+          "order": 8,
+          "content": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+          "description": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+          "text": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum."
+        }
+      ],
+      "tags": [
+        50,
+        33,
+        16,
+        64
+      ]
+    },
+    {
+      "id": "CGnzBepCOxV4Zq3XND0Z",
+      "showTagsPanel": true,
+      "image": "https://plus.unsplash.com/premium_photo-1719522017304-e56503664ffd?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "cookTime": "45",
+      "description": "Transport your taste buds to the sun-soaked coasts of Spain with this vibrant paella recipe. Bursting with the rich flavours of saffron, fresh seafood, tender chicken, and smoky chorizo, this dish is a feast for the senses. Perfect for sharing, paella is more than a meal—it’s an experience that brings people together around the table.",
+      "calories": "",
+      "prepTime": "15",
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": ""
+      },
+      "video": null,
+      "category": "other",
+      "featured": false,
+      "position": 2,
+      "servings": 4,
+      "ingredients": [
+        {
+          "unit": "g",
+          "id": "8OtWDTQPn2NDTyGRFS2i",
+          "ingredientId": "8OtWDTQPn2NDTyGRFS2i",
+          "defaultUnit": "g",
+          "name": "Parmesan cheese",
+          "amount": 4
+        },
+        {
+          "defaultUnit": "whole",
+          "name": "Banana",
+          "unit": "whole",
+          "id": "KRtlYW65MIEZVoYjVYOG",
+          "amount": 4,
+          "ingredientId": "KRtlYW65MIEZVoYjVYOG"
+        },
+        {
+          "amount": 2,
+          "id": "LYg0OHgdIPVGMWobApkv",
+          "defaultUnit": "g",
+          "unit": "g",
+          "name": "Cornstarch",
+          "ingredientId": "LYg0OHgdIPVGMWobApkv"
+        },
+        {
+          "ingredientId": "LPdcJgpnJrwVWx84lSRD",
+          "defaultUnit": "g",
+          "unit": "g",
+          "name": "Noodles",
+          "id": "LPdcJgpnJrwVWx84lSRD",
+          "amount": 2
+        },
+        {
+          "name": "Rice vinegar",
+          "defaultUnit": "ml",
+          "unit": "ml",
+          "ingredientId": "oZYlzA38w69QcCyGjR4T",
+          "amount": 1,
+          "id": "oZYlzA38w69QcCyGjR4T"
+        },
+        {
+          "unit": "g",
+          "amount": 2,
+          "defaultUnit": "g",
+          "name": "White rice",
+          "ingredientId": "zaF9569YpOiohfNsYT4B",
+          "id": "zaF9569YpOiohfNsYT4B"
+        },
+        {
+          "defaultUnit": "g",
+          "amount": 3,
+          "id": "Jet00PkkudYLXiRwV8hX",
+          "unit": "g",
+          "ingredientId": "Jet00PkkudYLXiRwV8hX",
+          "name": "Mushrooms"
+        },
+        {
+          "defaultUnit": "g",
+          "name": "Cocoa powder",
+          "ingredientId": "8mDHiNyZsFMFwR32Oovm",
+          "amount": 1,
+          "unit": "g",
+          "id": "8mDHiNyZsFMFwR32Oovm"
+        }
+      ],
+      "title": "Paella1",
+      "steps": [
+        {
+          "id": "step-1",
+          "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "markdown": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "order": 1,
+          "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        },
+        {
+          "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi optio cumque.",
+          "order": 2,
+          "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi optio cumque.",
+          "id": "step-2",
+          "markdown": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi optio cumque.",
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam libero tempore, cum soluta nobis est eligendi optio cumque."
+        },
+        {
+          "description": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+          "content": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+          "text": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+          "order": 3,
+          "id": "step-3",
+          "markdown": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
+        },
+        {
+          "id": "step-4",
+          "markdown": "Similique sunt in culpa qui officia deserunt mollitia animi. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui.",
+          "text": "Similique sunt in culpa qui officia deserunt mollitia animi. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui.",
+          "description": "Similique sunt in culpa qui officia deserunt mollitia animi. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui.",
+          "order": 4,
+          "content": "Similique sunt in culpa qui officia deserunt mollitia animi. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui."
+        },
+        {
+          "content": "At vero eos et accusamus et iusto odio dignissimos ducimus qui. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit.",
+          "order": 5,
+          "markdown": "At vero eos et accusamus et iusto odio dignissimos ducimus qui. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit.",
+          "description": "At vero eos et accusamus et iusto odio dignissimos ducimus qui. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit.",
+          "text": "At vero eos et accusamus et iusto odio dignissimos ducimus qui. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit.",
+          "id": "step-5"
+        },
+        {
+          "markdown": "Nam libero tempore, cum soluta nobis est eligendi optio cumque. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit.",
+          "description": "Nam libero tempore, cum soluta nobis est eligendi optio cumque. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit.",
+          "content": "Nam libero tempore, cum soluta nobis est eligendi optio cumque. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit.",
+          "text": "Nam libero tempore, cum soluta nobis est eligendi optio cumque. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit.",
+          "id": "step-6",
+          "order": 6
+        },
+        {
+          "text": "Temporibus autem quibusdam et aut officiis debitis aut rerum. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "content": "Temporibus autem quibusdam et aut officiis debitis aut rerum. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "description": "Temporibus autem quibusdam et aut officiis debitis aut rerum. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "order": 7,
+          "markdown": "Temporibus autem quibusdam et aut officiis debitis aut rerum. Itaque earum rerum hic tenetur a sapiente delectus, ut aut.",
+          "id": "step-7"
+        },
+        {
+          "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "markdown": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          "order": 8,
+          "id": "step-8"
+        }
+      ],
+      "tags": [
+        36,
+        15,
+        62
+      ]
+    },
+    {
+      "id": "DFigCQUP1OUNwIHwPUGe",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "prepTime": "30",
+      "difficulty": "medium",
+      "image": "https://images.unsplash.com/photo-1701688596783-231b3764ef67?q=80&w=3774&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "category": "",
+      "title": "Pita with Falafels",
+      "calories": "",
+      "cookTime": "45",
+      "nutrition": {
+        "calories": ""
+      },
+      "showTagsPanel": true,
+      "video": {
+        "size": 31325562,
+        "format": "mp4",
+        "url": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-videos%2F1734657284905-pizza.MP4?alt=media&token=23333e3f-7757-4338-8adc-36f0bc2fea51"
+      },
+      "servings": "",
+      "tags": [],
+      "ingredients": [
+        {
+          "id": "1",
+          "amount": 2,
+          "unit": "cups",
+          "name": "All-purpose flour"
+        },
+        {
+          "name": "Sugar",
+          "unit": "cup",
+          "amount": 1,
+          "id": "2"
+        },
+        {
+          "name": "Butter",
+          "id": "3",
+          "unit": "g",
+          "amount": 200
+        },
+        {
+          "name": "Eggs",
+          "amount": 2,
+          "id": "4",
+          "unit": "pieces"
+        },
+        {
+          "amount": 1,
+          "id": "5",
+          "name": "Milk",
+          "unit": "cup"
+        }
+      ],
+      "position": 5,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ]
+    },
+    {
+      "id": "GNU3nmFUVx5GpFyw7xPF",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "prepTime": "30",
+      "image": "https://plus.unsplash.com/premium_photo-1692193554212-6a27903ab9c4?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "title": "American Pancakes",
+      "category": "",
+      "cookTime": "5",
+      "difficulty": "easy",
+      "calories": "",
+      "nutrition": {
+        "calories": ""
+      },
+      "showTagsPanel": false,
+      "featured": true,
+      "servings": "",
+      "tags": [],
+      "ingredients": [
+        {
+          "id": "1",
+          "amount": 2,
+          "unit": "cups",
+          "name": "All-purpose flour"
+        },
+        {
+          "amount": 1,
+          "name": "Sugar",
+          "id": "2",
+          "unit": "cup"
+        },
+        {
+          "name": "Butter",
+          "unit": "g",
+          "id": "3",
+          "amount": 200
+        },
+        {
+          "name": "Eggs",
+          "unit": "pieces",
+          "id": "4",
+          "amount": 2
+        },
+        {
+          "amount": 1,
+          "unit": "cup",
+          "id": "5",
+          "name": "Milk"
+        }
+      ],
+      "position": 11,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ]
+    },
+    {
+      "id": "Irf6ZIpb4OhepFl0ePK6",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "difficulty": "hard",
+      "category": "Italiano",
+      "image": "https://plus.unsplash.com/premium_photo-1694670234085-4f38b261ce5b?q=80&w=3439&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "title": "Quick 'n Tasty Vegetarian Noodles",
+      "nutrition": {
+        "calories": ""
+      },
+      "calories": "",
+      "cookTime": "15",
+      "prepTime": "10",
+      "showTagsPanel": true,
+      "servings": "",
+      "tags": [],
+      "ingredients": [
+        {
+          "id": "1",
+          "amount": 2,
+          "name": "All-purpose flour",
+          "unit": "cups"
+        },
+        {
+          "unit": "cup",
+          "id": "2",
+          "name": "Sugar",
+          "amount": 1
+        },
+        {
+          "unit": "g",
+          "name": "Butter",
+          "amount": 200,
+          "id": "3"
+        },
+        {
+          "amount": 2,
+          "unit": "pieces",
+          "id": "4",
+          "name": "Eggs"
+        },
+        {
+          "name": "Milk",
+          "id": "5",
+          "unit": "cup",
+          "amount": 1
+        }
+      ],
+      "position": 2,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ]
+    },
+    {
+      "id": "OKYF4szZREwVegrAnWHc",
+      "description": "Transport your taste buds to the sun-soaked coasts of Spain with this vibrant paella recipe. Bursting with the rich flavours of saffron, fresh seafood, tender chicken, and smoky chorizo, this dish is a feast for the senses. Perfect for sharing, paella is more than a meal—it’s an experience that brings people together around the table.",
+      "image": "https://plus.unsplash.com/premium_photo-1719522017304-e56503664ffd?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "prepTime": "15",
+      "cookTime": "45",
+      "difficulty": "medium",
+      "calories": "",
+      "category": "",
+      "nutrition": {
+        "calories": ""
+      },
+      "showTagsPanel": true,
+      "title": "Paella",
+      "servings": 2,
+      "ingredients": [
+        {
+          "unit": "g",
+          "amount": 100,
+          "ingredientId": "zaF9569YpOiohfNsYT4B",
+          "name": "White rice"
+        },
+        {
+          "amount": 1,
+          "name": "Saffron",
+          "unit": "g",
+          "ingredientId": "byQnHixTbc0GvOsicNUN"
+        },
+        {
+          "name": "Stock",
+          "ingredientId": "G5vKt8PVq9MEaB3zvaM9",
+          "amount": 250,
+          "unit": "ml"
+        },
+        {
+          "ingredientId": "LFqIGolHE3pcmf6Jxgrc",
+          "unit": "g",
+          "amount": 5,
+          "name": "Salt"
+        },
+        {
+          "unit": "ml",
+          "name": "Fish sauce",
+          "amount": 10,
+          "ingredientId": "H56HLokWZQ5BGKujYlHU"
+        },
+        {
+          "amount": 6,
+          "name": "Prawns",
+          "ingredientId": "zhYc0Kc4Pvt3tDorAlN6",
+          "unit": "whole"
+        }
+      ],
+      "position": 17,
+      "steps": [
+        {
+          "description": "lorem&#x9;",
+          "step": 1
+        },
+        {
+          "step": 2,
+          "description": "Ipsum"
+        },
+        {
+          "step": 3,
+          "description": "Ut enim ad minim veniam, quis nostrud exercitation ullamco."
+        },
+        {
+          "description": "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+          "step": 4
+        },
+        {
+          "description": "Excepteur sint occaecat cupidatat non proident, sunt in culpa.",
+          "step": 5
+        }
+      ],
+      "tags": [
+        6,
+        15,
+        36,
+        58
+      ]
+    },
+    {
+      "id": "Zphw6jXsgVpUiCqW2kFo",
+      "image": "https://images.unsplash.com/photo-1679844795701-4c7864627456?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "cookTime": "10",
+      "prepTime": "10",
+      "category": "Yankee",
+      "createdAt": {
+        "_seconds": 1733380019,
+        "_nanoseconds": 218000000
+      },
+      "updatedAt": {
+        "_seconds": 1733380019,
+        "_nanoseconds": 218000000
+      },
+      "nutrition": {
+        "calories": ""
+      },
+      "calories": "",
+      "showTagsPanel": true,
+      "difficulty": "hard",
+      "featured": true,
+      "title": "Chili Pumpkin Soup",
+      "servings": 4,
+      "ingredients": [
+        {
+          "unit": "g",
+          "name": "Butter",
+          "amount": 115,
+          "ingredientId": "0s5EYxkLSkBFOQpIeI39"
+        },
+        {
+          "amount": 30,
+          "ingredientId": "8mDHiNyZsFMFwR32Oovm",
+          "unit": "g",
+          "name": "Cocoa powder"
+        },
+        {
+          "unit": "g",
+          "ingredientId": "AFf8GyIQIMP81ODFbl7P",
+          "name": "Granulated sugar",
+          "amount": 200
+        },
+        {
+          "unit": "g",
+          "ingredientId": "WWQRtrH9mmvJrhfJrarv",
+          "name": "All-purpose flour",
+          "amount": 120
+        },
+        {
+          "amount": 200,
+          "name": "Brown sugar",
+          "unit": "g",
+          "ingredientId": "NozeCTLCona7opKTV9Vr"
+        },
+        {
+          "ingredientId": "702S6PZnbqjQdJzIpEfz",
+          "unit": "ml",
+          "name": "Heavy cream",
+          "amount": 100
+        },
+        {
+          "amount": 600,
+          "unit": "g",
+          "name": "Pumpkin",
+          "ingredientId": "PzagTnnBs5bh1lLQTfUB"
+        },
+        {
+          "name": "Potatoes",
+          "ingredientId": "QCkKJ8P3FAckSak1WLZK",
+          "amount": 2,
+          "unit": "whole"
+        },
+        {
+          "ingredientId": "9oijxgV20yjcM62MHdHo",
+          "unit": "whole",
+          "name": "Onion",
+          "amount": 1
+        }
+      ],
+      "position": 4,
+      "steps": [
+        {
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "step": 1
+        },
+        {
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "step": 2
+        },
+        {
+          "step": 3,
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        },
+        {
+          "step": 4,
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        },
+        {
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+          "step": 5
+        },
+        {
+          "step": 6,
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        },
+        {
+          "step": 7,
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        },
+        {
+          "step": 8,
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        }
+      ],
+      "tags": [
+        33,
+        40,
+        61,
+        1
+      ]
+    },
+    {
+      "id": "cAbvYMoDA8FqxPME4miJ",
+      "image": "https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8Zm9vZHxlbnwwfHwwfHx8MA%3D%3D",
+      "cookTime": "15",
+      "description": "Elevate your salad game with this vibrant Super Salad paired with warm, crispy pita. Packed with fresh greens, colorful veggies, protein-rich toppings, and a zesty dressing, this wholesome dish is as satisfying as it is nourishing. Whether it’s a quick lunch or a light dinner, this salad is a flavorful celebration of health and simplicity.",
+      "category": "",
+      "title": "Super Salad with Pita",
+      "prepTime": "10",
+      "difficulty": "medium",
+      "nutrition": {
+        "calories": ""
+      },
+      "calories": "",
+      "featured": false,
+      "servings": "",
+      "tags": [],
+      "showTagsPanel": false,
+      "ingredients": [
+        {
+          "id": "1",
+          "name": "All-purpose flour",
+          "unit": "cups",
+          "amount": 2
+        },
+        {
+          "name": "Sugar",
+          "amount": 1,
+          "unit": "cup",
+          "id": "2"
+        },
+        {
+          "unit": "g",
+          "amount": 200,
+          "name": "Butter",
+          "id": "3"
+        },
+        {
+          "amount": 2,
+          "name": "Eggs",
+          "id": "4",
+          "unit": "pieces"
+        },
+        {
+          "unit": "cup",
+          "id": "5",
+          "amount": 1,
+          "name": "Milk"
+        }
+      ],
+      "position": 3,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ]
+    },
+    {
+      "id": "dNXw1Trh82DtDrsKbT8s",
+      "image": "https://images.unsplash.com/photo-1484980972926-edee96e0960d?q=80&w=2787&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "cookTime": "5",
+      "prepTime": "15",
+      "description": "Transform your hummus into a show-stopping centerpiece with the addition of a fresh herb purée. Creamy, nutty, and bursting with the bright, earthy flavors of herbs, this twist on a classic dip is as visually stunning as it is delicious. Perfect with warm pita, crunchy veggies, or as a spread, it’s a flavorful way to elevate any snack or meal.",
+      "title": "Humous with Herb Puree",
+      "nutrition": {
+        "calories": ""
+      },
+      "calories": "",
+      "featured": true,
+      "difficulty": "medium",
+      "showTagsPanel": false,
+      "tags": [],
+      "position": 4,
+      "servings": 8,
+      "ingredients": [
+        {
+          "ingredientId": "WWQRtrH9mmvJrhfJrarv",
+          "name": "All-purpose flour",
+          "amount": 120,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "AFf8GyIQIMP81ODFbl7P",
+          "name": "Granulated sugar",
+          "amount": 200,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "0s5EYxkLSkBFOQpIeI39",
+          "name": "Butter",
+          "amount": 115,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "pFwbIfVOUWDHK09Nq7NL",
+          "name": "Eggs",
+          "amount": 1,
+          "unit": "whole"
+        },
+        {
+          "ingredientId": "DcLySyEFt2TjIzONnyAU",
+          "name": "Whole milk",
+          "amount": 250,
+          "unit": "ml"
+        }
+      ],
+      "steps": [
+        {
+          "step": 1,
+          "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+        },
+        {
+          "step": 2,
+          "description": "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+        },
+        {
+          "step": 3,
+          "description": "Ut enim ad minim veniam, quis nostrud exercitation ullamco."
+        },
+        {
+          "step": 4,
+          "description": "Duis aute irure dolor in reprehenderit in voluptate velit esse."
+        },
+        {
+          "step": 5,
+          "description": "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+        }
+      ]
+    },
+    {
+      "id": "nCifmtG4WI5ypBEl7Pfe",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "prepTime": "30",
+      "difficulty": "hard",
+      "category": "Italiano",
+      "image": "https://plus.unsplash.com/premium_photo-1692193554212-6a27903ab9c4?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "title": "Pancakes Americano",
+      "nutrition": {
+        "calories": ""
+      },
+      "calories": "",
+      "showTagsPanel": true,
+      "cookTime": "68",
+      "servings": "",
+      "tags": [],
+      "ingredients": [
+        {
+          "unit": "cups",
+          "name": "All-purpose flour",
+          "amount": 2,
+          "id": "1"
+        },
+        {
+          "name": "Sugar",
+          "amount": 1,
+          "id": "2",
+          "unit": "cup"
+        },
+        {
+          "id": "3",
+          "amount": 200,
+          "name": "Butter",
+          "unit": "g"
+        },
+        {
+          "amount": 2,
+          "unit": "pieces",
+          "id": "4",
+          "name": "Eggs"
+        },
+        {
+          "id": "5",
+          "unit": "cup",
+          "amount": 1,
+          "name": "Milk"
+        }
+      ],
+      "position": 9,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ]
+    },
+    {
+      "id": "ql1Wkmmk62svCYySN4GY",
+      "description": "Master the art of pizza-making with this foolproof pizza dough recipe! Perfectly soft and chewy with just the right amount of crisp, this dough is your ticket to crafting homemade pizzas that rival your favorite pizzeria. Whether you prefer classic margherita or bold gourmet toppings, this versatile base is ready to bring your culinary creations to life.",
+      "prepTime": "20mins",
+      "cookTime": "3mins",
+      "difficulty": "easy",
+      "calories": "",
+      "category": "Naughty",
+      "showTagsPanel": true,
+      "image": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-images%2F1734573738713-45ABD5D0-780D-4E0B-9BA6-0A6A432BFD44.JPG?alt=media&token=3ec5e1f3-a6e4-4229-906c-ab59e2b652cb",
+      "title": "Focaccia Barese",
+      "video": {
+        "url": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-videos%2F1734581017183-pizza.MP4?alt=media&token=4366e026-e324-444c-ab91-399f520e2c93",
+        "size": 0,
+        "format": "mp4"
+      },
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "tags": [],
+      "ingredients": [
+        {
+          "unit": "cups",
+          "id": "1",
+          "name": "All-purpose flour",
+          "amount": 2
+        },
+        {
+          "unit": "cup",
+          "amount": 1,
+          "id": "2",
+          "name": "Sugar"
+        },
+        {
+          "id": "3",
+          "name": "Butter",
+          "unit": "g",
+          "amount": 200
+        },
+        {
+          "id": "4",
+          "unit": "pieces",
+          "amount": 2,
+          "name": "Eggs"
+        },
+        {
+          "name": "Milk",
+          "id": "5",
+          "unit": "cup",
+          "amount": 1
+        }
+      ],
+      "position": 7,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ]
+    },
+    {
+      "id": "qmy0p2f22sAAf9OV9IBQ",
+      "difficulty": "easy",
+      "image": "https://images.unsplash.com/photo-1541809570-cce873416d94?q=80&w=3174&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "nutrition": {
+        "calories": ""
+      },
+      "description": "Overnight oats are a quick, delicious, and nutrient-packed breakfast you prepare the night before. Simply mix oats, milk, and your favorite toppings like fruits, nuts, or spices, then let it chill in the fridge. By morning, you’ll have a creamy, ready-to-eat meal that’s perfect for busy mornings or a healthy grab-and-go option!",
+      "category": "",
+      "title": "Simple Overnight oats",
+      "calories": "",
+      "showTagsPanel": true,
+      "featured": true,
+      "servings": "",
+      "tags": [],
+      "cookTime": "",
+      "ingredients": [
+        {
+          "id": "1",
+          "name": "All-purpose flour",
+          "unit": "cups",
+          "amount": 2
+        },
+        {
+          "name": "Sugar",
+          "id": "2",
+          "unit": "cup",
+          "amount": 1
+        },
+        {
+          "name": "Butter",
+          "id": "3",
+          "amount": 200,
+          "unit": "g"
+        },
+        {
+          "name": "Eggs",
+          "id": "4",
+          "unit": "pieces",
+          "amount": 2
+        },
+        {
+          "unit": "cup",
+          "id": "5",
+          "name": "Milk",
+          "amount": 1
+        }
+      ],
+      "position": 12,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ],
+      "prepTime": ""
+    },
+    {
+      "id": "ul2AsVySFwNLFNmWiIWY",
+      "difficulty": "easy",
+      "cookTime": "10",
+      "prepTime": "10",
+      "category": "American",
+      "title": "Ohio Smash Burger",
+      "description": "This masterpiece starts with fresh, hand-pressed ground beef, smashed to crispy perfection on a blazing-hot griddle, creating that signature caramelized crust you crave. Topped with a melty blanket of American cheese, tangy pickles, and sweet and juicy grilled onions.",
+      "nutrition": {
+        "calories": ""
+      },
+      "calories": "",
+      "showTagsPanel": true,
+      "image": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-images%2F1735026986484-photo-1428660386617-8d277e7deaf2.avif?alt=media&token=d9e4bc92-cb6c-45c0-b2a2-3fb21e46ec8c",
+      "servings": "",
+      "ingredients": [
+        {
+          "id": "1",
+          "amount": 2,
+          "name": "All-purpose flour",
+          "unit": "cups"
+        },
+        {
+          "unit": "cup",
+          "name": "Sugar",
+          "id": "2",
+          "amount": 1
+        },
+        {
+          "unit": "g",
+          "id": "3",
+          "amount": 200,
+          "name": "Butter"
+        },
+        {
+          "id": "4",
+          "amount": 2,
+          "unit": "pieces",
+          "name": "Eggs"
+        },
+        {
+          "name": "Milk",
+          "amount": 1,
+          "unit": "cup",
+          "id": "5"
+        }
+      ],
+      "position": 10,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ],
+      "tags": [
+        33,
+        12
+      ]
+    },
+    {
+      "id": "yCxkX6ztM0Db300ibpfJ",
+      "title": "Ravioli",
+      "image": "https://images.unsplash.com/photo-1636475735446-bfc801fa6f2c?q=80&w=3570&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      "createdAt": {
+        "_seconds": 1733380994,
+        "_nanoseconds": 637000000
+      },
+      "updatedAt": {
+        "_seconds": 1733380994,
+        "_nanoseconds": 637000000
+      },
+      "difficulty": "hard",
+      "cookTime": "5",
+      "prepTime": "30",
+      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "category": "",
+      "nutrition": {
+        "calories": ""
+      },
+      "calories": "",
+      "showTagsPanel": true,
+      "servings": "",
+      "tags": [],
+      "ingredients": [
+        {
+          "name": "All-purpose flour",
+          "unit": "cups",
+          "amount": 2,
+          "id": "1"
+        },
+        {
+          "amount": 1,
+          "unit": "cup",
+          "id": "2",
+          "name": "Sugar"
+        },
+        {
+          "id": "3",
+          "name": "Butter",
+          "amount": 200,
+          "unit": "g"
+        },
+        {
+          "name": "Eggs",
+          "unit": "pieces",
+          "id": "4",
+          "amount": 2
+        },
+        {
+          "id": "5",
+          "name": "Milk",
+          "unit": "cup",
+          "amount": 1
+        }
+      ],
+      "position": 13,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ]
+    },
+    {
+      "id": "zj9ZvQwzgic6jOa4mjoP",
+      "difficulty": "easy",
+      "category": "Naughty",
+      "cookTime": "3mins",
+      "prepTime": "20mins",
+      "title": "Pizza Dough",
+      "description": "Master the art of pizza-making with this foolproof pizza dough recipe! Perfectly soft and chewy with just the right amount of crisp, this dough is your ticket to crafting homemade pizzas that rival your favorite pizzeria. Whether you prefer classic margherita or bold gourmet toppings, this versatile base is ready to bring your culinary creations to life.",
+      "showTagsPanel": true,
+      "image": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-images%2F1734573275024-IMG_4256.jpg?alt=media&token=3d0bf68f-caf9-4360-9405-851010381d7b",
+      "calories": "",
+      "video": {
+        "url": "https://firebasestorage.googleapis.com/v0/b/cucina-recipe-app.firebasestorage.app/o/recipe-videos%2F1734642142051-pizza.MP4?alt=media&token=c4d99088-b4ef-4b1b-a604-5ae698403167",
+        "size": 31305573,
+        "format": "mp4"
+      },
+      "nutrition": {
+        "calories": ""
+      },
+      "servings": "",
+      "tags": [],
+      "ingredients": [
+        {
+          "id": "1",
+          "unit": "cups",
+          "name": "All-purpose flour",
+          "amount": 2
+        },
+        {
+          "unit": "cup",
+          "id": "2",
+          "name": "Sugar",
+          "amount": 1
+        },
+        {
+          "amount": 200,
+          "name": "Butter",
+          "unit": "g",
+          "id": "3"
+        },
+        {
+          "name": "Eggs",
+          "amount": 2,
+          "id": "4",
+          "unit": "pieces"
+        },
+        {
+          "unit": "cup",
+          "amount": 1,
+          "id": "5",
+          "name": "Milk"
+        }
+      ],
+      "position": 14,
+      "steps": [
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+        "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        "Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+        "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+      ]
+    }
+  ]
+}

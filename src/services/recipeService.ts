@@ -72,7 +72,9 @@ export const updateRecipe = async (id: string, data: Partial<Recipe>): Promise<v
   const recipeRef = doc(db, 'recipes', id);
   await updateDoc(recipeRef, {
     ...data,
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    // Ensure tags are stored as strings
+    tags: data.tags?.map(tag => typeof tag === 'object' ? tag.id : tag) || []
   });
 };
 
