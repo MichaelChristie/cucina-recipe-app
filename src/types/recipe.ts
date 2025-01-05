@@ -1,15 +1,17 @@
+import { VideoMetadata } from './shared';
+
 export interface Recipe {
   id: string;
   title: string;
   description: string;
-  image?: string;
+  image: string;
   imageCaption?: string;
-  prepTime?: number;
-  cookTime?: number;
-  difficulty?: string;
+  prepTime: string;
+  cookTime: string;
+  difficulty: string;
   servings?: number;
-  tags?: string[];
-  ingredients?: Array<{
+  tags: string[];
+  ingredients: Array<{
     ingredientId: string;
     amount: number;
     unit: string;
@@ -17,12 +19,20 @@ export interface Recipe {
     type: 'divider';
     label: string;
   }>;
-  steps?: Step[];
+  steps: Step[];
   position?: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
   featured?: boolean;
   shortDescription?: string;
+  video: VideoMetadata | null;
+  authorId: string;
+  nutrition: {
+    calories: string | number;
+    protein?: string | number;
+    carbs?: string | number;
+    fat?: string | number;
+  };
 }
 
 export interface Step {

@@ -1,38 +1,6 @@
-export interface Recipe {
-  id: string;
-  title: string;
-  description: string;
-  ingredients: Ingredient[];
-  instructions: string[];
-  cookingTime: number;
-  servings: number;
-  imageUrl?: string;
-  authorId: string;
-  createdAt: Date;
-  updatedAt: Date;
-  position?: number;
-}
-
-export interface Ingredient {
-  id: string;
-  name: string;
-  amount: number;
-  unit: string;
-}
-
-export interface User {
-  id: string;
-  displayName: string;
-  email: string;
-  photoURL?: string;
-  favorites: string[]; // Recipe IDs
-}
-
-export interface FirebaseConfig {
-  apiKey: string;
-  authDomain: string;
-  projectId: string;
-  storageBucket: string;
-  messagingSenderId: string;
-  appId: string;
-} 
+export { Recipe, Step, RecipeIngredient, IngredientDivider } from './recipe';
+export { Tag, Ingredient, User as AdminUser, TagCategory, TAG_CATEGORIES } from './admin';
+export { VideoMetadata } from './shared';
+export { User, AuthContextType } from './auth';
+export { FirebaseConfig } from './firebase';
+export { EditorRecipe, EditorIngredient, EditorStep } from './editor'; 
