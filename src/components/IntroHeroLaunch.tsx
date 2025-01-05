@@ -132,20 +132,6 @@ const IntroHeroLaunch: FC = () => {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute bottom-0 left-0 right-0 h-[50%] bg-gradient-to-t from-black/40 to-transparent" />
-                  <div className="absolute bottom-4 left-4 flex gap-2">
-                    {recipe.tags?.slice(0, 3).map(tagId => {
-                      const tag = tags.find(t => t.id === tagId);
-                      return tag ? (
-                        <span
-                          key={tag.id}
-                          className="inline-flex items-center px-2 py-1 rounded-full 
-                                   text-xs bg-white/10 text-white"
-                        >
-                          {tag.emoji} {tag.name}
-                        </span>
-                      ) : null;
-                    })}
-                  </div>
                 </div>
 
                 {/* Recipe Info Card */}
