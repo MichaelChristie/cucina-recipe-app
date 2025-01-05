@@ -12,13 +12,20 @@
     "clear-tags": "tsx src/scripts/clearTags.ts"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.13",
+    "@ffmpeg/util": "^0.12.1",
     "@headlessui/react": "^1.7.17",
+    "@hello-pangea/dnd": "^17.0.0",
     "@heroicons/react": "^2.0.18",
+    "@mdxeditor/editor": "^3.20.0",
     "@tailwindcss/forms": "^0.5.7",
     "firebase": "^10.7.1",
     "firebase-admin": "^12.0.0",
+    "marked": "^15.0.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.5.1",
+    "react-icons": "^5.4.0",
     "react-router-dom": "^6.21.0",
     "react-toastify": "^9.1.3"
   },
