@@ -116,7 +116,14 @@ const App: FC = () => {
               </ProtectedRoute>
             } 
           />
-          <Route path="/admin/tags" element={<TagManager />} />
+          <Route 
+            path="/admin/tags" 
+            element={
+              <ProtectedRoute>
+                <TagManager />
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/admin/ingredients" 
             element={

@@ -15,10 +15,10 @@ import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 import { marked } from 'marked';
 import Layout from '../components/Layout';
 import { Recipe, IngredientType, Tag } from '../types/admin';
-import { getRecipeById } from '../services/recipeService';
-import { getTags } from '../services/tagService';
-import { getIngredients } from '../services/ingredientService';
-import { getCategoryFromTags } from '../utils/tagUtils';
+import { getRecipeById } from '../services/recipeService.ts';
+import { getTags } from '../services/tagService.ts';
+import { getIngredients } from '../services/ingredientService.ts';
+import { getCategoryFromTags, getValidTags } from '../utils/tagUtils';
 import Ingredient from '../components/Ingredient';
 import UnitToggle from '../components/UnitToggle';
 import { auth } from '../config/firebase';
@@ -87,7 +87,7 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
 
   const adjustServings = (increment: boolean) => {
     setServings(prev => {
-      const newValue = increment ? prev + 1 : prev - 1;
+      const newValue = increment ? prev + 2 : prev - 2;
       return Math.max(1, newValue); // Prevent going below 1
     });
   };
@@ -179,25 +179,16 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
             {/* Tags Section - Moved outside and above the green panel */}
             {recipe.tags?.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-6 mb-8">
-                {recipe.tags
-                  .map(tagId => {
-                    // Handle both cases where tagId might be an object or a string
-                    if (typeof tagId === 'object' && tagId !== null) {
-                      return tagId; // It's already a tag object
-                    }
-                    return allTags.find(t => t.id === tagId);
-                  })
-                  .filter((tag): tag is Tag => tag !== null && tag !== undefined)
-                  .map(tag => (
-                    <span
-                      key={tag.id}
-                      className="inline-flex items-center shrink-0 px-2 py-1 rounded-full 
+                {getValidTags(recipe.tags, allTags).map(tag => (
+                  <span
+                    key={tag.id}
+                    className="inline-flex items-center shrink-0 px-2 py-1 rounded-full 
                                text-xs font-medium bg-olive-50 text-olive-600"
-                    >
-                      {tag.emoji && <span className="mr-1">{tag.emoji}</span>}
-                      {tag.name}
-                    </span>
-                  ))}
+                  >
+                    {tag.emoji && <span className="mr-1">{tag.emoji}</span>}
+                    {tag.name}
+                  </span>
+                ))}
               </div>
             )}
 

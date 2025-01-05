@@ -24,7 +24,8 @@ const RecipeGrid: FC<RecipeGridProps> = ({
     const matchesTags = selectedTags.length === 0 || selectedTags.some(selectedTagId => 
       recipe.tags?.some(recipeTag => {
         const recipeTagId = typeof recipeTag === 'object' ? recipeTag.id : recipeTag;
-        return String(recipeTagId) === String(selectedTagId);
+        const tag = tags.find(t => String(t.id) === String(recipeTagId));
+        return tag?.active && String(recipeTagId) === String(selectedTagId);
       })
     );
 

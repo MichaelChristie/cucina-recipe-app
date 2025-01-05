@@ -2,7 +2,7 @@ import { FC, useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
-import { getRecipeById, updateRecipe, addRecipe, deleteRecipe } from '../../services/recipeService';
+import { getRecipeById, updateRecipe, addRecipe, deleteRecipe } from '../../services/recipeService.ts';
 import AdminLayout from '../../components/AdminLayout';
 import { 
   ChevronLeftIcon, TagIcon, 
@@ -29,8 +29,8 @@ import {
   imagePlugin
 } from '@mdxeditor/editor';
 import '@mdxeditor/editor/style.css';
-import { getTags } from '../../services/tagService';
-import { getIngredients, addIngredient as addIngredientToDb } from '../../services/ingredientService';
+import { getTags } from '../../services/tagService.ts';
+import { getIngredients, addIngredient as addIngredientToDb } from '../../services/ingredientService.ts';
 import { EditorRecipe, EditorIngredient, StickyFooterProps, AddIngredientModalProps } from '../../types/editor';
 import { Tag, Ingredient } from '../../types/admin';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -959,7 +959,9 @@ const RecipeEditor: FC = () => {
 
   useEffect(() => {
     const loadTags = async () => {
+      console.log('Loading tags in RecipeEditor...');
       const fetchedTags = await getTags();
+      console.log('Fetched tags:', fetchedTags);
       setTags(fetchedTags);
     };
     loadTags();
@@ -1501,15 +1503,21 @@ const RecipeEditor: FC = () => {
             <div className="bg-white rounded-lg shadow-sm">
               <button
                 type="button"
-                onClick={() => setRecipe(prev => ({ ...prev, showTagsPanel: !prev.showTagsPanel }))}
+                onClick={() => {
+                  console.log('Current recipe tags:', recipe.tags);
+                  console.log('Available tags:', tags);
+                  setRecipe(prev => ({ ...prev, showTagsPanel: !prev.showTagsPanel }));
+                }}
                 className="w-full px-4 py-3 flex items-center justify-between text-left"
               >
                 <div className="flex items-center gap-3">
-
                   <div className="flex flex-wrap gap-1">
                     {recipe.tags?.length > 0 ? (
                       tags
-                        .filter(tag => recipe.tags.includes(tag.id))
+                        .filter(tag => {
+                          console.log('Checking tag:', tag, 'Active:', tag.active, 'Included:', recipe.tags.includes(tag.id));
+                          return tag.active && recipe.tags.includes(tag.id);
+                        })
                         .map(tag => (
                           <span
                             key={tag.id}
@@ -1537,7 +1545,10 @@ const RecipeEditor: FC = () => {
                   {/* Tag Categories Grid */}
                   <div className="grid grid-cols-5 gap-4 mb-4">
                     {Object.entries(
-                      tags.reduce((acc, tag) => {
+                      tags.filter(tag => {
+                        console.log('Filtering tag for panel:', tag, 'Active:', tag.active);
+                        return tag.active;
+                      }).reduce((acc, tag) => {
                         if (!acc[tag.category]) acc[tag.category] = [];
                         acc[tag.category].push(tag);
                         return acc;

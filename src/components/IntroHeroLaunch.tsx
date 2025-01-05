@@ -1,16 +1,16 @@
 import { FC, useState, useEffect } from 'react';
 import RecipeGrid from './RecipeGrid';
-import { getTags } from '../services/tagService';
-import { getRecipes } from '../services/recipeService';
+import { getTags } from '../services/tagService.ts';
+import { getRecipes } from '../services/recipeService.ts';
 import { Tag, Recipe } from '../types/admin';
 import { Popover } from '@headlessui/react';
 import { ChevronDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpRightIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import IngredientSearch from './IngredientSearch';
-import { getIngredients } from '../services/ingredientService';
+import { getIngredients } from '../services/ingredientService.ts';
 import { Ingredient } from '../types/recipe';
-import { PiLeafLight, PiForkKnife, PiChefHat, PiCarrot } from "react-icons/pi";
-import { HiOutlineGlobeEuropeAfrica, HiOutlineSparkles } from "react-icons/hi2";
+import { PiLeafLight, PiForkKnife, PiChefHat, PiCarrot, PiCookingPot, PiSunHorizon } from "react-icons/pi";
+import { HiOutlineGlobeEuropeAfrica } from "react-icons/hi2";
 
 interface FilterSection {
   name: string;
@@ -19,11 +19,12 @@ interface FilterSection {
 }
 
 const filterSections: FilterSection[] = [
-  { name: 'Diet', icon: <PiLeafLight className="w-5 h-5" />, category: 'diet' },
-  { name: 'Meal', icon: <PiForkKnife className="w-5 h-5" />, category: 'meal' },
+  { name: 'Meal Type', icon: <PiForkKnife className="w-5 h-5" />, category: 'meal type' },
   { name: 'Cuisine', icon: <HiOutlineGlobeEuropeAfrica className="w-5 h-5" />, category: 'cuisine' },
+  { name: 'Dietary', icon: <PiLeafLight className="w-5 h-5" />, category: 'dietary' },
   { name: 'Style', icon: <PiChefHat className="w-5 h-5" />, category: 'style' },
-  { name: 'Special', icon: <HiOutlineSparkles className="w-5 h-5" />, category: 'special' },
+  { name: 'Season', icon: <PiSunHorizon className="w-5 h-5" />, category: 'season' },
+  { name: 'Method', icon: <PiCookingPot className="w-5 h-5" />, category: 'method' },
 ];
 
 const IntroHeroLaunch: FC = () => {
@@ -131,6 +132,20 @@ const IntroHeroLaunch: FC = () => {
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute bottom-0 left-0 right-0 h-[50%] bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute bottom-4 left-4 flex gap-2">
+                    {recipe.tags?.slice(0, 3).map(tagId => {
+                      const tag = tags.find(t => t.id === tagId);
+                      return tag ? (
+                        <span
+                          key={tag.id}
+                          className="inline-flex items-center px-2 py-1 rounded-full 
+                                   text-xs bg-white/10 text-white"
+                        >
+                          {tag.emoji} {tag.name}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
                 </div>
 
                 {/* Recipe Info Card */}
@@ -142,8 +157,21 @@ const IntroHeroLaunch: FC = () => {
                         className="group block bg-black/0 backdrop-blur-sm rounded-xl p-6 
                                  hover:bg-black/10 transition-colors"
                       >
+                        {/* Title and Arrow Section */}
+                        <div className="flex items-center justify-between mb-2">
+                          <h1 className="text-1xl font-display text-white">
+                            {recipe.title}
+                          </h1>
+                          <ArrowUpRightIcon className="w-4 h-4 text-white" />
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-sm text-white/80 line-clamp-2 mb-3">
+                          {recipe.description}
+                        </p>
+
                         {/* Recipe Tags */}
-                        <div className="flex gap-2 mb-1">
+                        <div className="flex gap-2">
                           {recipe.tags?.slice(0, 3).map(tagId => {
                             const tag = tags.find(t => t.id === tagId);
                             return tag ? (
@@ -157,19 +185,6 @@ const IntroHeroLaunch: FC = () => {
                             ) : null;
                           })}
                         </div>
-
-                        {/* Title and Arrow Section */}
-                        <div className="flex items-center justify-between mb-2">
-                          <h1 className="text-1xl font-display text-white">
-                            {recipe.title}
-                          </h1>
-                          <ArrowUpRightIcon className="w-4 h-4 text-white" />
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-sm text-white/80 line-clamp-2">
-                          {recipe.description}
-                        </p>
                       </Link>
                     </div>
                   </div>
@@ -187,8 +202,44 @@ const IntroHeroLaunch: FC = () => {
               
               <div className="">
                 {/* Tag Filter Buttons */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                  {filterSections.map((section) => (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+                  {filterSections.slice(0, 3).map((section) => (
+                    <Popover key={section.category} className="relative w-full">
+                      <Popover.Button className="w-full flex items-center justify-between px-4 py-2 rounded-lg 
+                                             bg-white/10 backdrop-blur-sm text-gray-900 hover:bg-white/20
+                                             transition-colors focus:outline-none">
+                        <div className="flex items-center gap-2">
+                          {section.icon}
+                          <span>{section.name}</span>
+                        </div>
+                        <ChevronDownIcon className="w-4 h-4" />
+                      </Popover.Button>
+
+                      <Popover.Panel className="absolute z-[60] mt-2 w-56 bg-white rounded-lg shadow-lg p-2">
+                        <div className="space-y-2">
+                          {groupedTags[section.category]?.map((tag) => (
+                            <label
+                              key={tag.id}
+                              className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedTags.has(String(tag.id))}
+                                onChange={() => toggleTag(String(tag.id))}
+                                className="rounded border-gray-300 text-forest-800
+                                        focus:ring-forest-800"
+                              />
+                              <span className="mr-2">{tag.emoji}</span>
+                              <span className="text-sm text-gray-900">{tag.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </Popover.Panel>
+                    </Popover>
+                  ))}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  {filterSections.slice(3).map((section) => (
                     <Popover key={section.category} className="relative w-full">
                       <Popover.Button className="w-full flex items-center justify-between px-4 py-2 rounded-lg 
                                              bg-white/10 backdrop-blur-sm text-gray-900 hover:bg-white/20
@@ -227,20 +278,42 @@ const IntroHeroLaunch: FC = () => {
                 {/* Ingredient Search */}
                 <div className="mt-4">
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                      <PiCarrot className="h-5 w-5 text-gray-800" weight="light" />
-                    </div>
+
                     <IngredientSearch
                       ingredients={ingredients}
                       selectedIngredients={selectedIngredients}
                       onSelectIngredient={handleSelectIngredient}
                       onRemoveIngredient={handleRemoveIngredient}
-                      className="w-full pl-10 pr-2 py-2 rounded-lg
+                      className="w-full pl-2 pr-2 py-2 rounded-lg
                                 bg-white/80  border-0
                                 text-gray-900 placeholder:text-gray-500
                                 focus:ring-2 focus:ring-inset focus:ring-forest-600"
                       placeholder="Search ingredients..."
                     />
+                  </div>
+                  
+                  {/* Selected Items Display */}
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {/* Selected Tags */}
+                    {Array.from(selectedTags).map((tagId) => {
+                      const tag = tags.find(t => String(t.id) === tagId);
+                      if (!tag) return null;
+                      return (
+                        <span
+                          key={tag.id}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm 
+                                   bg-tasty-background text-gray-900"
+                        >
+                          <span>{tag.emoji} {tag.name}</span>
+                          <button
+                            onClick={() => toggleTag(String(tag.id))}
+                            className="ml-1 hover:text-gray-600"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

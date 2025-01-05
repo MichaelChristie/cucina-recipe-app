@@ -4,6 +4,7 @@ import { Recipe, Tag } from '../types';
 import { HeartIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 import { auth } from '../config/firebase';
+import { getValidTags } from '../utils/tagUtils';
 
 interface CardProps {
   recipe: Recipe;
@@ -15,14 +16,7 @@ interface CardProps {
 const Card: FC<CardProps> = ({ recipe, tags, isFavorite = false, onToggleFavorite }) => {
   const isAuthenticated = auth.currentUser !== null;
 
-  const recipeTags = (recipe.tags || [])
-    .map(tagId => {
-      if (typeof tagId === 'object' && tagId !== null) {
-        return tagId;
-      }
-      return tags.find(t => String(t.id) === String(tagId));
-    })
-    .filter((tag): tag is Tag => tag !== null && tag !== undefined);
+  const recipeTags = getValidTags(recipe.tags || [], tags);
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -83,18 +77,20 @@ const Card: FC<CardProps> = ({ recipe, tags, isFavorite = false, onToggleFavorit
               {recipe.description}
             </p>
 
-            <div className="flex flex-wrap gap-1.5">
-              {recipeTags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="inline-flex items-center shrink-0 px-1.5 py-0.5 rounded-full 
-                           text-xs font-medium bg-olive-50 text-olive-600"
-                >
-                  {tag.emoji && <span className="mr-0.5">{tag.emoji}</span>}
-                  {tag.name}
-                </span>
-              ))}
-            </div>
+            {recipe.tags && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {getValidTags(recipe.tags, tags).map(tag => (
+                  <span
+                    key={tag.id}
+                    className="inline-flex items-center px-2 py-0.5 rounded-full 
+                               text-xs font-medium bg-olive-50 text-olive-600"
+                  >
+                    {tag.emoji && <span className="mr-1">{tag.emoji}</span>}
+                    {tag.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </Link>

@@ -19,4 +19,17 @@ export const getCategoryFromTags = (recipeTags: string[], allTags: Tag[]): strin
 // If you have other tag-related utility functions, they can go here
 export const getPriorityTags = (recipeTags: string[], allTags: Tag[]): Tag[] => {
   return allTags.filter(tag => recipeTags.includes(tag.id));
+};
+
+export const getValidTags = (recipeTags: (string | Tag)[], allTags: Tag[]): Tag[] => {
+  return recipeTags
+    .map(tagId => {
+      // Handle case where tagId might be an object or string
+      if (typeof tagId === 'object' && tagId !== null) {
+        return tagId.active ? tagId : null;
+      }
+      const tag = allTags.find(t => t.id === tagId);
+      return tag?.active ? tag : null;
+    })
+    .filter((tag): tag is Tag => tag !== null && tag !== undefined);
 }; 

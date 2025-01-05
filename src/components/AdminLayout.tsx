@@ -1,6 +1,15 @@
 import { FC } from 'react';
 import Layout from './Layout';
 import { AdminLayoutProps } from '../types/admin';
+import { HomeIcon, BookOpenIcon, TagIcon, BeakerIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/outline';
+
+const navigation = [
+  { name: 'Dashboard', href: '/admin', icon: HomeIcon },
+  { name: 'Recipes', href: '/admin/recipes', icon: BookOpenIcon },
+  { name: 'Tags', href: '/admin/tags', icon: TagIcon },
+  { name: 'Ingredients', href: '/admin/ingredients', icon: BeakerIcon },
+  { name: 'Utils', href: '/admin/utils', icon: WrenchScrewdriverIcon },
+];
 
 const AdminLayout: FC<AdminLayoutProps> = ({ children }) => {
   return (

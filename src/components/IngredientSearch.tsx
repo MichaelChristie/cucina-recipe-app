@@ -1,5 +1,5 @@
 import { FC, useState, useRef, KeyboardEvent, useEffect } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 import { Ingredient } from '../types/recipe';
 
 interface Props {
@@ -23,6 +23,7 @@ const IngredientSearch: FC<Props> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Filter ingredients based on search term
   const filteredIngredients = ingredients
     .filter(ingredient => 
       ingredient.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -30,78 +31,69 @@ const IngredientSearch: FC<Props> = ({
     )
     .slice(0, 5);
 
-  // Reset highlighted index when filtered ingredients change
+  // Reset highlighted index when search term changes
   useEffect(() => {
     setHighlightedIndex(0);
   }, [searchTerm]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    // Handle backspace to remove last chip when input is empty
+    console.log('Key pressed:', e.key);
+    console.log('Current highlighted index:', highlightedIndex);
+    console.log('Filtered ingredients:', filteredIngredients);
+    console.log('Show suggestions:', showSuggestions);
+    
+    if (filteredIngredients.length > 0) {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          const nextIndex = highlightedIndex < filteredIngredients.length - 1 ? highlightedIndex + 1 : 0;
+          console.log('Setting highlighted index to:', nextIndex);
+          setShowSuggestions(true);
+          setHighlightedIndex(nextIndex);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          const prevIndex = highlightedIndex > 0 ? highlightedIndex - 1 : filteredIngredients.length - 1;
+          console.log('Setting highlighted index to:', prevIndex);
+          setShowSuggestions(true);
+          setHighlightedIndex(prevIndex);
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (showSuggestions && filteredIngredients[highlightedIndex]) {
+            onSelectIngredient(filteredIngredients[highlightedIndex]);
+            setSearchTerm('');
+            setShowSuggestions(false);
+            setHighlightedIndex(0);
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          setShowSuggestions(false);
+          setHighlightedIndex(0);
+          break;
+      }
+    }
+
+    // Handle backspace for removing last ingredient
     if (e.key === 'Backspace' && searchTerm === '' && selectedIngredients.length > 0) {
       e.preventDefault();
       onRemoveIngredient(selectedIngredients[selectedIngredients.length - 1].id);
-      return;
-    }
-
-    // Only handle navigation keys if we have suggestions
-    if (filteredIngredients.length === 0) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setShowSuggestions(true);
-        setHighlightedIndex(prev => 
-          prev < filteredIngredients.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setShowSuggestions(true);
-        setHighlightedIndex(prev => 
-          prev > 0 ? prev - 1 : filteredIngredients.length - 1
-        );
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (showSuggestions && filteredIngredients[highlightedIndex]) {
-          onSelectIngredient(filteredIngredients[highlightedIndex]);
-          setSearchTerm('');
-          setShowSuggestions(false);
-        }
-        break;
-      case 'Escape':
-        e.preventDefault();
-        setShowSuggestions(false);
-        inputRef.current?.blur();
-        break;
     }
   };
 
   return (
-    <div className={`mt-4 relative ${className}`}>
+    <div className={`mt-4 relative p-0`}>
       <div className="relative">
         <div className="min-h-[42px] w-full flex flex-wrap items-center gap-2 p-2 
-                        rounded-lg 
-                       focus-within:ring-1 focus-within:ring-forest-800/30 
-                       focus-within:border-forest-800/50 transition-all duration-200">
+                      rounded-lg bg-white
+                      focus-within:ring-2 focus-within:ring-sage-600 focus-within:border-sage-600
+                      transition-all duration-150">
           {selectedIngredients.map((ingredient) => (
             <span
               key={ingredient.id}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 
-                       bg-forest-100 text-forest-800 text-sm rounded-full
-                       ring-1 ring-forest-200/30"
+                       bg-sage-50 text-sage-600 text-sm rounded-full"
             >
               <span className="flex items-center gap-1.5">
                 <span>{ingredient.emoji}</span>
@@ -116,54 +108,57 @@ const IngredientSearch: FC<Props> = ({
               </button>
             </span>
           ))}
-          <input
-            ref={inputRef}
-            type="text"
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setShowSuggestions(true);
-              setHighlightedIndex(0);
-            }}
-            onKeyDown={handleKeyDown}
-            onFocus={() => setShowSuggestions(true)}
-            placeholder={selectedIngredients.length === 0 ? "Search ingredients..." : ""}
-            className="flex-1 min-w-[120px] outline-none bg-transparent 
-                     placeholder-gray-400 text-gray-900"
-          />
+          
+          <div className="flex items-center flex-1 min-w-[120px]">
+            <input
+              ref={inputRef}
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => {
+                // Delay hiding suggestions to allow for click events
+                setTimeout(() => setShowSuggestions(false), 200);
+              }}
+              placeholder="Filter by ingredients..."
+              className="w-full outline-none bg-transparent 
+                       placeholder-gray-400 text-gray-900"
+            />
+            <AdjustmentsHorizontalIcon className="w-5 h-5 text-gray-900 ml-2" />
+          </div>
         </div>
 
         {/* Suggestions Dropdown */}
-        {showSuggestions && searchTerm && (
+        {showSuggestions && searchTerm && filteredIngredients.length > 0 && (
           <div 
             ref={dropdownRef}
             className="absolute z-50 w-full mt-1 bg-white border border-gray-200 
                      rounded-lg shadow-lg max-h-60 overflow-auto"
           >
-            {filteredIngredients.length > 0 ? (
-              filteredIngredients.map((ingredient, index) => (
-                <button
-                  key={ingredient.id}
-                  className={`w-full px-4 py-2.5 text-left hover:bg-forest-50 
-                           flex items-center gap-3 transition-colors duration-150
-                           ${index === highlightedIndex ? 'bg-forest-50' : ''}`}
-                  onClick={() => {
-                    onSelectIngredient(ingredient);
-                    setSearchTerm('');
-                    setShowSuggestions(false);
-                    inputRef.current?.focus();
-                  }}
-                  onMouseEnter={() => setHighlightedIndex(index)}
-                >
-                  <span className="text-lg">{ingredient.emoji}</span>
-                  <span className="text-gray-900">{ingredient.name}</span>
-                </button>
-              ))
-            ) : (
-              <div className="px-4 py-3 text-gray-500 text-sm">
-                No ingredients found
-              </div>
-            )}
+            {filteredIngredients.map((ingredient, index) => (
+              <button
+                key={ingredient.id}
+                className={`w-full px-4 py-2.5 text-left 
+                         flex items-center gap-3 transition-colors duration-150
+                         ${index === highlightedIndex 
+                           ? 'bg-sage-50 text-sage-600 font-medium' 
+                           : 'text-gray-900 hover:bg-sage-50/50'}`}
+                onClick={() => {
+                  onSelectIngredient(ingredient);
+                  setSearchTerm('');
+                  setShowSuggestions(false);
+                  inputRef.current?.focus();
+                }}
+                onMouseEnter={() => setHighlightedIndex(index)}
+              >
+                <span>{ingredient.emoji}</span>
+                <span>{ingredient.name}</span>
+              </button>
+            ))}
           </div>
         )}
       </div>
