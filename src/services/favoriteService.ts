@@ -1,31 +1,29 @@
-import { db } from '../config/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth } from '../config/firebase';
+import { db } from '../firebase/config';
+import { doc, getDoc, setDoc, DocumentReference } from 'firebase/firestore';
+import { auth } from '../firebase/config';
+
+interface UserData {
+  favorites: string[];
+  [key: string]: any;
+}
 
 export const favoriteService = {
   async toggleFavorite(recipeId: string): Promise<boolean> {
     const user = auth.currentUser;
-    if (!user) return false;
+    if (!user) throw new Error('User must be authenticated');
 
-    const userDocRef = doc(db, 'users', user.uid);
+    const userDocRef: DocumentReference<UserData> = doc(db, 'users', user.uid) as DocumentReference<UserData>;
     
     try {
-      // Get current user data
       const userDoc = await getDoc(userDocRef);
-      const userData = userDoc.data() || {};
+      const userData = userDoc.data() || { favorites: [] };
       const favorites = userData.favorites || [];
       
-      // Toggle favorite
       const isFavorited = favorites.includes(recipeId);
-      let newFavorites;
+      const newFavorites = isFavorited
+        ? favorites.filter(id => id !== recipeId)
+        : [...favorites, recipeId];
       
-      if (isFavorited) {
-        newFavorites = favorites.filter((id: string) => id !== recipeId);
-      } else {
-        newFavorites = [...favorites, recipeId];
-      }
-      
-      // Update user document
       await setDoc(userDocRef, {
         ...userData,
         favorites: newFavorites
@@ -34,22 +32,22 @@ export const favoriteService = {
       return !isFavorited;
     } catch (error) {
       console.error('Error toggling favorite:', error);
-      return false;
+      throw error;
     }
   },
 
-  async getFavorites(): Promise<string[]> {
+  async getFavorites(): Promise<Set<string>> {
     const user = auth.currentUser;
-    if (!user) return [];
+    if (!user) return new Set();
 
     try {
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
-      const userData = userDoc.data();
-      return userData?.favorites || [];
+      const userData = userDoc.data() as UserData | undefined;
+      return new Set(userData?.favorites || []);
     } catch (error) {
       console.error('Error getting favorites:', error);
-      return [];
+      return new Set();
     }
   }
 }; 

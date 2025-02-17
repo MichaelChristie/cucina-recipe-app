@@ -1,13 +1,23 @@
 import { FC } from 'react';
-import { Recipe } from '../../types';
+import { Recipe, Tag } from '../../types';
 
 interface RecipeCardProps {
   recipe: Recipe;
-  onFavorite?: (recipeId: string) => void;
+  tags: Tag[];
+  onFavorite?: (recipeId: string) => Promise<void>;
   isFavorited?: boolean;
+  loading?: boolean;
+  showTags?: boolean;
 }
 
-const RecipeCard: FC<RecipeCardProps> = ({ recipe, onFavorite, isFavorited }) => {
+const RecipeCard: FC<RecipeCardProps> = ({
+  recipe,
+  tags,
+  onFavorite,
+  isFavorited = false,
+  loading = false,
+  showTags = true
+}) => {
   const handleFavoriteClick = () => {
     if (onFavorite) {
       onFavorite(recipe.id);

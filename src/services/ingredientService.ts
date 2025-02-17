@@ -4,43 +4,28 @@ import { Ingredient } from '../types/recipe';
 
 const COLLECTION_NAME = 'ingredients';
 
+interface IngredientCreate extends Omit<Ingredient, 'id'> {}
+interface IngredientUpdate extends Partial<IngredientCreate> {}
+
 export const getIngredients = async (): Promise<Ingredient[]> => {
   const ingredientsSnapshot = await getDocs(collection(db, COLLECTION_NAME));
   return ingredientsSnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
-  })) as Ingredient[];
+  } as Ingredient));
 };
 
-export const addIngredient = async (ingredientData: Omit<Ingredient, 'id'>): Promise<Ingredient> => {
-  try {
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...ingredientData,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-
-    return {
-      id: docRef.id,
-      ...ingredientData,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-  } catch (error) {
-    console.error('Error in addIngredient:', error);
-    throw error;
-  }
+export const addIngredient = async (ingredient: IngredientCreate): Promise<string> => {
+  const docRef = await addDoc(collection(db, COLLECTION_NAME), ingredient);
+  return docRef.id;
 };
 
-export const updateIngredient = async (id: string, ingredient: Partial<Ingredient>): Promise<void> => {
-  const docRef = doc(db, COLLECTION_NAME, id);
-  await updateDoc(docRef, {
-    ...ingredient,
-    updatedAt: new Date()
-  });
+export const updateIngredient = async (id: string, updates: IngredientUpdate): Promise<void> => {
+  const ingredientRef: DocumentReference = doc(db, COLLECTION_NAME, id);
+  await updateDoc(ingredientRef, updates);
 };
 
 export const deleteIngredient = async (id: string): Promise<void> => {
-  const docRef = doc(db, COLLECTION_NAME, id);
-  await deleteDoc(docRef);
+  const ingredientRef: DocumentReference = doc(db, COLLECTION_NAME, id);
+  await deleteDoc(ingredientRef);
 }; 

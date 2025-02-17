@@ -10,7 +10,10 @@ import {
   getDoc,
   writeBatch,
   limit,
-  setDoc
+  setDoc,
+  QueryDocumentSnapshot,
+  DocumentReference,
+  Timestamp
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { Recipe } from '../types';
@@ -79,76 +82,88 @@ const defaultIngredients = [
   { ingredientId: 'default8', name: 'Salt', amount: 1, unit: 'pinch' }
 ];
 
-export const getRecipes = async (): Promise<Recipe[]> => {
-  const recipesRef = collection(db, COLLECTION_NAME);
-  // Always query with position ordering
-  const q = query(recipesRef, orderBy('position', 'asc'));
-  const snapshot = await getDocs(q);
-  
-  const recipes = snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  })) as Recipe[];
+// Helper function to convert Firestore timestamps
+const convertTimestamps = (data: any) => {
+  return {
+    ...data,
+    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : data.createdAt,
+    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate() : data.updatedAt,
+  };
+};
 
-  return orderRecipesByPosition(recipes);
+export const getRecipes = async (): Promise<Recipe[]> => {
+  try {
+    const recipesQuery = query(
+      collection(db, COLLECTION_NAME),
+      orderBy('createdAt', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(recipesQuery);
+    return querySnapshot.docs.map((doc: QueryDocumentSnapshot) => ({
+      id: doc.id,
+      ...convertTimestamps(doc.data())
+    } as Recipe));
+  } catch (error) {
+    console.error('Error fetching recipes:', error);
+    throw error;
+  }
 };
 
 export const getRecipeById = async (id: string): Promise<Recipe | null> => {
-  const recipeRef = doc(db, COLLECTION_NAME, id);
-  const recipeDoc = await getDoc(recipeRef);
-  
-  if (!recipeDoc.exists()) {
-    return null;
+  try {
+    const recipeRef: DocumentReference = doc(db, COLLECTION_NAME, id);
+    const recipeDoc = await getDoc(recipeRef);
+    
+    if (!recipeDoc.exists()) {
+      return null;
+    }
+    
+    const data = recipeDoc.data();
+    return {
+      id: recipeDoc.id,
+      ...convertTimestamps(data)
+    } as Recipe;
+  } catch (error) {
+    console.error('Error fetching recipe:', error);
+    throw error;
   }
-  
-  return {
-    id: recipeDoc.id,
-    ...recipeDoc.data()
-  } as Recipe;
 };
 
-export const addRecipe = async (recipe: Partial<Recipe>): Promise<string> => {
-  const recipesRef = collection(db, COLLECTION_NAME);
-  
-  // Get the highest position value
-  const q = query(recipesRef, orderBy('position', 'desc'), limit(1));
-  const snapshot = await getDocs(q);
-  const highestPosition = snapshot.docs[0]?.data()?.position || 0;
-  
-  const docRef = await addDoc(recipesRef, {
-    ...recipe,
-    position: highestPosition + 1, // Place at the end
-    createdAt: new Date(),
-    updatedAt: new Date()
-  });
-  return docRef.id;
+export const addRecipe = async (recipe: Omit<Recipe, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+  try {
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+      ...recipe,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding recipe:', error);
+    throw error;
+  }
 };
 
-export const updateRecipe = async (id: string, data: Partial<Recipe>): Promise<void> => {
-  const recipeRef = doc(db, COLLECTION_NAME, id);
-  await updateDoc(recipeRef, {
-    ...data,
-    updatedAt: new Date(),
-    // Ensure tags are stored as strings
-    tags: data.tags?.map(tag => typeof tag === 'object' ? tag.id : tag) || []
-  });
+export const updateRecipe = async (id: string, updates: Partial<Recipe>): Promise<void> => {
+  try {
+    const recipeRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(recipeRef, {
+      ...updates,
+      updatedAt: new Date()
+    });
+  } catch (error) {
+    console.error('Error updating recipe:', error);
+    throw error;
+  }
 };
 
 export const deleteRecipe = async (id: string): Promise<void> => {
-  const recipeRef = doc(db, COLLECTION_NAME, id);
-  await deleteDoc(recipeRef);
-  
-  // Optionally reorder remaining recipes to close gaps
-  const recipesRef = collection(db, COLLECTION_NAME);
-  const q = query(recipesRef, orderBy('position', 'asc'));
-  const snapshot = await getDocs(q);
-  
-  const batch = writeBatch(db);
-  snapshot.docs.forEach((doc, index) => {
-    batch.update(doc.ref, { position: index + 1 });
-  });
-  
-  await batch.commit();
+  try {
+    const recipeRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(recipeRef);
+  } catch (error) {
+    console.error('Error deleting recipe:', error);
+    throw error;
+  }
 };
 
 export const reorderAllRecipes = async (): Promise<void> => {
