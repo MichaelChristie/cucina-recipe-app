@@ -6,38 +6,33 @@ import type { DropResult } from '@hello-pangea/dnd';
 import { getRecipes, updateRecipe, deleteRecipe } from '../../services/recipeService';
 import { PencilIcon, TrashIcon, DocumentDuplicateIcon, Bars3Icon, EyeIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { Recipe, RecipeIngredient, IngredientDivider, Difficulty } from '../../types/recipe';
-
-interface DashboardRecipe extends Pick<Recipe, 'id' | 'title' | 'description' | 'ingredients' | 'steps' | 'tags' | 'position' | 'image' | 'prepTime' | 'cookTime' | 'difficulty' | 'servings' | 'featured' | 'nutrition'> {}
+import { Recipe } from '../../types/recipe';
+import { asRecipe } from '../../utils/typeGuards';
+import { getDocs, collection } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 const Dashboard: FC = () => {
   const navigate = useNavigate();
-  const [recipes, setRecipes] = useState<DashboardRecipe[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchRecipes = async () => {
+      setLoading(true);
       try {
-        const recipesData = await getRecipes();
-        const formattedRecipes = recipesData.map((recipe: Recipe): DashboardRecipe => ({
-          id: recipe.id,
-          title: recipe.title,
-          description: recipe.description,
-          ingredients: recipe.ingredients,
-          steps: recipe.steps,
-          tags: recipe.tags,
-          position: recipe.position,
-          image: recipe.image,
-          prepTime: recipe.prepTime,
-          cookTime: recipe.cookTime,
-          difficulty: recipe.difficulty,
-          servings: recipe.servings,
-          featured: recipe.featured,
-          nutrition: recipe.nutrition
-        }));
-        setRecipes(formattedRecipes);
+        const recipesSnapshot = await getDocs(collection(db, 'recipes'));
+        const fetchedRecipes = recipesSnapshot.docs.map((doc) => {
+          const data = doc.data() as Omit<Recipe, 'id'>;
+          return {
+            ...data,
+            id: doc.id
+          };
+        });
+
+        setRecipes(fetchedRecipes);
       } catch (error) {
         console.error('Error fetching recipes:', error);
+        toast.error('Failed to load recipes');
       } finally {
         setLoading(false);
       }
@@ -58,7 +53,7 @@ const Dashboard: FC = () => {
     }
   };
 
-  const handleDuplicate = async (recipe: DashboardRecipe): Promise<void> => {
+  const handleDuplicate = async (recipe: Recipe): Promise<void> => {
     try {
       const duplicatedRecipe: Partial<Recipe> = {
         title: `${recipe.title} (Copy)`,
@@ -78,7 +73,8 @@ const Dashboard: FC = () => {
       await updateRecipe(recipe.id, duplicatedRecipe);
       toast.success('Recipe duplicated successfully');
       const recipesData = await getRecipes();
-      setRecipes(recipesData);
+      const formattedRecipes = recipesData.map(recipe => asRecipe(recipe));
+      setRecipes(formattedRecipes);
     } catch (error) {
       console.error('Error duplicating recipe:', error);
       toast.error('Failed to duplicate recipe');
@@ -92,10 +88,13 @@ const Dashboard: FC = () => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    const updatedItems = items.map((recipe, index) => ({
-      ...recipe,
-      position: index + 1
-    }));
+    const updatedItems = items.map((recipe, index) => {
+      const recipeData = recipe as Recipe;
+      return {
+        ...recipeData,
+        position: index + 1
+      };
+    });
 
     setRecipes(updatedItems);
 
@@ -110,7 +109,8 @@ const Dashboard: FC = () => {
       console.error('Error updating recipe positions:', error);
       toast.error('Failed to update recipe order');
       const recipesData = await getRecipes();
-      setRecipes(recipesData);
+      const formattedRecipes = recipesData.map(recipe => asRecipe(recipe));
+      setRecipes(formattedRecipes);
     }
   };
 

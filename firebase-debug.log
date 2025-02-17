@@ -1,0 +1,90 @@
+[debug] [2025-02-17T06:07:52.065Z] ----------------------------------------------------------------------
+[debug] [2025-02-17T06:07:52.066Z] Command:       /opt/homebrew/Cellar/node/23.6.1/bin/node /opt/homebrew/bin/firebase init
+[debug] [2025-02-17T06:07:52.066Z] CLI Version:   13.31.1
+[debug] [2025-02-17T06:07:52.066Z] Platform:      darwin
+[debug] [2025-02-17T06:07:52.066Z] Node Version:  v23.6.1
+[debug] [2025-02-17T06:07:52.066Z] Time:          Mon Feb 17 2025 19:07:52 GMT+1300 (New Zealand Daylight Time)
+[debug] [2025-02-17T06:07:52.066Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-02-17T06:07:52.127Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-02-17T06:07:52.127Z] > authorizing via signed-in user (michael@bizbo.co.nz)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/michaelchristie/devProjects/cucina-recipe-app
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-02-17T06:08:27.269Z] Using project from CLI flag: cucina-recipe-app
+[debug] [2025-02-17T06:08:27.269Z] Checked if tokens are valid: true, expires at: 1739775916060
+[debug] [2025-02-17T06:08:27.269Z] Checked if tokens are valid: true, expires at: 1739775916060
+[debug] [2025-02-17T06:08:27.270Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app [none]
+[debug] [2025-02-17T06:08:28.836Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app 403
+[debug] [2025-02-17T06:08:28.836Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2025-02-17T06:08:28.837Z] Request to https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app had HTTP Error: 403, The caller does not have permission
+[debug] [2025-02-17T06:08:29.133Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app had HTTP Error: 403, The caller does not have permission
+    at responseToError (/opt/homebrew/lib/node_modules/firebase-tools/lib/responseToError.js:52:12)
+    at RetryOperation._fn (/opt/homebrew/lib/node_modules/firebase-tools/lib/apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[error] 
+[error] Error: Failed to get Firebase project cucina-recipe-app. Please make sure the project exists and your account has permission to access it.
+[debug] [2025-02-17T06:08:33.310Z] ----------------------------------------------------------------------
+[debug] [2025-02-17T06:08:33.311Z] Command:       /opt/homebrew/Cellar/node/23.6.1/bin/node /opt/homebrew/bin/firebase init
+[debug] [2025-02-17T06:08:33.311Z] CLI Version:   13.31.1
+[debug] [2025-02-17T06:08:33.311Z] Platform:      darwin
+[debug] [2025-02-17T06:08:33.311Z] Node Version:  v23.6.1
+[debug] [2025-02-17T06:08:33.311Z] Time:          Mon Feb 17 2025 19:08:33 GMT+1300 (New Zealand Daylight Time)
+[debug] [2025-02-17T06:08:33.311Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-02-17T06:08:33.370Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-02-17T06:08:33.371Z] > authorizing via signed-in user (michael@bizbo.co.nz)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  /Users/michaelchristie/devProjects/cucina-recipe-app
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2025-02-17T06:10:59.562Z] Using project from CLI flag: cucina-recipe-app
+[debug] [2025-02-17T06:10:59.563Z] Checked if tokens are valid: true, expires at: 1739775916060
+[debug] [2025-02-17T06:10:59.563Z] Checked if tokens are valid: true, expires at: 1739775916060
+[debug] [2025-02-17T06:10:59.564Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app [none]
+[debug] [2025-02-17T06:11:00.230Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app 403
+[debug] [2025-02-17T06:11:00.230Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app {"error":{"code":403,"message":"The caller does not have permission","status":"PERMISSION_DENIED"}}
+[debug] [2025-02-17T06:11:00.231Z] Request to https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app had HTTP Error: 403, The caller does not have permission
+[debug] [2025-02-17T06:11:00.531Z] FirebaseError: Request to https://firebase.googleapis.com/v1beta1/projects/cucina-recipe-app had HTTP Error: 403, The caller does not have permission
+    at responseToError (/opt/homebrew/lib/node_modules/firebase-tools/lib/responseToError.js:52:12)
+    at RetryOperation._fn (/opt/homebrew/lib/node_modules/firebase-tools/lib/apiv2.js:312:77)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[error] 
+[error] Error: Failed to get Firebase project cucina-recipe-app. Please make sure the project exists and your account has permission to access it.

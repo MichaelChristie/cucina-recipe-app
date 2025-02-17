@@ -17,7 +17,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { Recipe, RecipeIngredient, IngredientDivider } from '../types/recipe';
+import { Recipe, RecipeIngredient, IngredientDivider, isIngredientDivider, Step } from '../types/recipe';
 import { getTags } from './tagService';
 import { backupService } from './backupService';
 import { Ingredient } from '../types/admin';
@@ -311,7 +311,11 @@ export const restoreRecipeData = async () => {
   }
 };
 
-const generateDetailedSteps = (): Step[] => {
+interface DetailedStep extends Step {
+  id: string;
+}
+
+const generateDetailedSteps = (): DetailedStep[] => {
   const defaultSteps = [
     { id: generateId(), order: 1, instruction: 'Prepare all ingredients' },
     { id: generateId(), order: 2, instruction: 'Mix ingredients together' },

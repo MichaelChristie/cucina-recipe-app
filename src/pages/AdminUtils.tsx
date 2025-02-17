@@ -8,8 +8,9 @@ import { getTags } from '../services/tagService';
 import { getRecipes, updateRecipe } from '../services/recipeService';
 import { getIngredients } from '../services/ingredientService';
 import { Tag, Ingredient } from '../types/admin';
-import { Recipe, RecipeIngredient, IngredientDivider, isIngredientDivider, Difficulty } from './types/recipe';
-import { TagCategory, TAG_CATEGORIES } from './types/admin';
+import { Recipe, RecipeIngredient, IngredientDivider, isIngredientDivider, Difficulty } from '../types/recipe';
+import { TagCategory, TAG_CATEGORIES } from '../types/admin';
+import { addTag } from '../services/tagService';
 
 interface Backup {
   id: string;
@@ -139,68 +140,67 @@ const AdminUtils: React.FC<AdminUtilsProps> = () => {
       setIsLoading(true);
       setStatus('Generating dummy data...');
 
-      // First, fetch all available ingredients and tags
-      const [ingredients, tags] = await Promise.all([
+      const [ingredients, allTags] = await Promise.all([
         getIngredients(),
         getTags()
       ]);
 
-      // Group tags by category
-      const tagsByCategory = tags.reduce((acc, tag) => {
-        const category = tag.category || 'other';
-        if (!acc[category]) {
-          acc[category] = [];
+      const tagsByCategory = allTags.reduce((acc, tag) => {
+        if (tag.category && Object.keys(TAG_CATEGORIES).includes(tag.category)) {
+          if (!acc[tag.category]) {
+            acc[tag.category] = [];
+          }
+          acc[tag.category].push(tag);
         }
-        acc[category].push(tag);
         return acc;
-      }, {} as Record<string, Tag[]>);
+      }, {} as Record<TagCategory, Tag[]>);
 
-      // Define the required categories
-      const requiredCategories = [
-        'cuisine',    // e.g., Italian, Mexican, Indian
-        'diet',       // e.g., Vegetarian, Vegan, Gluten-Free
-        'meal',       // e.g., Breakfast, Lunch, Dinner
-        'style',      // e.g., Grilled, Baked, Fried
-        'special'     // e.g., Holiday, Seasonal, Party
+      const requiredCategories: TagCategory[] = [
+        'cuisine',
+        'dietary',
+        'meal type',
+        'style',
+        'season'
       ];
 
-      // Get all recipes
       const recipes = await getRecipes();
 
-      // Update each recipe
       for (const recipe of recipes) {
-        // Generate random ingredients if missing
         const selectedIngredients = recipe.ingredients?.length ? recipe.ingredients : ingredients
           .sort(() => Math.random() - 0.5)
-          .slice(0, Math.floor(Math.random() * 5) + 4) // 4-8 ingredients
+          .slice(0, Math.floor(Math.random() * 5) + 4)
           .map(ingredient => ({
             id: ingredient.id,
+            ingredientId: ingredient.id,
             name: ingredient.name,
             amount: Number((ingredient.defaultAmount * (0.5 + Math.random())).toFixed(2)),
-            unit: ingredient.defaultUnit
-          }));
+            unit: ingredient.defaultUnit,
+            confirmed: false
+          } as RecipeIngredient));
 
-        // Generate random steps if missing
-        const steps = recipe.steps?.length ? recipe.steps : Array.from({ length: Math.floor(Math.random() * 5) + 4 }, // 4-8 steps
+        const steps = recipe.steps?.length ? recipe.steps : Array.from(
+          { length: Math.floor(Math.random() * 5) + 4 },
           (_, index) => ({
             order: index + 1,
             instruction: getRandomInstruction()
-          }));
-
-        // Get existing recipe tags
-        const existingTags = recipe.tags || [];
-        const existingTagObjects = existingTags.map(tagId => 
-          tags.find(t => t.id === tagId)
-        ).filter((tag): tag is Tag => tag !== null);
-
-        // Get categories that already have tags
-        const existingCategories = new Set(
-          existingTagObjects.map(tag => tag.category)
+          })
         );
 
-        // Select one random tag from each missing category
+        const existingTags = recipe.tags || [];
+        const existingTagObjects = existingTags
+          .map(tagId => allTags.find(t => t.id === tagId))
+          .filter((tag): tag is Tag => tag !== undefined);
+
+        const existingCategories = new Set(
+          existingTagObjects
+            .map(tag => tag.category)
+            .filter((cat): cat is TagCategory => 
+              cat !== undefined && TAG_CATEGORIES.includes(cat)
+            )
+        );
+
         const newTags = requiredCategories
-          .filter(category => !existingCategories.has(category)) // Only process categories that don't have tags
+          .filter(category => !existingCategories.has(category))
           .map(category => {
             const categoryTags = tagsByCategory[category];
             if (categoryTags && categoryTags.length > 0) {
@@ -210,37 +210,30 @@ const AdminUtils: React.FC<AdminUtilsProps> = () => {
           })
           .filter((tag): tag is Tag => tag !== null);
 
-        // Combine existing and new tags
         const updatedTags = [
-          ...existingTags.map(tag => {
-            // If it's already a tag object, extract just the ID
-            if (typeof tag === 'object' && tag !== null && 'id' in tag) {
-              return String(tag.id);
-            }
-            return String(tag); // If it's already an ID string
-          }),
-          ...newTags.map(tag => String(tag.id))
+          ...existingTags,
+          ...newTags.map(tag => tag.id)
         ];
 
-        // Generate recipe details if missing
-        const updatedRecipe = {
+        const difficulty = recipe.difficulty || getRandomDifficulty();
+        
+        const updatedRecipe: Partial<Recipe> = {
           ...recipe,
           ingredients: selectedIngredients,
           steps,
-          tags: updatedTags, // Now we're sure these are all ID strings
+          tags: updatedTags,
           cookTime: recipe.cookTime || String(Math.floor(Math.random() * 106) + 15),
           prepTime: recipe.prepTime || String(Math.floor(Math.random() * 41) + 5),
-          difficulty: recipe.difficulty || getRandomDifficulty(),
+          difficulty: difficulty as Difficulty,
           servings: recipe.servings || Math.floor(Math.random() * 7) + 2
         };
 
-        // Update the recipe
         await updateRecipe(recipe.id!, updatedRecipe);
       }
 
       setStatus('Dummy data generated successfully! Recipes have been updated with ingredients, steps, and missing category tags.');
     } catch (error) {
-      setStatus(`Error generating dummy data: ${error.message}`);
+      setStatus(`Error generating dummy data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -250,9 +243,10 @@ const AdminUtils: React.FC<AdminUtilsProps> = () => {
     try {
       setTagManagement(prev => ({ ...prev, isProcessing: true, status: 'Starting...' }));
       
-      // Get all tags and recipes
-      const tags = await getTags();
-      const recipes = await getRecipes();
+      const [allTags, recipes] = await Promise.all([
+        getTags(),
+        getRecipes()
+      ]);
       
       setTagManagement(prev => ({ 
         ...prev, 
@@ -260,39 +254,42 @@ const AdminUtils: React.FC<AdminUtilsProps> = () => {
         status: 'Processing recipes...' 
       }));
 
-      // Process each recipe
       for (let i = 0; i < recipes.length; i++) {
         const recipe = recipes[i];
-        const newTags: Tag[] = [];
+        const newTagIds = new Set<string>();
 
         // Auto-tag based on title and description
-        tags.forEach(tag => {
+        allTags.forEach(tag => {
           const searchText = `${recipe.title} ${recipe.description || ''}`.toLowerCase();
           if (searchText.includes(tag.name.toLowerCase())) {
-            newTags.push(tag);
+            newTagIds.add(tag.id);
           }
         });
 
         // Auto-tag based on ingredients
-        recipe.ingredients?.forEach(ingredient => {
-          tags.forEach(tag => {
-            if (ingredient.name.toLowerCase().includes(tag.name.toLowerCase())) {
-              if (!newTags.find(t => t.id === tag.id)) {
-                newTags.push(tag);
-              }
+        if (recipe.ingredients) {
+          recipe.ingredients.forEach(ingredient => {
+            if (!isIngredientDivider(ingredient)) {
+              allTags.forEach(tag => {
+                if (ingredient.name.toLowerCase().includes(tag.name.toLowerCase())) {
+                  newTagIds.add(tag.id);
+                }
+              });
             }
           });
-        });
+        }
 
         // Update recipe if new tags were found
-        if (newTags.length > 0) {
-          const existingTags = recipe.tags || [];
-          const uniqueTags = [...existingTags, ...newTags]
-            .filter((tag, index, self) => 
-              index === self.findIndex(t => t.id === tag.id)
-            );
+        if (newTagIds.size > 0) {
+          const existingTagIds = new Set(recipe.tags || []);
+          const uniqueTagIds = [...new Set([...existingTagIds, ...newTagIds])];
           
-          await updateRecipe(recipe.id!, { ...recipe, tags: uniqueTags });
+          const updatedRecipe: Partial<Recipe> = {
+            ...recipe,
+            tags: uniqueTagIds
+          };
+          
+          await updateRecipe(recipe.id!, updatedRecipe);
         }
 
         setTagManagement(prev => ({ 
@@ -312,7 +309,7 @@ const AdminUtils: React.FC<AdminUtilsProps> = () => {
       setTagManagement(prev => ({ 
         ...prev, 
         isProcessing: false,
-        status: `Error: ${error.message}`
+        status: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
       }));
     }
   };
@@ -348,119 +345,63 @@ const AdminUtils: React.FC<AdminUtilsProps> = () => {
     return `${firstPhrase} ${secondPhrase}`;
   };
 
-  const getRandomDifficulty = (): string => {
-    const difficulties = ['easy', 'medium', 'hard'];
+  const getRandomDifficulty = (): Difficulty => {
+    const difficulties: Difficulty[] = ['easy', 'medium', 'hard'];
     return difficulties[Math.floor(Math.random() * difficulties.length)];
   };
 
-  const handleTagUpdate = (tag: Tag | null): string => {
-    if (tag && typeof tag === 'object' && 'id' in tag) {
-      return String(tag.id);
-    }
-    return '';
+  const handleTagUpdate = (tag: Tag): string => {
+    return tag.id;
   };
 
   const getTagIds = (tags: (Tag | string)[]): string[] => {
-    return tags.map(tag => {
-      if (typeof tag === 'string') return tag;
-      return tag.id;
-    });
+    return tags.map(tag => typeof tag === 'string' ? tag : tag.id);
   };
 
-  const handleRecipeUpdate = async (recipe: Recipe, updatedRecipe: Partial<Recipe>) => {
-    try {
-      // Convert ingredients to proper type
-      const typedIngredients = updatedRecipe.ingredients?.map(ingredient => ({
-        ingredientId: ingredient.id || ingredient.ingredientId,
+  const processIngredients = (ingredients: Array<RecipeIngredient | IngredientDivider>): Array<RecipeIngredient | IngredientDivider> => {
+    return ingredients.map(ingredient => {
+      if (isIngredientDivider(ingredient)) {
+        return ingredient;
+      }
+      return {
+        id: ingredient.id,
+        ingredientId: ingredient.ingredientId,
         name: ingredient.name,
         amount: ingredient.amount,
         unit: ingredient.unit,
         defaultUnit: ingredient.defaultUnit,
         confirmed: ingredient.confirmed || false
-      }));
-
-      // Convert tags to string array
-      const typedTags = updatedRecipe.tags ? getTagIds(updatedRecipe.tags) : [];
-
-      const validRecipeUpdate: Partial<Recipe> = {
-        ...updatedRecipe,
-        ingredients: typedIngredients,
-        tags: typedTags
-      };
-
-      await updateRecipe(recipe.id, validRecipeUpdate);
-    } catch (error) {
-      console.error('Error updating recipe:', error);
-      throw error;
-    }
-  };
-
-  const findMatchingTags = (ingredient: RecipeIngredient, allTags: Tag[]): Tag[] => {
-    return allTags.filter(tag => {
-      if (!ingredient.name) return false;
-      return ingredient.name.toLowerCase().includes(tag.name.toLowerCase());
+      } as RecipeIngredient;
     });
   };
 
-  const getUniqueTags = (tags: Tag[]): string[] => {
-    return Array.from(new Set(tags.map(tag => tag.id)));
+  const handleRecipeUpdate = async (recipeToUpdate: Recipe) => {
+    const uniqueTags = Array.from(new Set(recipeToUpdate.tags));
+
+    const updatedRecipe: Partial<Recipe> = {
+      ...recipeToUpdate,
+      ingredients: processIngredients(recipeToUpdate.ingredients),
+      difficulty: recipeToUpdate.difficulty as Difficulty,
+      tags: uniqueTags
+    };
+
+    await updateRecipe(recipeToUpdate.id!, updatedRecipe);
   };
 
-  const updateRecipeDifficulty = async (recipe: Recipe, newDifficulty: Difficulty) => {
-    try {
-      const updatedRecipe: Partial<Recipe> = {
-        ...recipe,
-        difficulty: newDifficulty
-      };
-      await updateRecipe(recipe.id, updatedRecipe);
-      return true;
-    } catch (error) {
-      console.error('Error updating recipe difficulty:', error);
-      return false;
-    }
-  };
-
-  const processNewTags = async (existingCategories: Set<TagCategory>) => {
-    try {
-      const newTags: Omit<Tag, 'id'>[] = TAG_CATEGORIES
-        .filter(category => !existingCategories.has(category))
-        .map(category => ({
-          name: category,
-          emoji: '🏷️',
-          category: category,
-          active: true
-        }));
-
-      for (const tagData of newTags) {
-        await addTag(tagData);
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error processing new tags:', error);
-      return false;
-    }
-  };
-
-  const addTagsToRecipe = async (recipe: Recipe, tags: Tag[]) => {
-    try {
-      const uniqueTags = tags
-        .filter((tag, index, self) => 
-          index === self.findIndex(t => t.id === tag.id)
+  const handleTagSuggestions = async (recipe: Recipe) => {
+    const existingCategories = new Set<TagCategory>(
+      tags
+        .filter(tag => recipe.tags.includes(tag.id))
+        .map(tag => tag.category)
+        .filter((category): category is TagCategory => 
+          category !== undefined && Object.keys(TAG_CATEGORIES).includes(category)
         )
-        .map(tag => tag.id);
+    );
 
-      const updatedRecipe: Partial<Recipe> = {
-        ...recipe,
-        tags: uniqueTags
-      };
+    const missingCategories = (Object.keys(TAG_CATEGORIES) as TagCategory[])
+      .filter(category => !existingCategories.has(category));
 
-      await updateRecipe(recipe.id, updatedRecipe);
-      return true;
-    } catch (error) {
-      console.error('Error adding tags to recipe:', error);
-      return false;
-    }
+    // Rest of the function implementation...
   };
 
   if (loading) {
@@ -545,89 +486,103 @@ const AdminUtils: React.FC<AdminUtilsProps> = () => {
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Select
+                      Backup Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Recipes
+                      Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {backups.map((backup) => (
-                    <tr 
-                      key={backup.id} 
-                      className={`hover:bg-gray-50 cursor-pointer ${
-                        selectedBackup === backup.id ? 'bg-blue-50' : ''
-                      }`}
-                      onClick={() => handleBackupSelect(backup.id)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <input
-                          type="radio"
-                          name="backup-selection"
-                          checked={selectedBackup === backup.id}
-                          onChange={() => handleBackupSelect(backup.id)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                        />
-                      </td>
+                  {backups.map(backup => (
+                    <tr key={backup.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatDate(backup.timestamp)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {Object.keys(backup.recipes || {}).length} recipes
+                        <button
+                          onClick={() => handleBackupSelect(backup.id)}
+                          className={`mr-2 px-3 py-1 rounded ${
+                            selectedBackup === backup.id
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Select
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+          </div>
 
-            {/* Restore Controls */}
-            {selectedBackup && (
-              <div className="mt-4 space-y-4">
-                {!confirmRestore ? (
+          {/* Restore Confirmation */}
+          {selectedBackup && (
+            <div className="mt-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-yellow-800 mb-2">
+                  Restore from Selected Backup?
+                </h3>
+                <p className="text-sm text-yellow-700 mb-4">
+                  This will replace all current data with the data from the selected backup.
+                  This action cannot be undone.
+                </p>
+                <div className="flex items-center space-x-4">
                   <button
                     onClick={() => setConfirmRestore(true)}
-                    className="bg-yellow-500 text-white px-4 py-2 rounded
-                             hover:bg-yellow-600 transition-colors"
+                    className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 
+                             transition-colors disabled:bg-gray-400"
+                    disabled={isLoading}
                   >
-                    Review Selected Backup
+                    Confirm Restore
                   </button>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="bg-yellow-50 border border-yellow-200 rounded p-4">
-                      <p className="text-yellow-800">
-                        Are you sure you want to restore this backup? This will overwrite current data.
-                      </p>
-                      <p className="text-sm text-yellow-600 mt-2">
-                        Selected backup: {formatDate(backups.find(b => b.id === selectedBackup)?.timestamp || '')}
-                      </p>
-                    </div>
-                    <div className="flex gap-4">
-                      <button
-                        onClick={handleRestoreBackup}
-                        disabled={isLoading}
-                        className="bg-green-500 text-white px-4 py-2 rounded
-                                 hover:bg-green-600 transition-colors disabled:bg-gray-400"
-                      >
-                        {isLoading ? 'Restoring...' : 'Confirm Restore'}
-                      </button>
-                      <button
-                        onClick={() => setConfirmRestore(false)}
-                        className="bg-gray-500 text-white px-4 py-2 rounded
-                                 hover:bg-gray-600 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  <button
+                    onClick={() => {
+                      setSelectedBackup('');
+                      setConfirmRestore(false);
+                    }}
+                    className="text-gray-600 hover:text-gray-800"
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {/* Final Restore Confirmation */}
+          {confirmRestore && (
+            <div className="mt-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-red-800 mb-2">
+                  Are you absolutely sure?
+                </h3>
+                <p className="text-sm text-red-700 mb-4">
+                  This action will permanently replace all current data.
+                </p>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={handleRestoreBackup}
+                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 
+                             transition-colors disabled:bg-gray-400"
+                    disabled={isLoading}
+                  >
+                    Yes, Restore Now
+                  </button>
+                  <button
+                    onClick={() => setConfirmRestore(false)}
+                    className="text-gray-600 hover:text-gray-800"
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Status Messages */}
           {status && (

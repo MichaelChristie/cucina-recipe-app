@@ -1,5 +1,6 @@
 import { adminDb } from '../config/firebase-admin';
 import { fileURLToPath } from 'url';
+import { Tag } from '../types/admin';
 
 export const updateExistingTags = async () => {
   try {
@@ -11,8 +12,8 @@ export const updateExistingTags = async () => {
     console.log(`Found ${tags.length} tags. Updating...`);
     
     for (const tag of tags) {
-      if (tag.active === undefined) {
-        console.log(`Updating tag: ${tag.name}`);
+      if ((tag as Tag).active === undefined) {
+        console.log(`Updating tag: ${(tag as Tag).name}`);
         const tagRef = tagsCollection.doc(tag.id);
         await tagRef.update({ active: true });
       }

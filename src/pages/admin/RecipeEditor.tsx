@@ -37,11 +37,9 @@ import { Tag, Ingredient } from '../../types/admin';
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from '../../firebase/config';
 import { getAuth } from 'firebase/auth';
-import { getFFmpeg, loadFFmpeg, writeFileToFFmpeg, readFileFromFFmpeg } from '../../utils/ffmpeg';
-import { formatBytes, formatDuration } from '../../utils/formatters';
-import { deleteVideo } from '../../services/videoService';
 import { Recipe, Step, RecipeIngredient, IngredientDivider, isIngredientDivider } from '../../types/recipe';
-import { FFmpeg, FFmpegProgress, FFmpegProgressCallback } from '../../types/ffmpeg';
+import { formatBytes } from '../../utils/formatters';
+import { deleteVideo } from '../../services/videoService';
 
 // Constants remain the same
 const UNITS = {
@@ -562,104 +560,7 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
-  const [ffmpegLoadingError, setFfmpegLoadingError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const initFFmpeg = async () => {
-      try {
-        console.log('Starting FFmpeg loading...');
-        await loadFFmpeg();
-        console.log('FFmpeg loaded successfully');
-        setFfmpegLoaded(true);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error('Error loading FFmpeg:', error);
-        setFfmpegLoadingError(errorMessage);
-        toast.error(`Failed to load video processing: ${errorMessage}`);
-      }
-    };
-    initFFmpeg();
-  }, []);
-
-  const processVideo = async (file: File): Promise<File> => {
-    if (!ffmpegLoaded) {
-      throw new Error('FFmpeg not loaded');
-    }
-
-    setIsProcessing(true);
-    let ffmpeg: FFmpeg | null = null;
-    
-    try {
-      ffmpeg = await getFFmpeg();
-      const inputFileName = 'input.mp4';
-      const outputFileName = 'output.mp4';
-      
-      // Write file to FFmpeg filesystem
-      const arrayBuffer = await file.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      await ffmpeg.writeFile(inputFileName, uint8Array);
-
-      // Set up progress handler
-      const progressCallback: FFmpegProgressCallback = (progress: FFmpegProgress) => {
-        console.log('FFmpeg progress:', progress);
-      };
-      ffmpeg.on('progress', progressCallback);
-
-      // Try simple conversion first
-      try {
-        await ffmpeg.exec(['-i', inputFileName, '-c:v', 'copy', '-c:a', 'copy', outputFileName]);
-      } catch (error) {
-        console.warn('Simple conversion failed, trying fallback:', error);
-        
-        // Fallback to more complex conversion
-        await ffmpeg.exec([
-          '-i', inputFileName,
-          '-vf', 'scale=-2:min(720,ih)',
-          '-c:v', 'libx264',
-          '-preset', 'medium',
-          '-crf', '28',
-          '-c:a', 'aac',
-          '-b:a', '128k',
-          '-movflags', '+faststart',
-          outputFileName
-        ]);
-      }
-
-      // Read the processed file
-      const processedData = await ffmpeg.readFile(outputFileName);
-      
-      if (!processedData || processedData.length === 0) {
-        throw new Error('FFmpeg produced empty output file');
-      }
-
-      // Convert the processed data back to a File object
-      const processedBlob = new Blob([processedData], { type: 'video/mp4' });
-      const processedFile = new File([processedBlob], file.name, { type: 'video/mp4' });
-
-      return processedFile;
-    } catch (error) {
-      console.error('Video processing error:', error);
-      throw error;
-    } finally {
-      setIsProcessing(false);
-      
-      // Cleanup
-      if (ffmpeg) {
-        try {
-          const progressCallback: FFmpegProgressCallback = (progress: FFmpegProgress) => {
-            console.log('FFmpeg progress:', progress);
-          };
-          ffmpeg.off('progress', progressCallback);
-          await ffmpeg.terminate();
-        } catch (e) {
-          console.warn('Error during FFmpeg cleanup:', e);
-        }
-      }
-    }
-  };
 
   const handleVideoUpload = async (file: File) => {
     if (!file.type.startsWith('video/')) {
@@ -667,7 +568,7 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
       return;
     }
 
-    // Check file size (limit to 100MB before processing)
+    // Check file size (limit to 100MB)
     if (file.size > 100 * 1024 * 1024) {
       toast.error('Video file is too large. Maximum size is 100MB');
       return;
@@ -677,55 +578,12 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
     setUploadProgress(0);
 
     try {
-      // If FFmpeg isn't loaded, try uploading directly
-      let uploadFile = file;
-      if (ffmpegLoaded) {
-        try {
-          console.log('Processing video before upload...');
-          const ffmpeg = await getFFmpeg();
-          
-          // Terminate any existing FFmpeg instances
-          try {
-            ffmpeg.terminate();
-          } catch (e) {
-            console.warn('No FFmpeg instance to terminate:', e);
-          }
-
-          // Create a new FFmpeg instance
-          await loadFFmpeg();
-          
-          uploadFile = await processVideo(file);
-          console.log('Processed video size:', uploadFile.size);
-          
-          if (!uploadFile || uploadFile.size === 0) {
-            throw new Error('Processed video is empty');
-          }
-        } catch (processError) {
-          console.error('Video processing failed, falling back to original file:', processError);
-          toast.error('Video processing failed, uploading original file', {
-            duration: 3000
-          } as ToastOptions);
-          uploadFile = file;
-        }
-      } else {
-        console.warn('FFmpeg not loaded, uploading original file');
-        toast.error('Video processing not available, uploading original file', {
-          duration: 3000
-        } as ToastOptions);
-      }
-      
       // Create a unique filename
       const filename = `recipe-videos/${Date.now()}-${file.name}`;
       const storageRef = ref(storage, filename);
 
-      console.log('Starting upload of file:', {
-        size: uploadFile.size,
-        type: uploadFile.type,
-        name: filename
-      });
-
       // Upload the video
-      const uploadTask = uploadBytesResumable(storageRef, uploadFile);
+      const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on('state_changed',
         (snapshot) => {
@@ -740,30 +598,13 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
         async () => {
           try {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            
-            const metadata: VideoMetadata = {
-              url: downloadURL,
-              size: uploadFile.size,
-              format: 'mp4',
-            };
-
-            onVideoChange(metadata);
+            onVideoChange(downloadURL);
             toast.success('Video uploaded successfully');
           } catch (error) {
             console.error('Error getting download URL:', error);
             toast.error('Failed to process uploaded video');
           } finally {
             setIsUploading(false);
-            
-            // Cleanup FFmpeg
-            if (ffmpegLoaded) {
-              try {
-                const ffmpeg = await getFFmpeg();
-                ffmpeg.terminate();
-              } catch (e) {
-                console.warn('Error terminating FFmpeg:', e);
-              }
-            }
           }
         }
       );
@@ -853,16 +694,11 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
               ? 'border-blue-500 bg-blue-50'
               : 'border-gray-300 hover:border-gray-400'
           }`}
-          disabled={isUploading || isProcessing}
+          disabled={isUploading}
         >
           <div className="text-center">
             {isUploading ? (
               <UploadProgress progress={uploadProgress} />
-            ) : isProcessing ? (
-              <div className="flex flex-col items-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-2" />
-                <span className="text-sm text-gray-600">Processing video...</span>
-              </div>
             ) : (
               <>
                 <PlusIcon className="h-12 w-12 text-gray-400 mx-auto" />
@@ -1215,6 +1051,9 @@ const RecipeEditor: FC = () => {
   const handleIngredientKeyDown = (e: React.KeyboardEvent, index: number, filteredIngredients: Ingredient[]): void => {
     const hasFilteredIngredients = filteredIngredients.length > 0;
     const ingredient = recipe.ingredients[index];
+    
+    if (!ingredient) return;
+    
     if (!isIngredientDivider(ingredient)) {
       const showCreateOption = !hasFilteredIngredients && ingredient.name;
       const totalOptions = hasFilteredIngredients ? filteredIngredients.length : (showCreateOption ? 1 : 0);
@@ -1235,7 +1074,7 @@ const RecipeEditor: FC = () => {
           if (activeIngredient.field === 'name') {
             if (hasFilteredIngredients) {
               handleIngredientSelect(index, filteredIngredients[selectedSuggestionIndex]);
-              const amountElement = document.querySelector(`#amount-${index}`) as HTMLInputElement;
+              const amountElement = document.querySelector(`#amount-${index}`) as HTMLInputElement | null;
               amountElement?.focus();
             } else if (showCreateOption && selectedSuggestionIndex === 0) {
               setNewIngredientName(ingredient.name || '');
@@ -1249,7 +1088,7 @@ const RecipeEditor: FC = () => {
                 addIngredient();
               }
               setTimeout(() => {
-                const nextElement = document.querySelector(`#ingredient-${index + 1}`) as HTMLInputElement;
+                const nextElement = document.querySelector(`#ingredient-${index + 1}`) as HTMLInputElement | null;
                 nextElement?.focus();
               }, 0);
             }
@@ -1353,13 +1192,13 @@ const RecipeEditor: FC = () => {
     try {
       setLoading(true);
       await deleteVideo(recipe.video);
-      setRecipe(prev => ({ ...prev, video: '' }));
+      setRecipe(prev => ({ ...prev, video: null }));
       toast.success('Video deleted successfully');
     } catch (error) {
       console.error('Error deleting video:', error);
       if (error.code === 'storage/object-not-found') {
         // If the video is already gone, just update the UI
-        setRecipe(prev => ({ ...prev, video: '' }));
+        setRecipe(prev => ({ ...prev, video: null }));
         toast.success('Video removed');
       } else {
         toast.error('Failed to delete video');
@@ -1582,19 +1421,16 @@ const RecipeEditor: FC = () => {
                   {/* Tag Categories Grid */}
                   <div className="grid grid-cols-5 gap-4 mb-4">
                     {Object.entries(
-                      tags.filter(tag => {
-                        console.log('Filtering tag for panel:', tag, 'Active:', tag.active);
-                        return tag.active;
-                      }).reduce((acc, tag) => {
+                      tags.filter(tag => tag.active).reduce((acc, tag) => {
                         if (!acc[tag.category]) acc[tag.category] = [];
                         acc[tag.category].push(tag);
                         return acc;
-                      }, {})
+                      }, {} as Record<string, Tag[]>)
                     ).map(([category, categoryTags]) => (
                       <div key={category} className="bg-gray-50 p-3 rounded-lg">
                         <h3 className="text-sm font-medium text-gray-700 mb-2 capitalize">{category}</h3>
                         <div className="space-y-1">
-                          {categoryTags.map((tag) => (
+                          {(categoryTags as Tag[]).map((tag) => (
                             <label
                               key={tag.id}
                               className="flex items-center gap-2 px-2 py-1 rounded hover:bg-white cursor-pointer"
@@ -1655,7 +1491,7 @@ const RecipeEditor: FC = () => {
                     ref={provided.innerRef}
                     className="space-y-4"
                   >
-                    {recipe.ingredients?.map((item: RecipeIngredient | IngredientDivider, index: number) => (
+                    {recipe.ingredients?.map((item, index) => (
                       <Draggable 
                         key={item.id}
                         draggableId={item.id}
@@ -1674,7 +1510,7 @@ const RecipeEditor: FC = () => {
                               <Bars3Icon className="h-5 w-5 text-gray-500" />
                             </div>
                             
-                            {'type' in item && item.type === 'divider' ? (
+                            {isIngredientDivider(item) ? (
                               // Render divider
                               <div className="flex-1 flex items-center gap-2">
                                 <input
@@ -1700,17 +1536,14 @@ const RecipeEditor: FC = () => {
                                 </button>
                               </div>
                             ) : (
-                              // Existing ingredient rendering code
+                              // Render ingredient
                               <>
                                 <div className="flex-1 relative ingredient-field">
                                   <input
                                     id={`ingredient-${index}`}
                                     type="text"
                                     value={item.name || ''}
-                                    onChange={(e) => {
-                                      handleIngredientChange(index, 'name', e.target.value);
-                                      setSelectedSuggestionIndex(0); // Reset selection on type
-                                    }}
+                                    onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
                                     onFocus={() => {
                                       setActiveIngredient({ index, field: 'name' });
                                       setSelectedSuggestionIndex(0);
@@ -1743,7 +1576,8 @@ const RecipeEditor: FC = () => {
                                             }`}
                                             onClick={() => {
                                               handleIngredientSelect(index, ing);
-                                              document.querySelector(`#amount-${index}`)?.focus();
+                                              const amountElement = document.querySelector(`#amount-${index}`) as HTMLInputElement | null;
+                                              amountElement?.focus();
                                             }}
                                             onMouseEnter={() => setSelectedSuggestionIndex(suggestionIndex)}
                                           >

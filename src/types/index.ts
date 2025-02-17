@@ -1,8 +1,19 @@
-export type { Recipe, Step, RecipeIngredient, IngredientDivider, isIngredientDivider, isRecipeIngredient } from './recipe';
+// Recipe types
+export type { Recipe, Step, RecipeIngredient, IngredientDivider } from './recipe';
+export { isIngredientDivider, isRecipeIngredient } from './recipe';
+
+// Admin types
 export type { Tag, Ingredient, User as AdminUser, TagCategory, IngredientInRecipe, RecipeStep } from './admin';
 export { TAG_CATEGORIES } from './admin';
-export type { VideoMetadata } from './shared';
-export type { User, AuthContextType } from './auth';
-export type { FirebaseConfig } from './firebase';
+
+// Editor types
 export type { EditorRecipe, EditorIngredient, EditorStep } from './editor';
-export type { FFmpeg, FFmpegProgress } from './ffmpeg'; 
+
+// Auth types
+export type { User, AuthContextType } from './auth';
+
+// Firebase types
+export type { FirebaseConfig } from './firebase';
+
+// Shared types
+export type { VideoMetadata } from './shared'; 
