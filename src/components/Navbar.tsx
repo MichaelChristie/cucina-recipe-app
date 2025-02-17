@@ -13,6 +13,7 @@ import UserMenu from './UserMenu';
 import toast from 'react-hot-toast';
 import AnimatedLogo from './AnimatedLogo';
 import Logo from './Logo';
+import { logOut } from '../services/authService';
 
 interface NavItem {
   name: string;

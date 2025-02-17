@@ -29,7 +29,7 @@ const Card: FC<CardProps> = ({ recipe, tags, isFavorite = false, onToggleFavorit
   return (
     <div className="relative">
       <div 
-        className="absolute top-2 right-2 z-50 cursor-pointer"
+        className="absolute top-2 right-2 z-10 cursor-pointer"
         onClick={handleFavoriteClick}
         style={{ pointerEvents: 'auto' }}
       >

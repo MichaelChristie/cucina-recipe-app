@@ -1,7 +1,7 @@
 import { FC, useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { PlusIcon, TrashIcon, PencilIcon, XMarkIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import { getTags, createTag, updateTag, deleteTag } from '../../services/tagService';
+import { PlusIcon, TrashIcon, PencilIcon, XMarkIcon, SparklesIcon, WrenchIcon } from '@heroicons/react/24/outline';
+import { getTags, createTag, updateTag, deleteTag, cleanupBrokenTags } from '../../services/tagService';
 import { cleanupInactiveTags } from '../../services/recipeService';
 import { toast } from 'react-hot-toast';
 import { Tag, TAG_CATEGORIES } from '../../types/admin';
@@ -93,6 +93,17 @@ const TagManager: FC = () => {
     }
   };
 
+  const handleCleanupBrokenTags = async () => {
+    try {
+      const { fixed, total } = await cleanupBrokenTags();
+      toast.success(`Fixed ${fixed} broken tags out of ${total} total tags`);
+      loadTags(); // Reload tags to show updates
+    } catch (error) {
+      console.error('Error cleaning up broken tags:', error);
+      toast.error('Failed to clean up broken tags');
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="px-4 sm:px-6 lg:px-8">
@@ -104,6 +115,14 @@ const TagManager: FC = () => {
             </p>
           </div>
           <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none space-x-4">
+            <button
+              type="button"
+              onClick={handleCleanupBrokenTags}
+              className="inline-flex items-center justify-center rounded-md border border-transparent bg-yellow-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 sm:w-auto"
+            >
+              <WrenchIcon className="-ml-1 mr-2 h-5 w-5" />
+              Fix Broken Tags
+            </button>
             <button
               type="button"
               onClick={handleCleanupInactiveTags}

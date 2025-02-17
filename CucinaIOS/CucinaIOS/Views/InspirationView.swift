@@ -98,13 +98,11 @@ struct MediaLoadingState {
 struct InspirationView: View {
     @StateObject private var recipeService = RecipeService()
     @StateObject private var mediaCache = MediaCache.shared
-    @State private var testMessage = "Testing Firebase Connection..."
     @State private var visibleRecipeID: String?
     @State private var selectedRecipe: Recipe?
     @State private var showingRecipeDetail = false
     @State private var preloadedIndices = Set<Int>()
     private let preloadWindow = 2 // Number of items to preload in each direction
-    @State private var isLoading = true
     
     var body: some View {
         NavigationStack {
@@ -112,45 +110,78 @@ struct InspirationView: View {
                 ZStack {
                     ScrollView(.vertical, showsIndicators: false) {
                         LazyVStack(spacing: 0) {
-                            if recipeService.recipes.isEmpty && !isLoading {
-                                Text("No recipes found")
+                            switch recipeService.loadingState {
+                            case .idle, .loading:
+                                ProgressView("Loading recipes...")
                                     .frame(width: geometry.size.width, height: geometry.size.height)
-                                    .background(Color.gray.opacity(0.2))
-                            } else {
-                                ForEach(Array(recipeService.recipes.enumerated()), id: \.element.uniqueId) { index, recipe in
-                                    RecipeCard(
-                                        recipe: recipe,
-                                        isVisible: visibleRecipeID == recipe.uniqueId,
-                                        mediaCache: mediaCache,
-                                        onRecipeSelect: { selectedRecipe in
-                                            self.selectedRecipe = selectedRecipe
-                                            self.showingRecipeDetail = true
-                                        }
-                                    )
-                                    .frame(width: geometry.size.width, height: geometry.size.height)
-                                    .onAppear {
-                                        visibleRecipeID = recipe.uniqueId
-                                        preloadContent(currentIndex: index)
-                                        print("📺 Showing recipe \(index + 1) of \(recipeService.recipes.count)")
+                                
+                            case .loaded(let count):
+                                if count == 0 {
+                                    VStack(spacing: 16) {
+                                        Text("No recipes found")
+                                            .font(.title2)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("Check your Firebase connection and data")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                            .multilineTextAlignment(.center)
+                                            .padding(.horizontal)
                                     }
-                                    .onDisappear {
-                                        if visibleRecipeID == recipe.uniqueId {
-                                            visibleRecipeID = nil
+                                    .frame(width: geometry.size.width, height: geometry.size.height)
+                                    .background(Color.gray.opacity(0.1))
+                                } else {
+                                    ForEach(Array(recipeService.recipes.enumerated()), id: \.element.uniqueId) { index, recipe in
+                                        RecipeCard(
+                                            recipe: recipe,
+                                            isVisible: visibleRecipeID == recipe.uniqueId,
+                                            mediaCache: mediaCache,
+                                            onRecipeSelect: { selectedRecipe in
+                                                self.selectedRecipe = selectedRecipe
+                                                self.showingRecipeDetail = true
+                                            }
+                                        )
+                                        .frame(width: geometry.size.width, height: geometry.size.height)
+                                        .onAppear {
+                                            visibleRecipeID = recipe.uniqueId
+                                            preloadContent(currentIndex: index)
+                                            print("📺 Showing recipe \(index + 1) of \(recipeService.recipes.count): \(recipe.title)")
+                                        }
+                                        .onDisappear {
+                                            if visibleRecipeID == recipe.uniqueId {
+                                                visibleRecipeID = nil
+                                            }
                                         }
                                     }
                                 }
+                                
+                            case .error(let error):
+                                VStack(spacing: 16) {
+                                    Text("Error loading recipes")
+                                        .font(.title2)
+                                        .foregroundColor(.red)
+                                    
+                                    Text(error.localizedDescription)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal)
+                                    
+                                    Button("Try Again") {
+                                        Task {
+                                            await loadInitialContent()
+                                        }
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                                .frame(width: geometry.size.width, height: geometry.size.height)
+                                .background(Color.gray.opacity(0.1))
                             }
                         }
                     }
                     .scrollTargetBehavior(.paging)
                     .refreshable {
                         await loadInitialContent()
-                    }
-                    
-                    if isLoading {
-                        ProgressView("Loading recipes...")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(Color.black.opacity(0.3))
                     }
                 }
                 .navigationDestination(isPresented: $showingRecipeDetail) {
@@ -159,7 +190,9 @@ struct InspirationView: View {
                     }
                 }
                 .task {
-                    await loadInitialContent()
+                    if case .idle = recipeService.loadingState {
+                        await loadInitialContent()
+                    }
                 }
             }
             .ignoresSafeArea()
@@ -167,7 +200,6 @@ struct InspirationView: View {
     }
     
     private func loadInitialContent() async {
-        isLoading = true
         do {
             try await recipeService.fetchRecipes()
             if !recipeService.recipes.isEmpty {
@@ -176,7 +208,6 @@ struct InspirationView: View {
         } catch {
             print("Error loading recipes: \(error)")
         }
-        isLoading = false
     }
     
     private func preloadContent(currentIndex: Int) {
@@ -428,8 +459,7 @@ struct RecipeCard: View {
                     // Title and Description
                     VStack(alignment: .leading, spacing: 8) {
                         Text(recipe.title)
-                            .font(.title)
-                            .fontWeight(.bold)
+                            .font(.system(size: 32, weight: .regular, design: .serif))
                             .foregroundColor(.white)
                         
                         Text(recipe.description)
@@ -445,14 +475,20 @@ struct RecipeCard: View {
                     
                     // Tags
                     HStack(spacing: 8) {
-                        ForEach(["spanish", "datenight"], id: \.self) { tag in
-                            Text("#\(tag)")
-                                .font(.subheadline)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color.white.opacity(0.2))
-                                .cornerRadius(16)
-                                .foregroundColor(.white)
+                        ForEach(recipe.tags.prefix(3), id: \.id) { tag in
+                            HStack(spacing: 4) {
+                                if let emoji = tag.emoji {
+                                    Text(emoji)
+                                        .font(.subheadline)
+                                }
+                                Text(tag.name)
+                                    .font(.subheadline)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(16)
+                            .foregroundColor(.white)
                         }
                     }
                     .padding(.bottom, 56)

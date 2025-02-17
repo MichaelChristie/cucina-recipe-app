@@ -24,14 +24,25 @@ struct MainTabView: View {
                 }
         }
         .onAppear {
-            // Set tab bar appearance to dark
+            // Set tab bar appearance
             let appearance = UITabBarAppearance()
             appearance.configureWithDefaultBackground()
-            appearance.backgroundColor = .black
+            
+            // Set background to sage-50
+            appearance.backgroundColor = UIColor(Color(hex: "f2f7f2"))
+            
+            // Set unselected items to sage-400
+            appearance.stackedLayoutAppearance.normal.iconColor = UIColor(Color(hex: "8b9f89"))
+            appearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor(Color(hex: "8b9f89"))]
+            
+            // Set selected items to earthgreen-600
+            appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color(hex: "2d5a27"))
+            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor(Color(hex: "2d5a27"))]
+            
             UITabBar.appearance().scrollEdgeAppearance = appearance
             UITabBar.appearance().standardAppearance = appearance
         }
-        .tint(Color("SelectedColor"))
+        .tint(Color(hex: "2d5a27")) // earthgreen-600
     }
 }
 
