@@ -3,6 +3,8 @@ import Card from './Card';
 import { useOrderedRecipes } from '../hooks/useOrderedRecipes';
 import { favoriteService } from '../services/favoriteService';
 import { auth } from '../config/firebase';
+import { Tag } from '../types/admin';
+import { Ingredient } from '../types/admin';
 
 interface RecipeGridProps {
   tags: Tag[];

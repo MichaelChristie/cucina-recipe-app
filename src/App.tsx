@@ -16,7 +16,7 @@ import { favoriteService } from './services/favoriteService';
 // import { UnitPreferenceProvider } from './contexts/UnitPreferenceContext';
 import TagManager from './pages/admin/TagManager';
 import IngredientManager from './pages/admin/IngredientManager';
-import { AdminUtils } from './pages/AdminUtils';
+import AdminUtils from './pages/AdminUtils';
 import Test from './pages/Test';
 
 // Create a wrapper component for RecipeDetails

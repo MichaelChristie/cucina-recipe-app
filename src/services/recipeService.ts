@@ -13,12 +13,14 @@ import {
   setDoc,
   QueryDocumentSnapshot,
   DocumentReference,
-  Timestamp
+  Timestamp,
+  serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { Recipe } from '../types';
+import { Recipe, RecipeIngredient, IngredientDivider } from '../types/recipe';
 import { getTags } from './tagService';
 import { backupService } from './backupService';
+import { Ingredient } from '../types/admin';
 
 const COLLECTION_NAME = 'recipes';
 const INGREDIENTS_COLLECTION = 'ingredients';
@@ -54,7 +56,7 @@ const getRandomIngredients = async (count = 8) => {
     const allIngredients = ingredientsSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    })) as Ingredient[];
     
     const shuffled = [...allIngredients].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, Math.min(count, shuffled.length)).map(ingredient => ({
@@ -71,15 +73,15 @@ const getRandomIngredients = async (count = 8) => {
   }
 };
 
-const defaultIngredients = [
-  { ingredientId: 'default1', name: 'All-purpose flour', amount: 2, unit: 'cups' },
-  { ingredientId: 'default2', name: 'Sugar', amount: 1, unit: 'cup' },
-  { ingredientId: 'default3', name: 'Butter', amount: 200, unit: 'g' },
-  { ingredientId: 'default4', name: 'Eggs', amount: 2, unit: 'pieces' },
-  { ingredientId: 'default5', name: 'Milk', amount: 1, unit: 'cup' },
-  { ingredientId: 'default6', name: 'Vanilla Extract', amount: 1, unit: 'tsp' },
-  { ingredientId: 'default7', name: 'Baking Powder', amount: 2, unit: 'tsp' },
-  { ingredientId: 'default8', name: 'Salt', amount: 1, unit: 'pinch' }
+const defaultIngredients: RecipeIngredient[] = [
+  { id: 'default1', ingredientId: 'default1', name: 'All-purpose flour', amount: 2, unit: 'cups', defaultUnit: 'cups' },
+  { id: 'default2', ingredientId: 'default2', name: 'Sugar', amount: 1, unit: 'cup', defaultUnit: 'cup' },
+  { id: 'default3', ingredientId: 'default3', name: 'Butter', amount: 200, unit: 'g', defaultUnit: 'g' },
+  { id: 'default4', ingredientId: 'default4', name: 'Eggs', amount: 2, unit: 'pieces', defaultUnit: 'pieces' },
+  { id: 'default5', ingredientId: 'default5', name: 'Milk', amount: 1, unit: 'cup', defaultUnit: 'cup' },
+  { id: 'default6', ingredientId: 'default6', name: 'Vanilla Extract', amount: 1, unit: 'tsp', defaultUnit: 'tsp' },
+  { id: 'default7', ingredientId: 'default7', name: 'Baking Powder', amount: 2, unit: 'tsp', defaultUnit: 'tsp' },
+  { id: 'default8', ingredientId: 'default8', name: 'Salt', amount: 1, unit: 'pinch', defaultUnit: 'pinch' }
 ];
 
 // Helper function to convert Firestore timestamps
@@ -119,9 +121,40 @@ export const getRecipeById = async (id: string): Promise<Recipe | null> => {
     }
     
     const data = recipeDoc.data();
+    
+    // Map ingredients with proper type checking
+    const mapIngredient = (ingredient: any): RecipeIngredient | IngredientDivider => {
+      if ('type' in ingredient && ingredient.type === 'divider') {
+        return {
+          id: ingredient.id || generateId(),
+          type: 'divider',
+          label: ingredient.label || 'Section'
+        };
+      }
+      return {
+        id: ingredient.id || generateId(),
+        ingredientId: ingredient.ingredientId || ingredient.id,
+        name: ingredient.name || 'Unknown Ingredient',
+        amount: ingredient.amount || 0,
+        unit: ingredient.unit || ingredient.defaultUnit || 'pieces',
+        defaultUnit: ingredient.defaultUnit || 'pieces',
+        confirmed: ingredient.confirmed || false
+      };
+    };
+
+    const getRecipeSteps = (data: any) => {
+      return data.steps?.map((step: any, index: number) => ({
+        id: step.id || generateId(),
+        order: step.order || index + 1,
+        instruction: step.instruction || ''
+      })) || [];
+    };
+
     return {
       id: recipeDoc.id,
-      ...convertTimestamps(data)
+      ...convertTimestamps(data),
+      ingredients: data.ingredients?.map(mapIngredient) || [],
+      steps: getRecipeSteps(data)
     } as Recipe;
   } catch (error) {
     console.error('Error fetching recipe:', error);
@@ -129,14 +162,14 @@ export const getRecipeById = async (id: string): Promise<Recipe | null> => {
   }
 };
 
-export const addRecipe = async (recipe: Omit<Recipe, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> => {
+export const addRecipe = async (recipe: Partial<Recipe>): Promise<string> => {
   try {
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    const recipeRef = await addDoc(collection(db, COLLECTION_NAME), {
       ...recipe,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
     });
-    return docRef.id;
+    return recipeRef.id;
   } catch (error) {
     console.error('Error adding recipe:', error);
     throw error;
@@ -148,7 +181,7 @@ export const updateRecipe = async (id: string, updates: Partial<Recipe>): Promis
     const recipeRef = doc(db, COLLECTION_NAME, id);
     await updateDoc(recipeRef, {
       ...updates,
-      updatedAt: new Date()
+      updatedAt: serverTimestamp()
     });
   } catch (error) {
     console.error('Error updating recipe:', error);
@@ -195,7 +228,6 @@ export const cleanupInactiveTags = async (): Promise<{ updated: number, total: n
     
     const filteredTags = recipe.tags.filter(tagId => activeTags.includes(String(tagId)));
     
-    // Only update if tags have changed
     if (filteredTags.length !== recipe.tags.length) {
       const recipeRef = doc(db, COLLECTION_NAME, recipe.id);
       batch.update(recipeRef, { tags: filteredTags });
@@ -235,7 +267,7 @@ export const restoreRecipeData = async () => {
 
           const steps = generateDetailedSteps();
           
-          const updatedRecipe = {
+          const updatedRecipe: Partial<Recipe> = {
             ...recipeData,
             ingredients,
             steps,
@@ -244,9 +276,7 @@ export const restoreRecipeData = async () => {
             prepTime: recipeData.prepTime || '30',
             cookTime: recipeData.cookTime || '30',
             difficulty: recipeData.difficulty || 'medium',
-            servings: recipeData.servings || '4',
-            calories: recipeData.calories || '',
-            category: recipeData.category || 'other',
+            servings: recipeData.servings || 4,
             tags: recipeData.tags || [],
             nutrition: recipeData.nutrition || {
               calories: '',
@@ -270,11 +300,6 @@ export const restoreRecipeData = async () => {
       }
     }
 
-    console.log(`Recipe restoration complete:
-      - Updated: ${updatedCount} recipes
-      - Skipped: ${skippedCount} recipes
-      - Errors: ${errorCount} recipes`);
-
     return {
       updated: updatedCount,
       skipped: skippedCount,
@@ -284,4 +309,16 @@ export const restoreRecipeData = async () => {
     console.error('Error in restoreRecipeData:', error);
     throw error;
   }
-}; 
+};
+
+const generateDetailedSteps = (): Step[] => {
+  const defaultSteps = [
+    { id: generateId(), order: 1, instruction: 'Prepare all ingredients' },
+    { id: generateId(), order: 2, instruction: 'Mix ingredients together' },
+    { id: generateId(), order: 3, instruction: 'Cook according to recipe specifications' },
+    { id: generateId(), order: 4, instruction: 'Serve and enjoy' }
+  ];
+  return defaultSteps;
+};
+
+const generateId = (): string => `_${Math.random().toString(36).substr(2, 9)}`; 

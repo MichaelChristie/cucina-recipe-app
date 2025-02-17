@@ -1,16 +1,28 @@
-import { getValidTags } from '../utils/tagUtils';
+import { FC } from 'react';
+import { Tag } from '../types/admin';
 
-{tags && (
-  <div className="flex flex-wrap gap-1 mt-2">
-    {getValidTags(tags, allTags).map(tag => (
-      <span
-        key={tag.id}
-        className="inline-flex items-center px-2 py-0.5 rounded-full 
-                   text-xs font-medium bg-olive-50 text-olive-600"
-      >
-        {tag.emoji && <span className="mr-1">{tag.emoji}</span>}
-        {tag.name}
-      </span>
-    ))}
-  </div>
-)} 
+interface RecipeCardProps {
+  tags?: string[];
+  allTags: Tag[];
+}
+
+const getValidTags = (tags: string[] | undefined, allTags: Tag[]) => {
+  if (!tags) return [];
+  return tags.filter(tagId => allTags.some(t => t.id === tagId));
+};
+
+const RecipeCard: FC<RecipeCardProps> = ({ tags, allTags }) => {
+  return (
+    <div>
+      {tags && (
+        <div>
+          {getValidTags(tags, allTags).map(tag => (
+            <span key={tag}>{tag}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default RecipeCard; 

@@ -6,9 +6,10 @@ import { db } from '../config/firebase';
 import AdminLayout from '../components/AdminLayout';
 import { getTags } from '../services/tagService';
 import { getRecipes, updateRecipe } from '../services/recipeService';
-import { Tag } from '../types/admin';
 import { getIngredients } from '../services/ingredientService';
-import { Ingredient, Recipe } from '../types/recipe';
+import { Tag, Ingredient } from '../types/admin';
+import { Recipe, RecipeIngredient, IngredientDivider, isIngredientDivider, Difficulty } from './types/recipe';
+import { TagCategory, TAG_CATEGORIES } from './types/admin';
 
 interface Backup {
   id: string;
@@ -23,7 +24,11 @@ interface TagManagementState {
   status: string;
 }
 
-export const AdminUtils = () => {
+interface AdminUtilsProps {
+  // Add your props here
+}
+
+const AdminUtils: React.FC<AdminUtilsProps> = () => {
   const [status, setStatus] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [backups, setBackups] = useState<Backup[]>([]);
@@ -35,9 +40,14 @@ export const AdminUtils = () => {
     totalCount: 0,
     status: ''
   });
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchBackups();
+    loadData();
   }, []);
 
   const fetchBackups = async () => {
@@ -54,6 +64,23 @@ export const AdminUtils = () => {
     } catch (error) {
       console.error('Error fetching backups:', error);
       setStatus('Error fetching backups');
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      const [loadedIngredients, loadedTags, loadedRecipes] = await Promise.all([
+        getIngredients(),
+        getTags(),
+        getRecipes()
+      ]);
+      setIngredients(loadedIngredients);
+      setTags(loadedTags);
+      setRecipes(loadedRecipes);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -326,6 +353,124 @@ export const AdminUtils = () => {
     return difficulties[Math.floor(Math.random() * difficulties.length)];
   };
 
+  const handleTagUpdate = (tag: Tag | null): string => {
+    if (tag && typeof tag === 'object' && 'id' in tag) {
+      return String(tag.id);
+    }
+    return '';
+  };
+
+  const getTagIds = (tags: (Tag | string)[]): string[] => {
+    return tags.map(tag => {
+      if (typeof tag === 'string') return tag;
+      return tag.id;
+    });
+  };
+
+  const handleRecipeUpdate = async (recipe: Recipe, updatedRecipe: Partial<Recipe>) => {
+    try {
+      // Convert ingredients to proper type
+      const typedIngredients = updatedRecipe.ingredients?.map(ingredient => ({
+        ingredientId: ingredient.id || ingredient.ingredientId,
+        name: ingredient.name,
+        amount: ingredient.amount,
+        unit: ingredient.unit,
+        defaultUnit: ingredient.defaultUnit,
+        confirmed: ingredient.confirmed || false
+      }));
+
+      // Convert tags to string array
+      const typedTags = updatedRecipe.tags ? getTagIds(updatedRecipe.tags) : [];
+
+      const validRecipeUpdate: Partial<Recipe> = {
+        ...updatedRecipe,
+        ingredients: typedIngredients,
+        tags: typedTags
+      };
+
+      await updateRecipe(recipe.id, validRecipeUpdate);
+    } catch (error) {
+      console.error('Error updating recipe:', error);
+      throw error;
+    }
+  };
+
+  const findMatchingTags = (ingredient: RecipeIngredient, allTags: Tag[]): Tag[] => {
+    return allTags.filter(tag => {
+      if (!ingredient.name) return false;
+      return ingredient.name.toLowerCase().includes(tag.name.toLowerCase());
+    });
+  };
+
+  const getUniqueTags = (tags: Tag[]): string[] => {
+    return Array.from(new Set(tags.map(tag => tag.id)));
+  };
+
+  const updateRecipeDifficulty = async (recipe: Recipe, newDifficulty: Difficulty) => {
+    try {
+      const updatedRecipe: Partial<Recipe> = {
+        ...recipe,
+        difficulty: newDifficulty
+      };
+      await updateRecipe(recipe.id, updatedRecipe);
+      return true;
+    } catch (error) {
+      console.error('Error updating recipe difficulty:', error);
+      return false;
+    }
+  };
+
+  const processNewTags = async (existingCategories: Set<TagCategory>) => {
+    try {
+      const newTags: Omit<Tag, 'id'>[] = TAG_CATEGORIES
+        .filter(category => !existingCategories.has(category))
+        .map(category => ({
+          name: category,
+          emoji: '🏷️',
+          category: category,
+          active: true
+        }));
+
+      for (const tagData of newTags) {
+        await addTag(tagData);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error processing new tags:', error);
+      return false;
+    }
+  };
+
+  const addTagsToRecipe = async (recipe: Recipe, tags: Tag[]) => {
+    try {
+      const uniqueTags = tags
+        .filter((tag, index, self) => 
+          index === self.findIndex(t => t.id === tag.id)
+        )
+        .map(tag => tag.id);
+
+      const updatedRecipe: Partial<Recipe> = {
+        ...recipe,
+        tags: uniqueTags
+      };
+
+      await updateRecipe(recipe.id, updatedRecipe);
+      return true;
+    } catch (error) {
+      console.error('Error adding tags to recipe:', error);
+      return false;
+    }
+  };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div>Loading...</div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
       <div className="bg-white shadow rounded-lg p-6">
@@ -494,4 +639,6 @@ export const AdminUtils = () => {
       </div>
     </AdminLayout>
   );
-}; 
+};
+
+export default AdminUtils; 

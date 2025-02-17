@@ -1,4 +1,9 @@
-import { FC, useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
+import { db } from '../../config/firebase';
+import { doc, addDoc, collection } from 'firebase/firestore';
+import { getIngredients, updateIngredient, deleteIngredient } from '../../services/ingredientService';
+import { Ingredient } from '../../types/admin';
 import AdminLayout from '../../components/AdminLayout';
 import { 
   PencilSquareIcon, 
@@ -10,13 +15,9 @@ import {
   ChevronDownIcon 
 } from '@heroicons/react/24/outline';
 import { 
-  getIngredients, 
-  updateIngredient, 
   removeDuplicateIngredients, 
-  deleteIngredient, 
   addIngredient 
 } from '../../services/ingredientService';
-import { Ingredient } from '../../types/admin';
 
 interface SortConfig {
   key: keyof Ingredient;
@@ -56,7 +57,7 @@ interface AddIngredientModalProps {
   onAdd: (ingredient: Omit<Ingredient, 'id'>) => Promise<void>;
 }
 
-const AddIngredientModal: FC<AddIngredientModalProps> = ({ isOpen, onClose, onAdd }) => {
+const AddIngredientModal: React.FC<AddIngredientModalProps> = ({ isOpen, onClose, onAdd }) => {
   const [newIngredient, setNewIngredient] = useState<Omit<Ingredient, 'id'>>({
     name: '',
     category: AVAILABLE_CATEGORIES[0],
@@ -157,7 +158,7 @@ const AddIngredientModal: FC<AddIngredientModalProps> = ({ isOpen, onClose, onAd
   );
 };
 
-const IngredientManager: FC = () => {
+const IngredientManager: React.FC = () => {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -322,7 +323,7 @@ const IngredientManager: FC = () => {
     columnKey: keyof Ingredient;
   }
 
-  const SortIcon: FC<SortIconProps> = ({ columnKey }) => {
+  const SortIcon: React.FC<SortIconProps> = ({ columnKey }) => {
     if (sortConfig.key !== columnKey) {
       return <ChevronUpIcon className="h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100" />;
     }

@@ -132,7 +132,7 @@ export default function Navbar({ onAddClick, children, showActions }: NavbarProp
                 </Link>
 
                 {/* Food Dropdown */}
-                <Menu as="div" className="relative">
+                <Menu>
                   <Menu.Button className="group flex items-center text-sm font-medium text-gray-600 hover:text-gray-900">
                     <span>Food</span>
                     <ChevronDownIcon className="ml-1 h-4 w-4" />

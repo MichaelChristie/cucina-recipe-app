@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { FC, useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -39,6 +40,8 @@ import { getAuth } from 'firebase/auth';
 import { getFFmpeg, loadFFmpeg, writeFileToFFmpeg, readFileFromFFmpeg } from '../../utils/ffmpeg';
 import { formatBytes, formatDuration } from '../../utils/formatters';
 import { deleteVideo } from '../../services/videoService';
+import { Recipe, Step, RecipeIngredient, IngredientDivider, isIngredientDivider } from '../../types/recipe';
+import { FFmpeg, FFmpegProgress, FFmpegProgressCallback } from '../../types/ffmpeg';
 
 // Constants remain the same
 const UNITS = {
@@ -123,8 +126,7 @@ const editorStyles = {
 
 const generateId = (): string => `_${Math.random().toString(36).substr(2, 9)}`;
 
-// Component type definitions
-interface StickyFooterProps {
+interface LocalStickyFooterProps {
   onSave: () => void;
   onClose: () => void;
   onDelete?: () => void;
@@ -132,7 +134,7 @@ interface StickyFooterProps {
   recipeId?: string;
 }
 
-const StickyFooter: FC<StickyFooterProps> = ({ onSave, onClose, onDelete, saving, recipeId }) => {
+const StickyFooter: FC<LocalStickyFooterProps> = ({ onSave, onClose, onDelete, saving, recipeId }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const navigate = useNavigate();
   
@@ -556,13 +558,6 @@ interface VideoUploadProps {
   className?: string;
 }
 
-interface FFmpeg {
-  exec: (commands: string[]) => Promise<void>;
-  terminate: () => Promise<void>;
-  on: (event: string, callback: (data: any) => void) => void;
-  off: (event: string) => void;
-}
-
 const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '' }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -589,7 +584,7 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
     initFFmpeg();
   }, []);
 
-  const processVideo = async (file: File): Promise<Blob> => {
+  const processVideo = async (file: File): Promise<File> => {
     if (!ffmpegLoaded) {
       throw new Error('FFmpeg not loaded');
     }
@@ -604,21 +599,18 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
       
       // Write file to FFmpeg filesystem
       const arrayBuffer = await file.arrayBuffer();
-      await writeFileToFFmpeg(ffmpeg, inputFileName, arrayBuffer);
+      const uint8Array = new Uint8Array(arrayBuffer);
+      await ffmpeg.writeFile(inputFileName, uint8Array);
 
       // Set up progress handler
-      ffmpeg.on('progress', progress => {
+      const progressCallback: FFmpegProgressCallback = (progress: FFmpegProgress) => {
         console.log('FFmpeg progress:', progress);
-      });
+      };
+      ffmpeg.on('progress', progressCallback);
 
       // Try simple conversion first
       try {
-        await ffmpeg.exec([
-          '-i', inputFileName,
-          '-c:v', 'copy',
-          '-c:a', 'copy',
-          outputFileName
-        ]);
+        await ffmpeg.exec(['-i', inputFileName, '-c:v', 'copy', '-c:a', 'copy', outputFileName]);
       } catch (error) {
         console.warn('Simple conversion failed, trying fallback:', error);
         
@@ -637,13 +629,17 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
       }
 
       // Read the processed file
-      const data = await readFileFromFFmpeg(ffmpeg, outputFileName);
+      const processedData = await ffmpeg.readFile(outputFileName);
       
-      if (!data || data.length === 0) {
+      if (!processedData || processedData.length === 0) {
         throw new Error('FFmpeg produced empty output file');
       }
 
-      return new Blob([data], { type: 'video/mp4' });
+      // Convert the processed data back to a File object
+      const processedBlob = new Blob([processedData], { type: 'video/mp4' });
+      const processedFile = new File([processedBlob], file.name, { type: 'video/mp4' });
+
+      return processedFile;
     } catch (error) {
       console.error('Video processing error:', error);
       throw error;
@@ -653,7 +649,10 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
       // Cleanup
       if (ffmpeg) {
         try {
-          ffmpeg.off('progress');
+          const progressCallback: FFmpegProgressCallback = (progress: FFmpegProgress) => {
+            console.log('FFmpeg progress:', progress);
+          };
+          ffmpeg.off('progress', progressCallback);
           await ffmpeg.terminate();
         } catch (e) {
           console.warn('Error during FFmpeg cleanup:', e);
@@ -703,14 +702,14 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
           }
         } catch (processError) {
           console.error('Video processing failed, falling back to original file:', processError);
-          toast.warning('Video processing failed, uploading original file', {
+          toast.error('Video processing failed, uploading original file', {
             duration: 3000
           } as ToastOptions);
           uploadFile = file;
         }
       } else {
         console.warn('FFmpeg not loaded, uploading original file');
-        toast.error('Video processing failed, uploading original file', {
+        toast.error('Video processing not available, uploading original file', {
           duration: 3000
         } as ToastOptions);
       }
@@ -785,7 +784,13 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
       toast.success('Video deleted successfully');
     } catch (error) {
       console.error('Error deleting video:', error);
-      toast.error('Failed to delete video');
+      if (error.code === 'storage/object-not-found') {
+        // If the video is already gone, just update the UI
+        onVideoChange(null);
+        toast.success('Video removed');
+      } else {
+        toast.error('Failed to delete video');
+      }
     }
   };
 
@@ -1073,6 +1078,10 @@ const RecipeEditor: FC = () => {
     }
   };
 
+  const onClose = () => {
+    navigate('/admin/recipes');
+  };
+
   const handleStepChange = (index: number, field: string, value: string) => {
     console.log('Step change:', { index, field, value }); // Debug log
     
@@ -1130,35 +1139,43 @@ const RecipeEditor: FC = () => {
 
   const handleIngredientChange = (index: number, field: keyof EditorIngredient, value: string | number | boolean): void => {
     const newIngredients = [...recipe.ingredients];
-    if (field === 'name') {
-      newIngredients[index] = {
-        ...newIngredients[index],
-        name: value as string,
-        ingredientId: ''
-      };
-    } else {
-      newIngredients[index] = {
-        ...newIngredients[index],
-        [field]: field === 'amount' ? parseFloat(value as string) || '' : value,
-        ingredientId: newIngredients[index].ingredientId || newIngredients[index].id
-      };
+    const ingredient = newIngredients[index];
+    
+    if (!isIngredientDivider(ingredient)) {
+      if (field === 'name') {
+        newIngredients[index] = {
+          ...ingredient,
+          name: value as string,
+          ingredientId: ''
+        };
+      } else {
+        newIngredients[index] = {
+          ...ingredient,
+          [field]: field === 'amount' ? (value === '' ? '' : parseFloat(value as string) || 0) : value,
+          ingredientId: ingredient.ingredientId || ingredient.id
+        };
+      }
+      setRecipe({ ...recipe, ingredients: newIngredients });
     }
-    setRecipe({ ...recipe, ingredients: newIngredients });
   };
 
   const handleIngredientSelect = (index: number, selectedIngredient: Ingredient): void => {
     const newIngredients = [...recipe.ingredients];
-    newIngredients[index] = {
-      ...newIngredients[index],
-      id: generateId(),
-      name: selectedIngredient.name,
-      ingredientId: selectedIngredient.id,
-      unit: selectedIngredient.defaultUnit || '',
-      amount: selectedIngredient.defaultAmount ? Number(selectedIngredient.defaultAmount) : '',
-      confirmed: false
-    };
-    setRecipe({ ...recipe, ingredients: newIngredients });
-    setActiveIngredient({ index: null, field: null });
+    const ingredient = newIngredients[index];
+    
+    if (!isIngredientDivider(ingredient)) {
+      newIngredients[index] = {
+        ...ingredient,
+        id: generateId(),
+        name: selectedIngredient.name,
+        ingredientId: selectedIngredient.id,
+        unit: selectedIngredient.defaultUnit || '',
+        amount: selectedIngredient.defaultAmount ? Number(selectedIngredient.defaultAmount) : '',
+        confirmed: false
+      };
+      setRecipe({ ...recipe, ingredients: newIngredients });
+      setActiveIngredient({ index: null, field: null });
+    }
   };
 
   const addIngredient = () => {
@@ -1175,7 +1192,8 @@ const RecipeEditor: FC = () => {
       }]
     });
     setTimeout(() => {
-      document.querySelector(`#ingredient-${newIndex}`)?.focus();
+      const element = document.querySelector(`#ingredient-${newIndex}`) as HTMLInputElement;
+      element?.focus();
     }, 0);
   };
 
@@ -1196,47 +1214,52 @@ const RecipeEditor: FC = () => {
 
   const handleIngredientKeyDown = (e: React.KeyboardEvent, index: number, filteredIngredients: Ingredient[]): void => {
     const hasFilteredIngredients = filteredIngredients.length > 0;
-    const showCreateOption = !hasFilteredIngredients && recipe.ingredients[index].name;
-    const totalOptions = hasFilteredIngredients ? filteredIngredients.length : (showCreateOption ? 1 : 0);
+    const ingredient = recipe.ingredients[index];
+    if (!isIngredientDivider(ingredient)) {
+      const showCreateOption = !hasFilteredIngredients && ingredient.name;
+      const totalOptions = hasFilteredIngredients ? filteredIngredients.length : (showCreateOption ? 1 : 0);
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
-          Math.min(prev + 1, totalOptions - 1)
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedSuggestionIndex(prev => Math.max(prev - 1, 0));
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (activeIngredient.field === 'name') {
-          if (hasFilteredIngredients) {
-            handleIngredientSelect(index, filteredIngredients[selectedSuggestionIndex]);
-            document.querySelector(`#amount-${index}`)?.focus();
-          } else if (showCreateOption && selectedSuggestionIndex === 0) {
-            setNewIngredientName(recipe.ingredients[index].name);
-            setActiveIngredientIndex(index);
-            setIsIngredientModalOpen(true);
-          }
-        } else if (activeIngredient.field === 'amount') {
-          const amount = recipe.ingredients[index].amount;
-          if (amount && amount > 0) {
-            if (index === recipe.ingredients.length - 1) {
-              addIngredient();
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setSelectedSuggestionIndex(prev => 
+            Math.min(prev + 1, totalOptions - 1)
+          );
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedSuggestionIndex(prev => Math.max(prev - 1, 0));
+          break;
+        case 'Enter':
+          e.preventDefault();
+          if (activeIngredient.field === 'name') {
+            if (hasFilteredIngredients) {
+              handleIngredientSelect(index, filteredIngredients[selectedSuggestionIndex]);
+              const amountElement = document.querySelector(`#amount-${index}`) as HTMLInputElement;
+              amountElement?.focus();
+            } else if (showCreateOption && selectedSuggestionIndex === 0) {
+              setNewIngredientName(ingredient.name || '');
+              setActiveIngredientIndex(index);
+              setIsIngredientModalOpen(true);
             }
-            setTimeout(() => {
-              document.querySelector(`#ingredient-${index + 1}`)?.focus();
-            }, 0);
+          } else if (activeIngredient.field === 'amount') {
+            const amount = ingredient.amount;
+            if (amount && amount > 0) {
+              if (index === recipe.ingredients.length - 1) {
+                addIngredient();
+              }
+              setTimeout(() => {
+                const nextElement = document.querySelector(`#ingredient-${index + 1}`) as HTMLInputElement;
+                nextElement?.focus();
+              }, 0);
+            }
           }
-        }
-        break;
-      case 'Escape':
-        setActiveIngredient({ index: null, field: null });
-        setSelectedSuggestionIndex(0);
-        break;
+          break;
+        case 'Escape':
+          setActiveIngredient({ index: null, field: null });
+          setSelectedSuggestionIndex(0);
+          break;
+      }
     }
   };
 
@@ -1254,14 +1277,15 @@ const RecipeEditor: FC = () => {
 
       const addedIngredient = await addIngredientToDb(ingredientData);
       
-      if (!addedIngredient) {
+      if (!addedIngredient || !addedIngredient.id) {
         throw new Error('No response from addIngredient');
       }
 
-      const completeIngredient = {
+      const completeIngredient: Ingredient = {
         ...addedIngredient,
-        id: addedIngredient.id || addedIngredient._id,
-        ingredientId: addedIngredient.id || addedIngredient._id,
+        id: addedIngredient.id,
+        name: newIngredientData.name,
+        category: newIngredientData.category,
         defaultUnit: newIngredientData.defaultUnit,
         defaultAmount: Number(newIngredientData.defaultAmount),
         createdAt: now,
@@ -1272,16 +1296,20 @@ const RecipeEditor: FC = () => {
       
       if (activeIngredientIndex !== null) {
         const newIngredients = [...recipe.ingredients];
-        newIngredients[activeIngredientIndex] = {
-          ...newIngredients[activeIngredientIndex],
-          id: generateId(),
-          name: completeIngredient.name,
-          ingredientId: completeIngredient.id,
-          unit: completeIngredient.defaultUnit || '',
-          amount: completeIngredient.defaultAmount ? Number(completeIngredient.defaultAmount) : '',
-          confirmed: false
-        };
-        setRecipe({ ...recipe, ingredients: newIngredients });
+        const ingredient = newIngredients[activeIngredientIndex];
+        
+        if (!isIngredientDivider(ingredient)) {
+          newIngredients[activeIngredientIndex] = {
+            ...ingredient,
+            id: generateId(),
+            name: completeIngredient.name,
+            ingredientId: completeIngredient.id,
+            unit: completeIngredient.defaultUnit || '',
+            amount: completeIngredient.defaultAmount ? Number(completeIngredient.defaultAmount) : '',
+            confirmed: false
+          };
+          setRecipe({ ...recipe, ingredients: newIngredients });
+        }
       }
 
       return completeIngredient;
@@ -1864,7 +1892,7 @@ const RecipeEditor: FC = () => {
       </div>
       <StickyFooter 
         onSave={handleSave}
-        onClose={handleSaveAndClose}
+        onClose={onClose}
         onDelete={handleDelete}
         saving={saving}
         recipeId={id}

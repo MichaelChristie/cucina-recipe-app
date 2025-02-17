@@ -1,6 +1,6 @@
-import { FC, useState, useRef, KeyboardEvent, useEffect } from 'react';
+import { FC, useState, useRef, KeyboardEvent, useEffect, ChangeEvent, FocusEvent } from 'react';
 import { XMarkIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
-import { Ingredient } from '../types/recipe';
+import { Ingredient } from '../types/admin';
 
 interface Props {
   ingredients: Ingredient[];
@@ -8,6 +8,7 @@ interface Props {
   onSelectIngredient: (ingredient: Ingredient) => void;
   onRemoveIngredient: (ingredientId: string) => void;
   className?: string;
+  placeholder?: string;
 }
 
 const IngredientSearch: FC<Props> = ({
@@ -15,11 +16,12 @@ const IngredientSearch: FC<Props> = ({
   selectedIngredients,
   onSelectIngredient,
   onRemoveIngredient,
-  className
+  className = '',
+  placeholder = 'Filter by ingredients...'
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -83,7 +85,7 @@ const IngredientSearch: FC<Props> = ({
   };
 
   return (
-    <div className={`mt-4 relative p-0`}>
+    <div className={`mt-4 relative p-0 ${className}`}>
       <div className="relative">
         <div className="min-h-[42px] w-full flex flex-wrap items-center gap-2 p-2 
                       rounded-lg bg-white
@@ -114,17 +116,17 @@ const IngredientSearch: FC<Props> = ({
               ref={inputRef}
               type="text"
               value={searchTerm}
-              onChange={(e) => {
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 setSearchTerm(e.target.value);
                 setShowSuggestions(true);
               }}
               onKeyDown={handleKeyDown}
               onFocus={() => setShowSuggestions(true)}
-              onBlur={() => {
+              onBlur={(e: FocusEvent<HTMLInputElement>) => {
                 // Delay hiding suggestions to allow for click events
                 setTimeout(() => setShowSuggestions(false), 200);
               }}
-              placeholder="Filter by ingredients..."
+              placeholder={placeholder}
               className="w-full outline-none bg-transparent 
                        placeholder-gray-400 text-gray-900"
             />

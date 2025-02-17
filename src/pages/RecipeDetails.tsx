@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -14,7 +15,8 @@ import {
 import { HeartIcon as HeartSolid } from '@heroicons/react/24/solid';
 import { marked } from 'marked';
 import Layout from '../components/Layout';
-import { Recipe, IngredientType, Tag } from '../types/admin';
+import { Recipe } from '../types/recipe';
+import { Tag, Ingredient as AdminIngredient } from '../types/admin';
 import { getRecipeById } from '../services/recipeService.ts';
 import { getTags } from '../services/tagService.ts';
 import { getIngredients } from '../services/ingredientService.ts';
@@ -34,7 +36,7 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [allTags, setAllTags] = useState<Tag[]>([]);
-  const [allIngredients, setAllIngredients] = useState<IngredientType[]>([]);
+  const [allIngredients, setAllIngredients] = useState<AdminIngredient[]>([]);
   const isAuthenticated = auth.currentUser !== null;
   const [servings, setServings] = useState<number>(0);
 
@@ -73,7 +75,7 @@ export default function RecipeDetails({ isFavorite = false, onToggleFavorite }: 
     loadIngredients();
   }, []);
 
-  const getIngredientById = (ingredientId: string): IngredientType | undefined => {
+  const getIngredientById = (ingredientId: string): AdminIngredient | undefined => {
     return allIngredients.find(ing => ing.id === ingredientId);
   };
 

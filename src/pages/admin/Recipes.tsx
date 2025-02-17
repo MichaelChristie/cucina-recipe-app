@@ -3,16 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { PencilSquareIcon, TrashIcon, DocumentDuplicateIcon, Bars3Icon, PencilIcon, StarIcon, EyeIcon } from '@heroicons/react/24/outline';
 import AdminLayout from '../../components/AdminLayout';
-import { Recipe } from '../../types';
+import { Recipe, Difficulty } from '../../types/recipe';
 import { getRecipes, addRecipe, deleteRecipe, updateRecipe } from '../../services/recipeService';
 import { logOut } from '../../services/authService';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 
-interface RecipeWithId extends Recipe {
-  id: string;
-  position?: number;
-}
+type RecipeWithId = Pick<Recipe, 'id' | 'title' | 'description' | 'ingredients' | 'steps' | 'tags' | 'position' | 'image' | 'prepTime' | 'cookTime' | 'difficulty' | 'servings' | 'featured' | 'nutrition'>;
 
 const Recipes: FC = () => {
   const navigate = useNavigate();
@@ -25,9 +22,24 @@ const Recipes: FC = () => {
   const loadRecipes = async (): Promise<void> => {
     try {
       const recipesData = await getRecipes();
-      const sortedRecipes = recipesData.sort((a, b) => 
-        (a.position || Number.MAX_VALUE) - (b.position || Number.MAX_VALUE)
-      );
+      const sortedRecipes = recipesData
+        .map((recipe: Recipe): RecipeWithId => ({
+          id: recipe.id,
+          title: recipe.title,
+          description: recipe.description,
+          ingredients: recipe.ingredients,
+          steps: recipe.steps,
+          tags: recipe.tags,
+          position: recipe.position,
+          image: recipe.image,
+          prepTime: recipe.prepTime,
+          cookTime: recipe.cookTime,
+          difficulty: recipe.difficulty,
+          servings: recipe.servings,
+          featured: recipe.featured,
+          nutrition: recipe.nutrition
+        }))
+        .sort((a, b) => (a.position || Number.MAX_VALUE) - (b.position || Number.MAX_VALUE));
       setRecipes(sortedRecipes);
     } catch (error) {
       console.error('Error fetching recipes:', error);
@@ -38,10 +50,11 @@ const Recipes: FC = () => {
     if (window.confirm('Are you sure you want to delete this recipe?')) {
       try {
         await deleteRecipe(id);
-        await loadRecipes();
+        setRecipes(recipes.filter(recipe => recipe.id !== id));
+        toast.success('Recipe deleted successfully');
       } catch (error) {
         console.error('Error deleting recipe:', error);
-        alert(`Failed to delete recipe: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        toast.error(`Failed to delete recipe: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
   };
@@ -70,13 +83,22 @@ const Recipes: FC = () => {
 
   const handleDuplicate = async (recipe: RecipeWithId): Promise<void> => {
     try {
-      const { id, ...recipeWithoutId } = recipe;
-      const duplicatedRecipe = {
-        ...recipeWithoutId,
+      const duplicatedRecipe: Partial<Recipe> = {
         title: `${recipe.title} (Copy)`,
+        description: recipe.description,
+        ingredients: recipe.ingredients,
+        steps: recipe.steps,
+        tags: recipe.tags,
+        position: recipe.position,
+        image: recipe.image,
+        prepTime: recipe.prepTime,
+        cookTime: recipe.cookTime,
+        difficulty: recipe.difficulty,
+        servings: recipe.servings,
+        featured: recipe.featured,
+        nutrition: recipe.nutrition
       };
-      
-      await addRecipe(duplicatedRecipe);
+      await updateRecipe(recipe.id, duplicatedRecipe);
       toast.success('Recipe duplicated successfully');
       await loadRecipes();
     } catch (error) {
@@ -100,12 +122,11 @@ const Recipes: FC = () => {
     setRecipes(updatedItems);
 
     try {
-      const batch = await Promise.all(
+      await Promise.all(
         updatedItems.map(recipe => 
           updateRecipe(recipe.id, { position: recipe.position })
         )
       );
-      
       toast.success('Recipe order updated successfully');
     } catch (error) {
       console.error('Error updating recipe positions:', error);

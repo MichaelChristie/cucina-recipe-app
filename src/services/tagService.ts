@@ -10,24 +10,16 @@ export const getTags = async (): Promise<Tag[]> => {
     if (!db) {
       throw new Error('Firebase database instance is not initialized');
     }
-    console.log('Database instance:', db);
     
     const tagsCollection = collection(db, COLLECTION_NAME);
-    console.log('Tags collection reference:', tagsCollection);
-    
     const snapshot = await getDocs(tagsCollection);
-    console.log('Snapshot exists:', !snapshot.empty);
-    console.log('Number of documents:', snapshot.size);
-    console.log('Raw tags data:', snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     
     if (snapshot.empty) {
       console.log('No tags found in the database. Running initialization...');
       try {
-        // Re-run initialization if no tags exist
         const { initializeTags } = await import('../utils/initializeTags');
         const initializedTags = await initializeTags();
-        console.log('Tags initialized successfully:', initializedTags);
-        return initializedTags;
+        return initializedTags as Tag[];
       } catch (initError) {
         console.error('Error during tag initialization:', initError);
         throw initError;
@@ -36,30 +28,22 @@ export const getTags = async (): Promise<Tag[]> => {
     
     const tags = snapshot.docs.map(doc => {
       const data = doc.data();
-      console.log(`Processing tag ${doc.id}:`, {
-        raw: data,
-        emoji: data.emoji,
-        emojiLength: data.emoji?.length,
-        emojiCodePoints: Array.from(data.emoji || '').map(c => c.codePointAt(0).toString(16))
-      });
+      const emoji = data.emoji as string || '';
+      const emojiPoints = Array.from(emoji).map(c => c.codePointAt(0)?.toString(16) || '');
       
-      const tag = {
+      return {
         id: doc.id,
-        ...data,
-        active: data.active ?? true
+        name: data.name || '',
+        emoji: emoji,
+        category: data.category || '',
+        active: data.active ?? true,
+        emojiCodePoints: emojiPoints
       } as Tag;
-      console.log('Processed tag:', tag);
-      return tag;
     });
     
-    console.log('Final tags array:', tags);
     return tags;
   } catch (error) {
     console.error('Error fetching tags:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message);
-      console.error('Error stack:', error.stack);
-    }
     throw error;
   }
 };
@@ -91,15 +75,18 @@ export const createTag = async (tag: Omit<Tag, 'id'>): Promise<Tag> => {
   }
 };
 
-export const updateTag = async (id: string, tag: Partial<Tag>): Promise<void> => {
+export const updateTag = async (id: string, updates: Partial<Tag>): Promise<void> => {
   try {
-    console.log('Updating tag:', id, tag);
+    console.log('Updating tag:', id, updates);
     if (!db) {
       throw new Error('Firebase database instance is not initialized');
     }
     
     const tagRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(tagRef, tag);
+    await updateDoc(tagRef, {
+      ...updates,
+      updatedAt: new Date()
+    });
   } catch (error) {
     console.error('Error updating tag:', error);
     if (error instanceof Error) {
@@ -142,7 +129,10 @@ export const cleanupBrokenTags = async (): Promise<{ fixed: number, total: numbe
     const snapshot = await getDocs(tagsCollection);
     const existingTags = snapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      name: doc.data().name || '',
+      emoji: doc.data().emoji || '',
+      category: doc.data().category || '',
+      active: doc.data().active ?? true
     } as Tag));
 
     console.log(`Found ${existingTags.length} tags to process`);
@@ -181,4 +171,14 @@ export const cleanupBrokenTags = async (): Promise<{ fixed: number, total: numbe
     console.error('Error during tag cleanup:', error);
     throw error;
   }
+};
+
+export const addTag = async (tag: Omit<Tag, 'id'>): Promise<string> => {
+  const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    ...tag,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    emojiCodePoints: Array.from(tag.emoji || '').map(c => c.codePointAt(0)?.toString(16))
+  });
+  return docRef.id;
 }; 

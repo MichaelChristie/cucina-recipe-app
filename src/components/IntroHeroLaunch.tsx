@@ -2,15 +2,17 @@ import { FC, useState, useEffect } from 'react';
 import RecipeGrid from './RecipeGrid';
 import { getTags } from '../services/tagService.ts';
 import { getRecipes } from '../services/recipeService.ts';
-import { Tag, Recipe } from '../types/admin';
+import { Tag } from '../types/admin';
+import { Recipe } from '../types/recipe';
 import { Popover } from '@headlessui/react';
 import { ChevronDownIcon, ArrowLeftIcon, ArrowRightIcon, ArrowUpRightIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import IngredientSearch from './IngredientSearch';
 import { getIngredients } from '../services/ingredientService.ts';
-import { Ingredient } from '../types/recipe';
+import { Ingredient } from '../types/admin';
 import { PiLeafLight, PiForkKnife, PiChefHat, PiCarrot, PiCookingPot, PiSunHorizon } from "react-icons/pi";
 import { HiOutlineGlobeEuropeAfrica } from "react-icons/hi2";
+import { IconContext } from 'react-icons';
 
 interface FilterSection {
   name: string;
@@ -18,13 +20,13 @@ interface FilterSection {
   category: string;
 }
 
-const filterSections: FilterSection[] = [
-  { name: 'Meal Type', icon: <PiForkKnife className="w-5 h-5" />, category: 'meal type' },
-  { name: 'Cuisine', icon: <HiOutlineGlobeEuropeAfrica className="w-5 h-5" />, category: 'cuisine' },
-  { name: 'Dietary', icon: <PiLeafLight className="w-5 h-5" />, category: 'dietary' },
-  { name: 'Style', icon: <PiChefHat className="w-5 h-5" />, category: 'style' },
-  { name: 'Season', icon: <PiSunHorizon className="w-5 h-5" />, category: 'season' },
-  { name: 'Method', icon: <PiCookingPot className="w-5 h-5" />, category: 'method' },
+const categories = [
+  { name: 'Meal Type', icon: <IconContext.Provider value={{ className: "w-5 h-5" }}><PiForkKnife /></IconContext.Provider>, category: 'meal type' },
+  { name: 'Cuisine', icon: <IconContext.Provider value={{ className: "w-5 h-5" }}><HiOutlineGlobeEuropeAfrica /></IconContext.Provider>, category: 'cuisine' },
+  { name: 'Dietary', icon: <IconContext.Provider value={{ className: "w-5 h-5" }}><PiLeafLight /></IconContext.Provider>, category: 'dietary' },
+  { name: 'Style', icon: <IconContext.Provider value={{ className: "w-5 h-5" }}><PiChefHat /></IconContext.Provider>, category: 'style' },
+  { name: 'Season', icon: <IconContext.Provider value={{ className: "w-5 h-5" }}><PiSunHorizon /></IconContext.Provider>, category: 'season' },
+  { name: 'Method', icon: <IconContext.Provider value={{ className: "w-5 h-5" }}><PiCookingPot /></IconContext.Provider>, category: 'method' },
 ];
 
 const IntroHeroLaunch: FC = () => {
@@ -189,7 +191,7 @@ const IntroHeroLaunch: FC = () => {
               <div className="">
                 {/* Tag Filter Buttons */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
-                  {filterSections.slice(0, 3).map((section) => (
+                  {categories.slice(0, 3).map((section) => (
                     <Popover key={section.category} className="relative w-full">
                       <Popover.Button className="w-full flex items-center justify-between px-4 py-2 rounded-lg 
                                              bg-white/10 backdrop-blur-sm text-gray-900 hover:bg-white/20
@@ -225,7 +227,7 @@ const IntroHeroLaunch: FC = () => {
                   ))}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                  {filterSections.slice(3).map((section) => (
+                  {categories.slice(3).map((section) => (
                     <Popover key={section.category} className="relative w-full">
                       <Popover.Button className="w-full flex items-center justify-between px-4 py-2 rounded-lg 
                                              bg-white/10 backdrop-blur-sm text-gray-900 hover:bg-white/20

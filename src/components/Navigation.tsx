@@ -1,10 +1,17 @@
+import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { Fragment } from 'react';
-import { Disclosure, Menu, Transition } from '@headlessui/react';
+import { Disclosure } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon, CogIcon } from '@heroicons/react/24/outline';
 import { UserIcon } from '@heroicons/react/24/solid';
 
-const navigation = [
+interface NavigationItem {
+  name: string;
+  href: string;
+  children?: NavigationItem[];
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
+
+const navigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/admin/dashboard' },
   { 
     name: 'Food',
@@ -19,49 +26,35 @@ const navigation = [
   { name: 'Utility', href: '/admin/utils', icon: CogIcon }
 ];
 
-const Navigation = () => {
+const Navigation: React.FC = () => {
   return (
-    <Disclosure as="nav">
+    <Disclosure>
       {({ open }) => (
         <>
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <a 
-              className="text-sm font-medium text-gray-600 hover:text-gray-900" 
-              href="/admin/dashboard"
-            >
-              Dashboard
-            </a>
-            {/* ... Food dropdown ... */}
-            <a 
-              className="text-sm font-medium text-gray-600 hover:text-gray-900" 
-              href="/admin/users"
-            >
-              Users
-            </a>
-            <a 
-              className="text-sm font-medium text-gray-600 hover:text-gray-900" 
-              href="/admin/utils"
-            >
-              <span className="flex items-center">
-                <CogIcon className="h-4 w-4 mr-1" />
-                Utility
-              </span>
-            </a>
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className="text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium"
+              >
+                {item.name}
+              </Link>
+            ))}
           </div>
 
           {/* Mobile Navigation */}
           <Disclosure.Panel className="md:hidden">
             <div className="space-y-1 px-2 pb-3 pt-2">
               {navigation.map((item) => (
-                <Disclosure.Button
+                <Link
                   key={item.name}
-                  as="a"
-                  href={item.href}
+                  to={item.href}
                   className="text-gray-600 hover:text-gray-900 block px-3 py-2 text-base font-medium"
                 >
                   {item.name}
-                </Disclosure.Button>
+                </Link>
               ))}
             </div>
           </Disclosure.Panel>
@@ -71,4 +64,4 @@ const Navigation = () => {
   );
 };
 
-// ... rest of your Navigation component code 
+export default Navigation;

@@ -6,38 +6,51 @@ import type { DropResult } from '@hello-pangea/dnd';
 import { getRecipes, updateRecipe, deleteRecipe } from '../../services/recipeService';
 import { PencilIcon, TrashIcon, DocumentDuplicateIcon, Bars3Icon, EyeIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { Recipe } from '../../types';
+import { Recipe, RecipeIngredient, IngredientDivider, Difficulty } from '../../types/recipe';
 
-interface RecipeWithId extends Recipe {
-  id: string;
-  position?: number;
-}
+interface DashboardRecipe extends Pick<Recipe, 'id' | 'title' | 'description' | 'ingredients' | 'steps' | 'tags' | 'position' | 'image' | 'prepTime' | 'cookTime' | 'difficulty' | 'servings' | 'featured' | 'nutrition'> {}
 
 const Dashboard: FC = () => {
   const navigate = useNavigate();
-  const [recipes, setRecipes] = useState<RecipeWithId[]>([]);
+  const [recipes, setRecipes] = useState<DashboardRecipe[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadRecipes();
+    const fetchRecipes = async () => {
+      try {
+        const recipesData = await getRecipes();
+        const formattedRecipes = recipesData.map((recipe: Recipe): DashboardRecipe => ({
+          id: recipe.id,
+          title: recipe.title,
+          description: recipe.description,
+          ingredients: recipe.ingredients,
+          steps: recipe.steps,
+          tags: recipe.tags,
+          position: recipe.position,
+          image: recipe.image,
+          prepTime: recipe.prepTime,
+          cookTime: recipe.cookTime,
+          difficulty: recipe.difficulty,
+          servings: recipe.servings,
+          featured: recipe.featured,
+          nutrition: recipe.nutrition
+        }));
+        setRecipes(formattedRecipes);
+      } catch (error) {
+        console.error('Error fetching recipes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecipes();
   }, []);
-
-  const loadRecipes = async (): Promise<void> => {
-    try {
-      const recipesData = await getRecipes();
-      const sortedRecipes = recipesData.sort((a, b) => 
-        (a.position || Number.MAX_VALUE) - (b.position || Number.MAX_VALUE)
-      );
-      setRecipes(sortedRecipes);
-    } catch (error) {
-      console.error('Error fetching recipes:', error);
-    }
-  };
 
   const handleDelete = async (id: string): Promise<void> => {
     if (window.confirm('Are you sure you want to delete this recipe?')) {
       try {
         await deleteRecipe(id);
-        await loadRecipes();
+        setRecipes(recipes.filter(recipe => recipe.id !== id));
+        toast.success('Recipe deleted successfully');
       } catch (error) {
         console.error('Error deleting recipe:', error);
         toast.error('Failed to delete recipe');
@@ -45,15 +58,27 @@ const Dashboard: FC = () => {
     }
   };
 
-  const handleDuplicate = async (recipe: RecipeWithId): Promise<void> => {
+  const handleDuplicate = async (recipe: DashboardRecipe): Promise<void> => {
     try {
-      const { id, ...recipeWithoutId } = recipe;
-      await updateRecipe(id, {
-        ...recipeWithoutId,
+      const duplicatedRecipe: Partial<Recipe> = {
         title: `${recipe.title} (Copy)`,
-      });
+        description: recipe.description,
+        ingredients: recipe.ingredients,
+        steps: recipe.steps,
+        tags: recipe.tags,
+        position: recipe.position,
+        image: recipe.image,
+        prepTime: recipe.prepTime,
+        cookTime: recipe.cookTime,
+        difficulty: recipe.difficulty,
+        servings: recipe.servings,
+        featured: recipe.featured,
+        nutrition: recipe.nutrition
+      };
+      await updateRecipe(recipe.id, duplicatedRecipe);
       toast.success('Recipe duplicated successfully');
-      await loadRecipes();
+      const recipesData = await getRecipes();
+      setRecipes(recipesData);
     } catch (error) {
       console.error('Error duplicating recipe:', error);
       toast.error('Failed to duplicate recipe');
@@ -84,7 +109,8 @@ const Dashboard: FC = () => {
     } catch (error) {
       console.error('Error updating recipe positions:', error);
       toast.error('Failed to update recipe order');
-      await loadRecipes();
+      const recipesData = await getRecipes();
+      setRecipes(recipesData);
     }
   };
 

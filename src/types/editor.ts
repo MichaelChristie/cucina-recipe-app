@@ -1,4 +1,4 @@
-import { Recipe } from './recipe';
+import { Recipe, IngredientDivider } from './recipe';
 import { VideoMetadata } from './shared';
 import { Ingredient } from './admin';
 
@@ -8,6 +8,7 @@ export interface EditorIngredient {
   amount: number | '';
   unit: string;
   ingredientId: string;
+  defaultUnit?: string;
   confirmed?: boolean;
 }
 
@@ -16,10 +17,11 @@ export interface EditorStep {
   instruction: string;
 }
 
-export interface EditorRecipe extends Omit<Recipe, 'ingredients' | 'steps'> {
+export interface EditorRecipe extends Omit<Recipe, 'ingredients' | 'steps' | 'featured'> {
   ingredients: Array<EditorIngredient | IngredientDivider>;
   steps: EditorStep[];
   showTagsPanel?: boolean;
+  featured?: boolean;
   nutrition: {
     calories: string | number;
     protein?: string | number;
@@ -27,7 +29,6 @@ export interface EditorRecipe extends Omit<Recipe, 'ingredients' | 'steps'> {
     fat?: string | number;
   };
   video: VideoMetadata | null;
-  featured?: boolean;
 }
 
 export interface StickyFooterProps {
@@ -45,8 +46,5 @@ export interface AddIngredientModalProps {
   initialName?: string;
 }
 
-export interface IngredientDivider {
-  id: string;
-  type: 'divider';
-  label: string;
-} 
+// Re-export IngredientDivider for convenience
+export type { IngredientDivider }; 

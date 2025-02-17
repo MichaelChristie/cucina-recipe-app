@@ -5,10 +5,10 @@ export interface AdminLayoutProps {
 }
 
 export interface Tag {
-  id?: string;
+  id: string;
   name: string;
   emoji: string;
-  category: string;
+  category: TagCategory;
   active: boolean;
 }
 
@@ -96,17 +96,23 @@ export interface Ingredient {
   category: string;
   defaultUnit: string;
   defaultAmount: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | Timestamp;
+  updatedAt: Date | Timestamp;
+  confirmed?: boolean;
 }
 
 export interface IngredientInRecipe {
+  id: string;
   ingredientId: string;
   amount: number;
   unit: string;
+  name: string;
+  defaultUnit: string;
+  confirmed?: boolean;
 }
 
 export interface RecipeStep {
+  id?: string;
   text: string;
   order: number;
 }
@@ -116,4 +122,6 @@ export interface User {
   name: string;
   email: string;
   role: string;
+  createdAt?: Date | Timestamp;
+  updatedAt?: Date | Timestamp;
 } 
