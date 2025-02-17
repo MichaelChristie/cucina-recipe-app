@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "cucina-recipe-app"
-  }
+    "default": "cucina-recipe-app",
+    "prod": "cucina-9d5ff"
+  },
+  "targets": {},
+  "etags": {}
 }
