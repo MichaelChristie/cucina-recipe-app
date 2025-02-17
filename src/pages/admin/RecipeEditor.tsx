@@ -11,7 +11,7 @@ import {
   EyeIcon 
 } from '@heroicons/react/24/outline';
 import { Switch } from '@headlessui/react';
-import { toast } from 'react-hot-toast';
+import { toast, ToastOptions } from 'react-hot-toast';
 import { 
   MDXEditor, 
   toolbarPlugin, 
@@ -556,6 +556,13 @@ interface VideoUploadProps {
   className?: string;
 }
 
+interface FFmpeg {
+  exec: (commands: string[]) => Promise<void>;
+  terminate: () => Promise<void>;
+  on: (event: string, callback: (data: any) => void) => void;
+  off: (event: string) => void;
+}
+
 const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '' }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -588,7 +595,7 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
     }
 
     setIsProcessing(true);
-    let ffmpeg;
+    let ffmpeg: FFmpeg | null = null;
     
     try {
       ffmpeg = await getFFmpeg();
@@ -696,14 +703,16 @@ const VideoUpload: FC<VideoUploadProps> = ({ video, onVideoChange, className = '
           }
         } catch (processError) {
           console.error('Video processing failed, falling back to original file:', processError);
-          toast.warning('Video processing failed, uploading original file');
+          toast.warning('Video processing failed, uploading original file', {
+            duration: 3000
+          } as ToastOptions);
           uploadFile = file;
         }
       } else {
         console.warn('FFmpeg not loaded, uploading original file');
-        toast('Video processing unavailable, uploading original file', {
-          icon: '⚠️',
-        });
+        toast.error('Video processing failed, uploading original file', {
+          duration: 3000
+        } as ToastOptions);
       }
       
       // Create a unique filename
@@ -1618,7 +1627,7 @@ const RecipeEditor: FC = () => {
                     ref={provided.innerRef}
                     className="space-y-4"
                   >
-                    {recipe.ingredients?.map((item, index) => (
+                    {recipe.ingredients?.map((item: RecipeIngredient | IngredientDivider, index: number) => (
                       <Draggable 
                         key={item.id}
                         draggableId={item.id}
@@ -1796,7 +1805,7 @@ const RecipeEditor: FC = () => {
           <div className="mt-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Instructions</h2>
             <div className="space-y-4">
-              {recipe.steps?.map((step, index) => (
+              {recipe.steps?.map((step: Step, index: number) => (
                 <div key={index} className="flex gap-4">
                   <div className="flex-shrink-0 pt-2">
                     <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-700 font-medium">

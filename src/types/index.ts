@@ -1,6 +1,7 @@
-export { Recipe, Step, RecipeIngredient, IngredientDivider } from './recipe';
-export { Tag, Ingredient, User as AdminUser, TagCategory, TAG_CATEGORIES } from './admin';
-export { VideoMetadata } from './shared';
-export { User, AuthContextType } from './auth';
-export { FirebaseConfig } from './firebase';
-export { EditorRecipe, EditorIngredient, EditorStep } from './editor'; 
+export type { Recipe, Step, RecipeIngredient, IngredientDivider } from './recipe';
+export type { Tag, Ingredient, User as AdminUser, TagCategory } from './admin';
+export { TAG_CATEGORIES } from './admin';
+export type { VideoMetadata } from './shared';
+export type { User, AuthContextType } from './auth';
+export type { FirebaseConfig } from './firebase';
+export type { EditorRecipe, EditorIngredient, EditorStep } from './editor'; 

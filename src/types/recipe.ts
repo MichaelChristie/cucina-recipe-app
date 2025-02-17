@@ -11,14 +11,7 @@ export interface Recipe {
   difficulty: string;
   servings?: number;
   tags: string[];
-  ingredients: Array<{
-    ingredientId: string;
-    amount: number;
-    unit: string;
-  } | {
-    type: 'divider';
-    label: string;
-  }>;
+  ingredients: Array<RecipeIngredient | IngredientDivider>;
   steps: Step[];
   position?: number;
   createdAt: Date;
@@ -50,4 +43,11 @@ export interface RecipeIngredient {
 export interface IngredientDivider {
   type: 'divider';
   label: string;
-} 
+  id?: string;
+}
+
+export const isIngredientDivider = (
+  ingredient: RecipeIngredient | IngredientDivider
+): ingredient is IngredientDivider => {
+  return 'type' in ingredient && ingredient.type === 'divider';
+}; 
